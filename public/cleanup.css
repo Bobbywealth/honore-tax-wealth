@@ -200,3 +200,7 @@ body.nav-scrolled .nav .brand-logo{width:100px;height:64px}
 .hero-tax-strip button{padding:16px!important;border:1px solid #d9b87855!important;border-radius:8px;background:#0b1a2acc}
 .slide-controls{bottom:12px}
 }
+@media(min-width:701px) and (max-width:1024px){
+.hero-tax-strip{background:transparent!important;gap:10px!important;padding:0!important}
+.hero-slide{background-position:70% top!important}
+}
