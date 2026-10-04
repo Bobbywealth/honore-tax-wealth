@@ -1,6 +1,6 @@
 import { User, Building2, Palette, Bell, Lock, Mail, CreditCard, FileText, Users, Plug } from "lucide-react";
 import AdminShell from "../AdminShell";
-import { checkAdminAccess } from "../auth";
+import { checkAdminAccess } from "../auth.tsx";
 
 export const dynamic = "force-dynamic";
 

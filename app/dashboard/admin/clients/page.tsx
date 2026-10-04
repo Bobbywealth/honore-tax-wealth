@@ -1,6 +1,6 @@
 import { Search, Filter, Plus, Download, Mail } from "lucide-react";
 import AdminShell from "../AdminShell";
-import { checkAdminAccess } from "../auth";
+import { checkAdminAccess } from "../auth.tsx";
 
 export const dynamic = "force-dynamic";
 

@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalIcon } from "lucide-react";
 import AdminShell from "../AdminShell";
-import { checkAdminAccess } from "../auth";
+import { checkAdminAccess } from "../auth.tsx";
 
 export const dynamic = "force-dynamic";
 
