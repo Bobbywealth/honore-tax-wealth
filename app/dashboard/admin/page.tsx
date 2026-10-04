@@ -1,7 +1,6 @@
 import { env } from "cloudflare:workers";
 import { headers } from "next/headers";
 import { Inbox, LockKeyhole } from "lucide-react";
-import "./admin.css";
 import AdminShell from "./AdminShell";
 
 export const dynamic = "force-dynamic";
