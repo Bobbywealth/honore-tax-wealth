@@ -108,3 +108,8 @@ body{background:#faf9f5;color:#172435}.login-page{background:#0b1a2a;color:#fff}
 .hero-tax-strip button span{font-size:12px;line-height:1.35}
 .slide-controls{display:none}
 }
+@media(max-width:700px){
+.hero .hero-mobile-cta{display:none!important}
+.hero-tax-strip{background:transparent!important;gap:8px!important;padding:0!important}
+.hero-tax-strip button{border:1px solid #d9b87855!important;border-radius:6px}
+}
