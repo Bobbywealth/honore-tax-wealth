@@ -122,3 +122,33 @@ body{background:#faf9f5;color:#172435}.login-page{background:#0b1a2a;color:#fff}
 @media(max-width:700px){
 .hero-slide{background-position:80% top!important;background-size:auto 340px!important;background-repeat:no-repeat;background-color:#071829}
 }
+
+/* Modern nav: sticky glass bar, animated links, hamburger-to-X. */
+@media(min-width:701px){
+.nav{position:sticky;top:0;z-index:60;height:82px;background:#faf9f5e8;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid #e8e2d5;transition:height .3s ease,box-shadow .3s ease}
+body.nav-scrolled .nav{height:68px;box-shadow:0 10px 30px #0b1a2a14}
+.nav .brand-logo{transition:width .3s ease,height .3s ease}
+body.nav-scrolled .nav .brand-logo{width:100px;height:64px}
+.nav nav{gap:28px}
+.nav nav>a{position:relative;padding:8px 2px;color:#3b4a56;transition:color .2s}
+.nav nav>a::after{content:'';position:absolute;left:0;right:100%;bottom:0;height:2px;background:#c7a569;transition:right .25s ease}
+.nav nav>a:hover{color:#0b1a2a}
+.nav nav>a:hover::after{right:0}
+.nav-login,.nav-admin{border:1px solid #d9c9a3;border-radius:9px;padding:11px 15px;background:#fff;transition:background .2s,border-color .2s,color .2s}
+.nav-login:hover,.nav-admin:hover{background:#d9b878;border-color:#d9b878;color:#0b1a2a;text-decoration:none}
+}
+@media(max-width:700px){
+.nav{position:sticky;top:0;z-index:60;background:#faf9f5e8;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid #e8e2d5}
+.mobile-menu{width:46px;height:46px;border-radius:50%;border:1px solid #d9c9a3;background:#fff;color:transparent;position:relative;transition:background .25s,border-color .25s}
+.mobile-menu::before,.mobile-menu::after{content:'';position:absolute;left:13px;width:20px;height:2px;background:#0b1a2a;transition:transform .25s ease,top .25s ease}
+.mobile-menu::before{top:18px}
+.mobile-menu::after{top:26px}
+.mobile-menu[aria-expanded=true]{background:#d9b878;border-color:#d9b878}
+.mobile-menu[aria-expanded=true]::before{top:22px;transform:rotate(45deg)}
+.mobile-menu[aria-expanded=true]::after{top:22px;transform:rotate(-45deg)}
+.nav nav{top:76px;left:12px;right:12px;border-radius:16px;padding:14px;gap:6px;background:#fffefaf5;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #e8e0cf;box-shadow:0 30px 60px #0b1a2a33}
+.nav nav>a,.nav nav>.nav-book,.nav nav>.nav-login,.nav nav>.nav-admin{border-radius:10px;text-align:center;justify-content:center;padding:15px}
+.nav nav>a:hover{background:#f4eedd}
+.nav nav>.nav-book{background:#0b1a2a;color:#fff;margin-top:6px}
+.nav nav>.nav-login,.nav nav>.nav-admin{border:1px solid #e0d5b8;background:#fff}
+}
