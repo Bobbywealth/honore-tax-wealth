@@ -285,3 +285,84 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
 /* #13 Reveal: avoid flash of invisible content */
 .reveal{opacity:1;transform:none}
 @media(prefers-reduced-motion:no-preference){.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}.reveal.visible{opacity:1;transform:none}.reveal-stagger > *{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}.reveal-stagger.visible > *{opacity:1;transform:none}}
+
+/* Modern consultation form: 2-col grid, floating labels, service cards, stepper */
+.consultation-dialog{padding:0!important;border:0;background:transparent;max-width:min(640px,calc(100vw - 32px));width:100%;border-radius:20px;box-shadow:0 40px 100px #0b1a2a55}
+.consultation-dialog::backdrop{background:#0b1a2ad9;backdrop-filter:blur(6px)}
+.consultation-dialog > form,
+.consultation-dialog > .form-head{max-width:none}
+.consultation-dialog .form-head{padding:32px 36px 24px;border-bottom:1px solid #efebe0;background:#fff;border-radius:20px 20px 0 0}
+.consultation-dialog .form-head h2{font:500 30px/1.1 Georgia,serif;letter-spacing:-.025em;margin:6px 0 8px;color:#0b1a2a}
+.consultation-dialog .form-head h2 i{color:#b48f4d;font-style:italic}
+.consultation-dialog .form-head p{font-size:14px;color:#53606d;margin:0;line-height:1.5}
+.consultation-dialog .form-head img{display:none}
+.dialog-close{position:absolute;top:14px;right:14px;width:38px;height:38px;border:0;background:transparent;color:#0b1a2a;font-size:24px;line-height:1;cursor:pointer;border-radius:50%;transition:background .15s}
+.dialog-close:hover{background:#f1ead9}
+.consultation-dialog form{padding:24px 36px 28px;background:#fff;border-radius:0 0 20px 20px}
+.form-stepper{display:flex;gap:18px;margin-top:18px;font-family:Manrope,sans-serif}
+.form-step{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:#9aa6af;font:700 11px Manrope,sans-serif;letter-spacing:.18em;cursor:pointer;transition:color .2s}
+.form-step .step-num{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:grid;place-items:center;font-size:11px;letter-spacing:0}
+.form-step.active{color:#0b1a2a}
+.form-step.active .step-num{background:#d9b878;border-color:#d9b878;color:#0b1a2a}
+.form-step:not(.active) .step-num{color:#b6c0c8;border-color:#b6c0c8}
+.form-panel.hidden{display:none}
+.form-panel-intro{font-size:14px;color:#53606d;margin:0 0 18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.form-grid .full{grid-column:1/-1}
+.float-field{position:relative;display:block}
+.float-field > span{position:absolute;left:16px;top:50%;transform:translateY(-50%);font:500 14px 'DM Sans',sans-serif;color:#7c8893;pointer-events:none;transition:all .18s ease;background:transparent;padding:0 4px}
+.float-field > textarea + span,
+.float-field > span:has(+ textarea){display:none}
+.float-field textarea + span{top:18px;transform:none}
+.float-field input,
+.float-field select,
+.float-field textarea{width:100%;height:52px;padding:18px 16px 6px;border:1.5px solid #dfe3e0;border-radius:10px;background:#fbfaf6;font:15px 'DM Sans',sans-serif;color:#0b1a2a;outline:0;transition:border-color .15s,box-shadow .15s,background .15s;-webkit-appearance:none;appearance:none}
+.float-field textarea{height:auto;min-height:96px;padding:22px 16px 12px;resize:vertical}
+.float-field select{padding-right:36px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%230b1a2a' d='M6 8L0 0h12z'/></svg>");background-repeat:no-repeat;background-position:right 16px center;background-size:10px}
+.float-field input:focus,
+.float-field select:focus,
+.float-field textarea:focus{border-color:#b48f4d;background:#fff;box-shadow:0 0 0 4px #d9b87822}
+.float-field.has-value > span,
+.float-field input:focus + span,
+.float-field select:focus + span,
+.float-field textarea:focus + span{top:0;transform:translateY(-50%) scale(.85);color:#7c8893;background:#fbfaf6}
+.float-field input:focus + span,
+.float-field select:focus + span,
+.float-field textarea:focus + span{color:#b48f4d;background:#fff}
+.float-field.has-value input:focus + span,
+.float-field.has-value select:focus + span,
+.float-field.has-value textarea:focus + span{background:#fff}
+.float-field > em{font-style:normal;color:#9aa6af;font-size:12px;margin-left:6px}
+.form-grid + .form-trust{margin-top:6px}
+.form-trust{display:flex;flex-wrap:wrap;gap:14px 22px;padding:14px 0 6px;border-top:1px dashed #e6e1d3;font:500 12px 'DM Sans',sans-serif;color:#53606d}
+.trust-item{display:inline-flex;align-items:center;gap:6px}
+.trust-item svg{color:#b48f4d}
+.form-actions{display:flex;justify-content:flex-end;margin-top:18px;gap:10px}
+.form-actions.between{justify-content:space-between}
+.form-next,
+.form-submit{height:50px;padding:0 28px;border:0;border-radius:10px;background:#0b1a2a;color:#fff;font:800 13px Manrope,sans-serif;letter-spacing:.1em;cursor:pointer;transition:background .2s,transform .1s}
+.form-next:hover,
+.form-submit:hover{background:#1a3046}
+.form-next:disabled,
+.form-submit:disabled{opacity:.55;cursor:not-allowed}
+.form-back{height:50px;padding:0 22px;border:0;background:transparent;color:#53606d;font:800 12px Manrope,sans-serif;letter-spacing:.1em;cursor:pointer;border-radius:8px}
+.form-back:hover{background:#f1ead9;color:#0b1a2a}
+.service-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.service-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 16px;border:1.5px solid #dfe3e0;border-radius:10px;background:#fbfaf6;cursor:pointer;text-align:left;font-family:Manrope,sans-serif;transition:border-color .15s,background .15s,transform .1s}
+.service-card:hover{border-color:#b48f4d;background:#fff}
+.service-card[aria-checked=true]{border-color:#b48f4d;background:#fff;box-shadow:0 0 0 3px #d9b87833;transform:translateY(-1px)}
+.service-card strong{font:700 14px Manrope,sans-serif;color:#0b1a2a;letter-spacing:.02em}
+.service-card span{font:500 12px 'DM Sans',sans-serif;color:#61707a;line-height:1.4}
+#form-feedback{font:600 13px Manrope,sans-serif;margin:14px 0 0;color:#61707a;min-height:18px}
+#form-feedback.success{color:#2f7a52}
+#form-feedback.success::before{content:"✓ ";font-weight:800}
+#form-feedback::before{content:"⚠ ";color:#c25a3e;display:none}
+#form-feedback:not(.success):not(:empty)::before{display:inline}
+@media(max-width:600px){
+.consultation-dialog .form-head{padding:24px 22px 20px}
+.consultation-dialog .form-head h2{font-size:24px}
+.consultation-dialog form{padding:20px 22px 24px}
+.form-grid{grid-template-columns:1fr}
+.service-grid{grid-template-columns:1fr}
+.form-stepper{gap:12px}
+}

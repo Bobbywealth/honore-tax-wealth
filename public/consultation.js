@@ -26,37 +26,72 @@
   if(closeBtn) closeBtn.addEventListener('click',()=>dialog.close());
   dialog.addEventListener('click',event=>{if(event.target===dialog) dialog.close()});
 
-  // Form submit
+  // Form submit + multi-step
   const form=document.getElementById('consultation-form');
   const feedback=document.getElementById('form-feedback');
+  const dialog2=document.getElementById('consultation-dialog');
   if(form && feedback){
+    // Service-card selection syncs the hidden select + sets aria-checked
+    const cards=form.querySelectorAll('.service-card');
+    const serviceSelect=form.querySelector('select[name=service]');
+    cards.forEach(card=>{
+      card.addEventListener('click',()=>{
+        cards.forEach(c=>c.setAttribute('aria-checked','false'));
+        card.setAttribute('aria-checked','true');
+        if(serviceSelect) serviceSelect.value=card.dataset.value;
+      });
+    });
+    // Stepper
+    const steps=form.querySelectorAll('.form-step');
+    const panels=form.querySelectorAll('.form-panel');
+    const goStep=(n)=>{
+      steps.forEach(s=>{const on=Number(s.dataset.step)===n; s.classList.toggle('active',on); s.setAttribute('aria-selected',String(on));});
+      panels.forEach(p=>p.classList.toggle('hidden',Number(p.dataset.panel)!==n));
+    };
+    form.querySelectorAll('[data-next]').forEach(b=>b.addEventListener('click',()=>{
+      // Validate step 1 fields before moving on
+      const step1=form.querySelector('[data-panel="1"]');
+      const fields=step1?step1.querySelectorAll('input, select'):[];
+      let ok=true; fields.forEach(f=>{if(!f.checkValidity()){f.reportValidity();ok=false;}});
+      if(ok) goStep(Number(b.dataset.next));
+    }));
+    form.querySelectorAll('[data-prev]').forEach(b=>b.addEventListener('click',()=>goStep(Number(b.dataset.prev))));
+    // Floating-label sync (works for placeholder-based)
+    form.querySelectorAll('.float-field input, .float-field select, .float-field textarea').forEach(el=>{
+      const sync=()=>el.closest('.float-field')?.classList.toggle('has-value', !!el.value);
+      sync(); el.addEventListener('input',sync); el.addEventListener('change',sync); el.addEventListener('blur',sync);
+    });
+    // Sync card to existing select (e.g. when opened from a data-open-consultation with data-service)
+    const syncFromSelect=()=>{
+      if(!serviceSelect) return;
+      cards.forEach(c=>c.setAttribute('aria-checked', String(c.dataset.value===serviceSelect.value)));
+    };
+    if(serviceSelect){ syncFromSelect(); serviceSelect.addEventListener('change',syncFromSelect); }
     form.addEventListener('submit',async event=>{
-      event.preventDefault();
-      event.stopPropagation();
-      const button=form.querySelector('[type=submit]');
+      event.preventDefault(); event.stopPropagation();
       const honeypot=form.querySelector('[name=website]')?.value;
       if(honeypot){ feedback.textContent='Submission blocked.'; feedback.classList.remove('success'); return; }
+      // Validate all fields
+      const fields=form.querySelectorAll('input, select, textarea');
+      let ok=true; fields.forEach(f=>{if(!f.checkValidity()){ok=false;}});
+      if(!ok){ goStep(1); feedback.textContent='Please complete the required fields.'; feedback.classList.remove('success'); return; }
+      // Service card sync
+      const checked=form.querySelector('.service-card[aria-checked="true"]');
+      if(checked && serviceSelect) serviceSelect.value=checked.dataset.value;
+      const button=form.querySelector('[type=submit]');
       button.disabled=true;
-      feedback.textContent='Sending your request…';
-      feedback.classList.remove('success');
+      feedback.textContent='Sending your request…'; feedback.classList.remove('success');
       const data=Object.fromEntries(new FormData(form));
       try{
         const response=await fetch('/api/consultations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-        if(!response.ok){
-          const err=await response.json().catch(()=>({}));
-          throw new Error(err.error || `Server returned ${response.status}. Please try again.`);
-        }
+        if(!response.ok){ const err=await response.json().catch(()=>({})); throw new Error(err.error || `Server returned ${response.status}. Please try again.`); }
         form.reset();
-        feedback.textContent='Thank you. Redirecting…';
-        feedback.classList.add('success');
+        feedback.textContent='Thank you. Redirecting…'; feedback.classList.add('success');
         setTimeout(()=>{location.href="/thank-you"},800);
       }catch(error){
         feedback.textContent=error.message || 'Unable to send right now. Please try again, or call us directly.';
         feedback.classList.remove('success');
-        // Keep dialog open so user can retry
-      }finally{
-        button.disabled=false;
-      }
+      }finally{ button.disabled=false; }
     });
   }
 
