@@ -366,3 +366,15 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
 .service-grid{grid-template-columns:1fr}
 .form-stepper{gap:12px}
 }
+
+/* Suppress native :invalid red borders until user has interacted (or form is submitted) */
+.consultation-dialog input:invalid:not(:focus):not(:placeholder-shown),
+.consultation-dialog select:invalid:not(:focus):not(:placeholder-shown),
+.consultation-dialog textarea:invalid:not(:focus):not(:placeholder-shown){border-color:#dfe3e0;background:#fbfaf6;box-shadow:none}
+.consultation-dialog[data-touched] input:invalid,
+.consultation-dialog[data-touched] select:invalid,
+.consultation-dialog[data-touched] textarea:invalid{border-color:#c25a3e;background:#fdf3f1}
+.consultation-dialog[data-touched] input:invalid:focus,
+.consultation-dialog[data-touched] select:invalid:focus,
+.consultation-dialog[data-touched] textarea:invalid:focus{box-shadow:0 0 0 4px #c25a3e22}
+.consultation-dialog input:valid:not(:placeholder-shown){border-color:#2f7a52}

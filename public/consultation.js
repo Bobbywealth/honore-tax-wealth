@@ -164,3 +164,9 @@
   // Lazy images
   document.querySelectorAll('img').forEach(img=>{if(!img.classList.contains('brand-logo') && !img.hasAttribute('loading')) img.setAttribute('loading','lazy')});
 })();
+
+  // Mark dialog as touched on first interaction
+  if(dialog2){
+    dialog2.addEventListener('input',()=>dialog2.setAttribute('data-touched','1'),{once:true});
+    dialog2.addEventListener('change',()=>dialog2.setAttribute('data-touched','1'),{once:true});
+  }
