@@ -1,4 +1,10 @@
-import type { Metadata } from "next";import "./globals.css";
+import type { Metadata, Viewport } from "next";import "./globals.css";
+export const viewport:Viewport={
+  width:"device-width",
+  initialScale:1,
+  themeColor:"#0b1a2a",
+  colorScheme:"light",
+};
 export const metadata:Metadata={
   metadataBase: new URL("https://honore-tax-wealth.onrender.com"),
   title:{default:"Honoré Tax & Wealth",template:"%s · Honoré Tax & Wealth"},
@@ -8,6 +14,8 @@ export const metadata:Metadata={
   authors:[{name:"Honoré Tax & Wealth"}],
   creator:"Honoré Tax & Wealth",
   publisher:"Honoré Tax & Wealth",
+  alternates:{canonical:"/"},
+  robots:{index:true, follow:true, googleBot:{index:true, follow:true, "max-image-preview":"large", "max-snippet":-1}},
   formatDetection:{telephone:false,address:false,email:false},
   icons:{icon:[
     {url:"/favicon.svg", type:"image/svg+xml"},
@@ -18,9 +26,7 @@ export const metadata:Metadata={
   ]},
   openGraph:{title:"Honoré Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",type:"website",siteName:"Honoré Tax & Wealth",images:[{url:"/assets/og/og.jpg",width:1200,height:630,alt:"Honoré Tax & Wealth"}]},
   twitter:{card:"summary_large_image",title:"Honoré Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",images:["/assets/og/og.jpg"]},
-  other:{"theme-color":"#0b1a2a","color-scheme":"light"},
 };
-// 5. JSON-LD structured data for LocalBusiness / ProfessionalService
 const jsonLd = {
   "@context":"https://schema.org",
   "@type":"ProfessionalService",
