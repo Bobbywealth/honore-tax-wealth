@@ -47,8 +47,9 @@
           throw new Error(err.error || `Server returned ${response.status}. Please try again.`);
         }
         form.reset();
-        feedback.textContent='Thank you. Your request was received. We will be in touch within 1 business day.';
+        feedback.textContent='Thank you. Redirecting…';
         feedback.classList.add('success');
+        setTimeout(()=>{location.href="/thank-you"},800);
       }catch(error){
         feedback.textContent=error.message || 'Unable to send right now. Please try again, or call us directly.';
         feedback.classList.remove('success');
