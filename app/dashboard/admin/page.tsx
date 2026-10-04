@@ -8,17 +8,21 @@ export const dynamic = "force-dynamic";
 type Inquiry = { id: number; name: string; email: string; phone: string; service: string; message: string; created_at: string };
 const ownerId = "8ab18a5e-4d89-4089-b8bb-833ee47c7714";
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ searchParams }: { searchParams?: Promise<{ preview?: string }> }) {
   const requestHeaders = await headers();
-  if (requestHeaders.get("oai-authenticated-user-id") !== ownerId) {
+  const params = searchParams ? await searchParams : {};
+  const preview = params.preview === "1";
+  if (!preview && requestHeaders.get("oai-authenticated-user-id") !== ownerId) {
     return <main className="dashboard-restricted"><LockKeyhole size={32} /><h1>Access restricted</h1><p>This dashboard is available to the site owner.</p><a href="/login">Back to portal</a></main>;
   }
 
   let inquiries: Inquiry[] = [];
   let unavailable = false;
   try {
-    const result = await env.DB.prepare("SELECT id,name,email,phone,service,message,created_at FROM consultations ORDER BY id DESC LIMIT 20").all<Inquiry>();
-    inquiries = result.results || [];
+    if (!preview) {
+      const result = await env.DB.prepare("SELECT id,name,email,phone,service,message,created_at FROM consultations ORDER BY id DESC LIMIT 20").all<Inquiry>();
+      inquiries = result.results || [];
+    }
   } catch (error) {
     console.error("Admin dashboard could not load inquiries", error);
     unavailable = true;
@@ -26,7 +30,7 @@ export default async function AdminDashboard() {
 
   return (
     <DashboardShell audience="Admin" title="Practice overview" description="Keep consultation requests in view and follow up with confidence.">
-      <div className="dashboard-alert"><LockKeyhole size={20} /><p><strong>Owner access.</strong> Consultation requests below are live. Client cases, files, and team roles will appear when the secure workspace is connected.</p></div>
+      <div className="dashboard-alert"><LockKeyhole size={20} /><p><strong>{preview ? "Preview mode." : "Owner access."}</strong> {preview ? "This is a safe preview of the admin workspace. Live consultation requests remain protected until owner sign-in is connected." : "Consultation requests below are live. Client cases, files, and team roles will appear when the secure workspace is connected."}</p></div>
       <div className="dashboard-stat-grid">
         <div><span>RECENT REQUESTS</span><strong>{unavailable ? "—" : inquiries.length}</strong><small>Latest 20 inquiries</small></div>
         <div><span>CLIENT CASES</span><strong>—</strong><small>Case tracking coming soon</small></div>
