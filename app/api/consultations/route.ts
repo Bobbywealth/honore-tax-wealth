@@ -1,37 +1,100 @@
 import { env } from "cloudflare:workers";
+import { z } from "zod";
 export const runtime = "edge";
 // Simple in-memory rate limit: max 5 submissions per IP per 10 minutes
 const buckets = new Map<string, number[]>();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQ = 5;
-function clientIp(request:Request):string{
+const MAX_BODY_BYTES = 4000;
+const ALLOWED_SERVICES = [
+  "Individual tax preparation",
+  "Business tax filing",
+  "Tax planning",
+  "IRS notice help",
+  "Not sure yet",
+] as const;
+
+function clientIp(request: Request): string {
   const fwd = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || "";
   return fwd.split(",")[0].trim() || "unknown";
 }
-function rateLimited(ip:string):boolean{
+function rateLimited(ip: string): boolean {
   const now = Date.now();
   const arr = buckets.get(ip) || [];
   const recent = arr.filter(t => now - t < WINDOW_MS);
-  if(recent.length >= MAX_REQ){ buckets.set(ip, recent); return true; }
+  if (recent.length >= MAX_REQ) { buckets.set(ip, recent); return true; }
   recent.push(now); buckets.set(ip, recent);
   return false;
 }
-export async function POST(request:Request){
+// Salted SHA-256 hash of the IP so logs don't carry raw client addresses.
+let hashSalt = "";
+async function ipHash(ip: string): Promise<string> {
+  if (!hashSalt && env.LOG_SALT) hashSalt = String(env.LOG_SALT);
+  const data = new TextEncoder().encode(`${hashSalt}|${ip}`);
+  const buf = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+}
+function logEvent(event: string, fields: Record<string, unknown>) {
+  // Single-line JSON, no raw PII (name/email/phone) — only counts and reasons.
+  console.log(JSON.stringify({ ts: new Date().toISOString(), event, ...fields }));
+}
+
+const schema = z.object({
+  name: z.string().trim().min(2, "name").max(100, "name"),
+  email: z.string().trim().email("email").max(180, "email"),
+  phone: z.string().trim().min(7, "phone").max(30, "phone"),
+  service: z.enum(ALLOWED_SERVICES, { errorMap: () => ({ message: "service" }) }),
+  message: z.string().trim().max(500, "message").optional().default(""),
+  website: z.string().optional().default(""), // honeypot — must be empty
+});
+
+export async function POST(request: Request) {
   const ip = clientIp(request);
-  if(rateLimited(ip)) return Response.json({error:"Too many requests. Please try again in a few minutes."},{status:429});
-  try{
-    if(Number(request.headers.get("content-length")||0)>4000) return Response.json({error:"Request too large"},{status:413});
-    const body = await request.json() as Record<string,unknown>;
-    const read=(key:string,max:number)=>typeof body[key]==="string"?(body[key] as string).trim().slice(0,max):"";
-    if(read("website",100)) return Response.json({ok:true});
-    const name=read("name",100),email=read("email",180),phone=read("phone",30),service=read("service",80),message=read("message",500);
-    const allowed=["Individual tax preparation","Business tax filing","Tax planning","IRS notice help","Not sure yet"];
-    if(name.length<2||!/^\S+@\S+\.\S+$/.test(email)||phone.length<7||!allowed.includes(service)) return Response.json({error:"Please check the required fields."},{status:400});
-    if(!env.DB) throw Error("Database unavailable");
-    await env.DB.prepare("INSERT INTO consultations (name,email,phone,service,message) VALUES (?,?,?,?,?)").bind(name,email,phone,service,message).run();
-    return Response.json({ok:true},{status:201});
-  }catch(error){
-    console.error("Consultation request failed",error);
-    return Response.json({error:"Unable to save the request."},{status:503});
+  const iph = await ipHash(ip);
+  if (rateLimited(ip)) {
+    logEvent("consult.rate_limited", { iph });
+    return Response.json({ error: "Too many requests. Please try again in a few minutes." }, { status: 429 });
+  }
+  try {
+    const len = Number(request.headers.get("content-length") || 0);
+    if (len > MAX_BODY_BYTES) {
+      logEvent("consult.body_too_large", { iph, contentLength: len });
+      return Response.json({ error: "Request too large" }, { status: 413 });
+    }
+    // Read body with a hard byte cap independent of Content-Length
+    const raw = await request.text();
+    if (raw.length > MAX_BODY_BYTES) {
+      logEvent("consult.body_too_large", { iph, bodyLength: raw.length });
+      return Response.json({ error: "Request too large" }, { status: 413 });
+    }
+    let parsed: unknown;
+    try { parsed = JSON.parse(raw); } catch {
+      logEvent("consult.bad_json", { iph });
+      return Response.json({ error: "Invalid request body." }, { status: 400 });
+    }
+    const result = schema.safeParse(parsed);
+    if (!result.success) {
+      const fields = result.error.issues.map(i => i.path.join(".") || "unknown");
+      logEvent("consult.validation_failed", { iph, fields });
+      return Response.json({ error: "Please check the required fields." }, { status: 400 });
+    }
+    const { name, email, phone, service, message, website } = result.data;
+    if (website && website.length > 0) {
+      logEvent("consult.honeypot", { iph });
+      return Response.json({ ok: true }); // silent drop
+    }
+    if (!env.DB) {
+      logEvent("consult.db_missing", { iph });
+      throw Error("Database unavailable");
+    }
+    await env.DB.prepare("INSERT INTO consultations (name,email,phone,service,message) VALUES (?,?,?,?,?)")
+      .bind(name, email, phone, service, message).run();
+    // Note: name/email/phone are NOT included in the log line — they are PII.
+    logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
+    return Response.json({ ok: true }, { status: 201 });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : "unknown";
+    logEvent("consult.error", { iph, reason: msg });
+    return Response.json({ error: "Unable to save the request." }, { status: 503 });
   }
 }
