@@ -119,3 +119,6 @@ body{background:#faf9f5;color:#172435}.login-page{background:#0b1a2a;color:#fff}
 .hero-slide{background-position:center top!important;background-size:cover}
 .hero-kicker{margin-top:0}
 }
+@media(max-width:700px){
+.hero-slide{background-position:80% top!important;background-size:auto 340px!important;background-repeat:no-repeat;background-color:#071829}
+}
