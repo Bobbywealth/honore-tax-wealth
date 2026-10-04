@@ -378,3 +378,6 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
 .consultation-dialog[data-touched] select:invalid:focus,
 .consultation-dialog[data-touched] textarea:invalid:focus{box-shadow:0 0 0 4px #c25a3e22}
 .consultation-dialog input:valid:not(:placeholder-shown){border-color:#2f7a52}
+
+/* Logo: keep emblem centered even if aspect ratio shifts */
+.nav .brand-logo, .footer .brand-logo, .login-brand .brand-logo{object-fit:cover;object-position:center 38%}
