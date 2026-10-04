@@ -258,3 +258,30 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
 #form-feedback{font:600 13px Manrope,sans-serif;margin-top:10px;color:#5b6770;min-height:18px}
 #form-feedback.success{color:#2f7a52}
 #form-feedback.success::before{content:"✓ ";font-weight:800}
+
+/* Audit fixes 2026-10-04 batch 2 */
+
+/* #3 Mobile action bar: only show when hero is out of view */
+@media(max-width:900px){
+.mobile-action-bar{opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .25s ease,transform .25s ease}
+.mobile-action-bar.is-visible{opacity:1;pointer-events:auto;transform:none}
+}
+@media(min-width:901px){
+.mobile-action-bar{display:none!important}
+}
+
+/* #8 Desktop hero tax-strip background bleed fix */
+@media(min-width:1025px){
+.hero-tax-strip{background:transparent!important;gap:18px!important;padding:0!important}
+}
+
+/* #10 Footer logo tighter */
+.footer .brand-logo{width:130px!important;height:84px!important}
+.footer-brand .brand{align-self:flex-start;background:transparent;border:0;box-shadow:none;padding:0}
+
+/* #17 Dialog: prevent form submit from auto-closing on error */
+.consultation-dialog::backdrop{background:#0b1a2acc}
+
+/* #13 Reveal: avoid flash of invisible content */
+.reveal{opacity:1;transform:none}
+@media(prefers-reduced-motion:no-preference){.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}.reveal.visible{opacity:1;transform:none}.reveal-stagger > *{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}.reveal-stagger.visible > *{opacity:1;transform:none}}

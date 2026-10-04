@@ -1,5 +1,6 @@
 import type { Metadata } from "next";import "./globals.css";
 export const metadata:Metadata={
+  metadataBase: new URL("https://honore-tax-wealth.onrender.com"),
   title:"Honoré Tax & Wealth",
   description:"Tax preparation, filing, and planning with a bigger picture in focus.",
   icons:{icon:"/favicon.svg",apple:"/favicon.svg"},
@@ -10,7 +11,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
   return (
     <html lang="en">
       <body>
-        <link rel="preload" as="image" href="/assets/hero-couple.webp" fetchPriority="high"/>
+        <link rel="preload" as="image" href="/assets/hero-couple.webp" fetchpriority="high"/>
         {children}
         <script src="/consultation.js" defer />
       </body>

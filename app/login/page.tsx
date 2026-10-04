@@ -15,12 +15,6 @@ export default function Login() {
           <p className="login-intro">Access your account.</p>
 
           <form className="login-simple-form">
-            <label htmlFor="access-type">Sign in as</label>
-            <select id="access-type" name="access-type" defaultValue="client">
-              <option value="client">Client</option>
-              <option value="team">Team / Admin</option>
-            </select>
-
             <label htmlFor="login-email">Email address</label>
             <input id="login-email" name="email" type="email" autoComplete="email" placeholder="you@example.com" />
 
