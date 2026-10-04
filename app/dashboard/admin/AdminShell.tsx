@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { BarChart3, Calendar, CheckSquare, FileText, Globe, Home, Inbox, LayoutDashboard, LogOut, Settings, UserPlus, Users } from "lucide-react";
-import Link from "next/link";
+
 
 type NavItem = { label: string; href: string; icon: ReactNode; badge?: { value: number; tone?: "default" | "red" } };
 
@@ -31,11 +31,11 @@ function Group({ label, items, currentHref }: { label: string; items: NavItem[];
       {items.map((item) => {
         const active = currentHref === item.href;
         return (
-          <Link key={item.label} href={item.href} className={`adm-it${active ? " is-active" : ""}`}>
+          <a key={item.label} href={item.href} className={`adm-it${active ? " is-active" : ""}`}>
             {item.icon}
             <span>{item.label}</span>
             {item.badge ? <span className={`adm-badge${item.badge.tone === "red" ? " red" : ""}`}>{item.badge.value}</span> : null}
-          </Link>
+          </a>
         );
       })}
     </>
@@ -53,9 +53,9 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
     <div className="adm-root">
       <aside className="adm-sb">
         <div className="adm-brand">
-          <Link href="/" className="adm-brand-plate" aria-label="Honoré Tax & Wealth home">
+          <a href="/" className="adm-brand-plate" aria-label="Honoré Tax & Wealth home">
             <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
-          </Link>
+          </a>
         </div>
 
         <Group label="Work" items={WORK} currentHref={currentHref} />
@@ -74,8 +74,8 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
             </div>
           </div>
           <div className="adm-foot">
-            <Link href="/dashboard"><Home size={13} /> Portal home</Link>
-            <Link href="/"><Globe size={13} /> Website</Link>
+            <a href="/dashboard"><Home size={13} /> Portal home</a>
+            <a href="/"><Globe size={13} /> Website</a>
           </div>
         </div>
       </aside>
