@@ -370,7 +370,7 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
 /* Suppress native :invalid red borders until user has interacted with the dialog (data-touched set on first input/change) */
 .consultation-dialog:not([data-touched]) input:invalid,
 .consultation-dialog:not([data-touched]) select:invalid,
-.consultation-dialog:not([data-touched]) textarea:invalid{border-color:#dfe3e0;background:#fbfaf6;box-shadow:none}
+.consultation-dialog:not([data-touched]) textarea:invalid{border-color:#dfe3e0!important;background:#fbfaf6!important;box-shadow:none!important}
 .consultation-dialog[data-touched] input:invalid,
 .consultation-dialog[data-touched] select:invalid,
 .consultation-dialog[data-touched] textarea:invalid{border-color:#c25a3e;background:#fdf3f1}
