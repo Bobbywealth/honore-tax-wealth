@@ -113,3 +113,9 @@ body{background:#faf9f5;color:#172435}.login-page{background:#0b1a2a;color:#fff}
 .hero-tax-strip{background:transparent!important;gap:8px!important;padding:0!important}
 .hero-tax-strip button{border:1px solid #d9b87855!important;border-radius:6px}
 }
+@media(max-width:700px){
+.hero-content{padding-top:250px!important}
+.hero-shade{background:linear-gradient(180deg,#07182900 0%,#07182900 24%,#071829d9 44%,#071829 62%,#071829 100%)!important}
+.hero-slide{background-position:center top!important;background-size:cover}
+.hero-kicker{margin-top:0}
+}
