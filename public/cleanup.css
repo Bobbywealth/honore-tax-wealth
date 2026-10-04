@@ -204,3 +204,57 @@ body.nav-scrolled .nav .brand-logo{width:100px;height:64px}
 .hero-tax-strip{background:transparent!important;gap:10px!important;padding:0!important}
 .hero-slide{background-position:70% top!important}
 }
+
+/* Modernization: reveals, smooth scroll, mobile CTA, scroll-spy, slideshow, form polish, a11y */
+
+/* 1. Scroll reveal */
+@media(prefers-reduced-motion:no-preference){
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:none}
+.reveal-stagger > *{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal-stagger.visible > *{opacity:1;transform:none}
+.reveal-stagger.visible > *:nth-child(1){transition-delay:.05s}
+.reveal-stagger.visible > *:nth-child(2){transition-delay:.12s}
+.reveal-stagger.visible > *:nth-child(3){transition-delay:.19s}
+.reveal-stagger.visible > *:nth-child(4){transition-delay:.26s}
+.reveal-stagger.visible > *:nth-child(5){transition-delay:.33s}
+.reveal-stagger.visible > *:nth-child(6){transition-delay:.4s}
+}
+
+/* 3. Smooth anchor scrolling */
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+
+/* 3. Scroll-spy active state */
+.nav nav>a.active{color:#0b1a2a}
+.nav nav>a.active::after{right:0}
+
+/* 2. Floating mobile CTA */
+@media(max-width:900px){
+.mobile-action-bar{position:fixed;bottom:18px;left:18px;right:18px;z-index:55;background:none;box-shadow:none;padding:0;display:flex;justify-content:center}
+.mobile-action-bar button{width:100%;max-width:360px;min-height:54px;background:#d9b878;color:#0b1a2a;border-radius:14px;font:800 13px Manrope,sans-serif;letter-spacing:.1em;box-shadow:0 14px 30px #0b1a2a55;border:0}
+.mobile-action-bar button span{font-size:18px}
+}
+
+/* 5. Slideshow: progress bar on dots */
+.slide-controls{position:absolute;left:0;right:0;bottom:18px;display:flex;align-items:center;gap:14px;z-index:5}
+.slide-dots{display:flex;gap:8px}
+.slide-dot{position:relative;width:34px;height:4px;border:0;background:#ffffff40;border-radius:2px;padding:0;cursor:pointer;overflow:hidden}
+.slide-dot::after{content:"";position:absolute;inset:0;background:#d9b878;width:0;transition:width .15s linear}
+.slide-dot.active::after{width:100%;transition:width 5.5s linear}
+.slide-dot{background:#ffffff40}
+@media(max-width:700px){.slide-controls{display:none}}
+
+/* 8. Form polish: validation + success */
+.consultation-dialog label{position:relative;display:block}
+.consultation-dialog label > span,
+.consultation-dialog label > strong{font:700 13px Manrope,sans-serif;color:#172435;display:block;margin-bottom:6px}
+.consultation-dialog input:invalid:not(:placeholder-shown),
+.consultation-dialog select:invalid:not(:placeholder-shown),
+.consultation-dialog textarea:invalid:not(:placeholder-shown){border-color:#c25a3e!important;background:#fdf3f1}
+.consultation-dialog input:focus:invalid,
+.consultation-dialog select:focus:invalid,
+.consultation-dialog textarea:focus:invalid{box-shadow:0 0 0 3px #c25a3e26}
+.consultation-dialog input:valid:not(:placeholder-shown){border-color:#2f7a52}
+#form-feedback{font:600 13px Manrope,sans-serif;margin-top:10px;color:#5b6770;min-height:18px}
+#form-feedback.success{color:#2f7a52}
+#form-feedback.success::before{content:"✓ ";font-weight:800}
