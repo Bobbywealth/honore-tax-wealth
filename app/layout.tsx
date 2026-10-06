@@ -55,6 +55,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
             cascade: style.css then cleanup.css. */}
         <link rel="stylesheet" href="/style.css"/>
         <link rel="stylesheet" href="/cleanup.css"/>
+        <link rel="stylesheet" href="/dashboard.css"/>
       </head>
       <body>
         <link rel="preload" as="image" href="/assets/hero-couple.webp" fetchPriority="high"/>
