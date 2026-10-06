@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
   let rows: Array<{
     number: string;
-    client: string;
+    client: string | null;
     status: string;
     total: string;
     paidAt: Date | null;
