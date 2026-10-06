@@ -1,7 +1,7 @@
 # Honoré Tax & Wealth - Production Readiness (master doc)
 
 ## Decisions (2026-10-05, Bobby)
-Render web service ($7) + free Postgres; Resend; Better Auth (no Clerk). Document storage: Cloudflare R2 (default). Tracking: GitHub issues #3-#16.
+Render web service ($7) + free Postgres; Resend; Better Auth (no Clerk). Cloudflare R2 default for documents. Tracking: GitHub issues #3-#16.
 
 ## Phase 1 status
 
@@ -10,25 +10,28 @@ Render web service ($7) + free Postgres; Resend; Better Auth (no Clerk). Documen
 | P1-01 Audit | Complete | This doc + PR #17 |
 | P1-02 Remove ?preview=1 bypass | Complete | PRs #1 + #2. Verified live |
 | P1-03 Real typecheck | Complete | PR #1. CI green |
-| P1-04 Render Postgres | Complete | `honore-pg` (dpg-db241tnlot8c73doj82g-a, free, Oregon, PG 16). `DATABASE_URL` set on web service. External direct connect rejected (in-network only) |
-| P1-05 Migrate runtime off Vinext/Wrangler | **Required before any DB-backed feature works** | Vinext builds a Cloudflare Worker manifest at build time. Adding `/api/probe` post-build returns 404. `process.env.DATABASE_URL` is set but `env.DB` from `cloudflare:workers` is undefined in wrangler-dev. |
+| P1-04 Render Postgres | Complete | `honore-pg` (dpg-db241tnlot8c73doj82g-a, free, Oregon, PG 16). `DATABASE_URL` set on web service |
+| P1-05 Runtime rewrite (Vinext -> Next.js on Node) | **In progress on `feat/node-runtime-postgres`** | Branch carries: Postgres db module, route/admin/inquiries ports, dropped Vinext/Wrangler/Cloudflare deps, `next dev`/`next build`/`next start` scripts, Postgres drizzle.config, `.env.example`. Live service untouched until staging smoke-test passes |
 
-## Live verification (2026-10-06)
-- `POST /api/consultations` returns 503 `Unable to save the request` (route is wired but `env.DB` is undefined).
-- `/dashboard/admin?preview=1` returns "Access restricted" (PR #2 fix verified live).
+## What changed in this branch (P1-05)
+- `db/schema.ts`: Postgres pgTable for consultations, with email + createdAt indexes.
+- `db/index.ts`: replaced D1 wrapper with `drizzle-orm/node-postgres` + `pg.Pool` reading `process.env.DATABASE_URL`. Connection cached on `globalThis` so dev/HMR doesn't open new pools.
+- `db/migrate.ts`: idempotent `CREATE TABLE IF NOT EXISTS` + indexes; runs on first request.
+- `app/api/consultations/route.ts`: Node runtime (`runtime = "nodejs"`, `dynamic = "force-dynamic"`); uses `db.insert(consultations)` instead of D1.
+- `app/dashboard/admin/page.tsx`: pulls inquiries from Postgres via Drizzle.
+- `app/inquiries/page.tsx`: same; keeps the interim owner-header gate (replaced by Better Auth in P2-01).
+- Deleted: `vite.config.ts`, `cloudflare-env.d.ts`, `scripts/`, `build/`, `examples/`, `.openai/`, `pnpm-workspace.yaml`, stale SQLite drizzle files.
+- Added: `.env.example`, Postgres drizzle.config, `pg` + `@types/pg` deps.
+- Removed deps: `@cloudflare/vite-plugin`, `@cloudflare/workers-types`, `vinext`, `wrangler`, `@vitejs/plugin-react`, `@vitejs/plugin-rsc`, `react-server-dom-webpack`, `vite`.
 
-## Why P1-05 is the only path forward
-The app uses Vinext (Cloudflare Workers via Vite + wrangler). Render runs `wrangler dev --local` with `persistTo: .wrangler/state`. In this mode:
-- `env.DB` (the Cloudflare D1 binding) is undefined because no D1 was provisioned.
-- `process.env.DATABASE_URL` is set on the Node host, but the route handler reads from `cloudflare:workers` so it never sees it.
-- Adding new API routes after the prerendered build returns 404 because the route manifest is build-time only.
+## What still needs verification on a Render staging service
+1. `pnpm install --frozen-lockfile` succeeds on the new deps (`pg`, no Cloudflare).
+2. `pnpm run build` produces a Next.js build (not a Vite/Wrangler output).
+3. `pnpm run start` serves the site.
+5. `POST /api/consultations` saves a row to `honore-pg` and returns 201.
+6. `/inquiries` lists it (with the owner header).
 
-## Next concrete step (Phase 1.5, big PR)
-Migrate to standard Next.js on Node so we get a real runtime:
-- Replace `node scripts/run-framework.mjs build` with `next build`.
-- Replace `wrangler dev --local` start with `next start -p $PORT -H 0.0.0.0`.
-- Port `db/index.ts` off D1 to `drizzle-orm/node-postgres` against `process.env.DATABASE_URL`.
-- Port `app/api/consultations/route.ts`, `app/dashboard/admin/page.tsx`, `app/inquiries/page.tsx` off `cloudflare:workers`.
-- Remove `@cloudflare/vite-plugin`, `@cloudflare/workers-types`, `vinext`, `wrangler` from devDeps; drop `scripts/run-framework.mjs`, `scripts/sites-env.*`.
-- Add `db/postgres/migrate.ts` that runs `CREATE TABLE IF NOT EXISTS consultations (...)` on first request.
-- Verify on a separate Render staging service off this branch; only flip production after smoke test.
+## Production cutover plan (after staging is green)
+1. Merge `feat/node-runtime-postgres` to `main`.
+2. `DATABASE_URL` is already set on `srv-db18i79srm7s73aiq96g` from earlier.
+3. Render auto-deploys from `main`. Verify on `https://honore-tax-wealth.onrender.com/api/consultations` (POST) and `/inquiries` (with owner header).

@@ -1,7 +1,13 @@
-import { env } from "cloudflare:workers";
 import { z } from "zod";
-export const runtime = "edge";
-// Simple in-memory rate limit: max 5 submissions per IP per 10 minutes
+import { db } from "@/db";
+import { consultations } from "@/db/schema";
+import { ensureMigrated } from "@/db/migrate";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+// Simple in-memory rate limit: max 5 submissions per IP per 10 minutes.
+// Replaced by a Postgres-backed rate limiter in P2-04.
 const buckets = new Map<string, number[]>();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQ = 5;
@@ -27,9 +33,8 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 // Salted SHA-256 hash of the IP so logs don't carry raw client addresses.
-let hashSalt = "";
+let hashSalt = process.env.LOG_SALT ?? "";
 async function ipHash(ip: string): Promise<string> {
-  if (!hashSalt && env.LOG_SALT) hashSalt = String(env.LOG_SALT);
   const data = new TextEncoder().encode(`${hashSalt}|${ip}`);
   const buf = await crypto.subtle.digest("SHA-256", data);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
@@ -61,7 +66,6 @@ export async function POST(request: Request) {
       logEvent("consult.body_too_large", { iph, contentLength: len });
       return Response.json({ error: "Request too large" }, { status: 413 });
     }
-    // Read body with a hard byte cap independent of Content-Length
     const raw = await request.text();
     if (raw.length > MAX_BODY_BYTES) {
       logEvent("consult.body_too_large", { iph, bodyLength: raw.length });
@@ -83,12 +87,12 @@ export async function POST(request: Request) {
       logEvent("consult.honeypot", { iph });
       return Response.json({ ok: true }); // silent drop
     }
-    if (!env.DB) {
+    if (!process.env.DATABASE_URL) {
       logEvent("consult.db_missing", { iph });
       throw Error("Database unavailable");
     }
-    await env.DB.prepare("INSERT INTO consultations (name,email,phone,service,message) VALUES (?,?,?,?,?)")
-      .bind(name, email, phone, service, message).run();
+    await ensureMigrated();
+    await db.insert(consultations).values({ name, email, phone, service, message });
     // Note: name/email/phone are NOT included in the log line — they are PII.
     logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
     return Response.json({ ok: true }, { status: 201 });

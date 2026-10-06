@@ -1,7 +1,10 @@
-import { env } from "cloudflare:workers";
 import { checkAdminAccess } from "./auth";
 import { Inbox } from "lucide-react";
 import AdminShell from "./AdminShell";
+import { db } from "@/db";
+import { consultations } from "@/db/schema";
+import { ensureMigrated } from "@/db/migrate";
+import { desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -65,9 +68,22 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
   let inquiries: Inquiry[] = [];
   let unavailable = false;
   try {
-    if (!preview) {
-      const result = await env.DB!.prepare("SELECT id,name,email,phone,service,message,created_at FROM consultations ORDER BY id DESC LIMIT 20").all<Inquiry>();
-      inquiries = result.results || [];
+    if (!preview && process.env.DATABASE_URL) {
+      await ensureMigrated();
+      const rows = await db
+        .select({
+          id: consultations.id,
+          name: consultations.name,
+          email: consultations.email,
+          phone: consultations.phone,
+          service: consultations.service,
+          message: consultations.message,
+          created_at: consultations.createdAt,
+        })
+        .from(consultations)
+        .orderBy(desc(consultations.id))
+        .limit(20);
+      inquiries = rows.map((r) => ({ ...r, created_at: r.created_at.toISOString() }));
     }
   } catch (error) {
     console.error("Admin dashboard could not load inquiries", error);

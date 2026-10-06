@@ -3,7 +3,7 @@ services:
     name: honore-tax-wealth
     runtime: node
     plan: free
-    buildCommand: pnpm install --frozen-lockfile && npm run build
-    startCommand: node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 0.0.0.0 --port $PORT --inspector-port 0
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    startCommand: pnpm run start
     healthCheckPath: /
     autoDeploy: true

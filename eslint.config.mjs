@@ -15,7 +15,7 @@ const eslintConfig = defineConfig([
   ]),
   {
     rules: {
-      // Stylistic only. Plain <a> is deliberate: next/link broke sidebar navigation under vinext (commit 89454ae).
+      // Stylistic only. Plain <a> is deliberate: next/link was previously incompatible with the server-rendered sidebar.
       "@next/next/no-html-link-for-pages": "off",
       // Apostrophes/quotes in static legal copy are safe; no injection risk.
       "react/no-unescaped-entities": "off",
