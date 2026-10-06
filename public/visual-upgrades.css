@@ -105,3 +105,12 @@
     }
   }
 }
+
+/* Founder feature follows the approach section; no image text is required for access. */
+.founder-desk-feature{position:relative;margin:0 auto 80px;overflow:hidden;border-radius:20px;background:#0b1a2a}
+.founder-desk-feature img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover}
+.founder-desk-feature figcaption{position:absolute;inset:auto 0 0;padding:72px 36px 30px;background:linear-gradient(transparent,#0b1a2aee);color:#fff}
+.founder-desk-feature figcaption span{display:block;font-size:11px;letter-spacing:.16em;color:#e4c995}
+.founder-desk-feature figcaption strong{display:block;font:400 clamp(22px,3vw,36px)/1.2 Georgia,serif;margin-top:10px}
+.founder-desk-feature figcaption p{margin:10px 0 0;font-size:15px}
+@media(max-width:700px){.founder-desk-feature{margin-bottom:40px;border-radius:14px}.founder-desk-feature figcaption{position:static;padding:22px;background:#0b1a2a}.founder-desk-feature img{aspect-ratio:3/2}}
