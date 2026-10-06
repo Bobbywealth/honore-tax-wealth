@@ -92,6 +92,24 @@ export async function peekRateLimit(
   return { allowed: true, remaining: limit - count, retryAfterSeconds: 0 };
 }
 
+/**
+ * Clear a caller's consumed quota.
+ *
+ * Called after a successful authentication so a legitimate user who mistyped
+ * twice is not left penalised by their own typos. Without this, every attempt
+ * counts against the budget regardless of outcome, and a shared attacker on the
+ * same egress IP could burn a real user's quota.
+ */
+export async function resetRateLimit(key: string): Promise<void> {
+  try {
+    await getDb().execute(sql`
+      DELETE FROM rate_limit_counters WHERE key = ${key}
+    `);
+  } catch {
+    // Best-effort: failing to clear quota must never fail a valid sign-in.
+  }
+}
+
 /** Drop counters whose window has long since elapsed. Cheap and bounded. */
 export async function sweepRateLimits(): Promise<number> {
   try {

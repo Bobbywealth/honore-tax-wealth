@@ -43,16 +43,32 @@ export async function hashPassword(password: string): Promise<string> {
 
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   try {
-    const [scheme, n, r, p, saltB64, keyB64] = stored.split("$");
+    const parts = stored.split("$");
+    if (parts.length !== 6) return false;
+    const [scheme, n, r, p, saltB64, keyB64] = parts;
     if (scheme !== "scrypt") return false;
+
+    // The stored parameters must match what hashPassword actually produces.
+    // Deriving the work factor from the stored value would also let a tampered
+    // row request a trivial cost factor.
+    if (Number(n) !== SCRYPT.N || Number(r) !== SCRYPT.r || Number(p) !== SCRYPT.p) return false;
+
     const salt = Buffer.from(saltB64, "base64");
     const expected = Buffer.from(keyB64, "base64");
-    const actual = await scrypt(password.normalize("NFKC"), salt, expected.length, {
-      N: Number(n),
-      r: Number(r),
-      p: Number(p),
-    });
-    return actual.length === expected.length && timingSafeEqual(actual, expected);
+
+    // Validate the decoded structure BEFORE deriving anything.
+    //
+    // Node's base64 decoder silently skips characters outside the alphabet, so
+    // the key segment of "scrypt$16384$8$1$!!!!$!!!!" decodes to an EMPTY
+    // buffer. Using expected.length as the scrypt key length then asks for a
+    // zero-length key, which returns a zero-length buffer, and
+    // timingSafeEqual(empty, empty) evaluates to true — authenticating ANY
+    // password against a corrupt stored hash. Failing closed on a malformed
+    // structure is the only safe direction here.
+    if (salt.length !== 16 || expected.length !== KEYLEN) return false;
+
+    const actual = await scrypt(password.normalize("NFKC"), salt, KEYLEN, SCRYPT);
+    return timingSafeEqual(actual, expected);
   } catch {
     return false;
   }

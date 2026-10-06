@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
-import { consumeRateLimit } from "@/lib/rate-limit";
+import { consumeRateLimit, resetRateLimit } from "@/lib/rate-limit";
 import {
   SESSION_COOKIE,
   clearFailedLogins,
@@ -120,6 +120,9 @@ export async function POST(request: Request) {
     }
 
     await clearFailedLogins(account.id);
+    // A valid sign-in clears this caller's quota so their own typos do not
+    // accumulate against them.
+    await resetRateLimit(`login:${iph}`);
     const { token, expires } = await createSession(account.id, {
       userAgent: request.headers.get("user-agent") ?? undefined,
       ipHash: iph,
