@@ -46,7 +46,7 @@ function clearFailures(ip: string): void {
   buckets.delete(ip);
 }
 
-let hashSalt = process.env.LOG_SALT ?? "";
+const hashSalt = process.env.LOG_SALT ?? "";
 async function ipHash(ip: string): Promise<string> {
   const data = new TextEncoder().encode(`${hashSalt}|${ip}`);
   const buf = await crypto.subtle.digest("SHA-256", data);

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { sendConsultationEmails } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +34,7 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 // Salted SHA-256 hash of the IP so logs don't carry raw client addresses.
-let hashSalt = process.env.LOG_SALT ?? "";
+const hashSalt = process.env.LOG_SALT ?? "";
 async function ipHash(ip: string): Promise<string> {
   const data = new TextEncoder().encode(`${hashSalt}|${ip}`);
   const buf = await crypto.subtle.digest("SHA-256", data);
@@ -95,6 +96,14 @@ export async function POST(request: Request) {
     await getDb().insert(consultations).values({ name, email, phone, service, message });
     // Note: name/email/phone are NOT included in the log line — they are PII.
     logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
+    // The lead is durably stored at this point, so email is strictly
+    // best-effort: a provider outage must not turn a saved submission into a
+    // 5xx for the visitor. sendConsultationEmails never throws.
+    const mail = await sendConsultationEmails({ name, email, phone, service, message });
+    logEvent(
+      "consult.email",
+      mail.ok ? { iph, sent: true } : { iph, sent: false, reason: mail.reason },
+    );
     return Response.json({ ok: true }, { status: 201 });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "unknown";
