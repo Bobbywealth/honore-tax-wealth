@@ -3,6 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const QUICK_ADMIN_EMAIL = process.env.NEXT_PUBLIC_QUICK_ADMIN_EMAIL ?? "";
+const QUICK_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_QUICK_ADMIN_PASSWORD ?? "";
+const QUICK_CLIENT_EMAIL = process.env.NEXT_PUBLIC_QUICK_CLIENT_EMAIL ?? "";
+const QUICK_CLIENT_PASSWORD = process.env.NEXT_PUBLIC_QUICK_CLIENT_PASSWORD ?? "";
+
+const quickLoginEnabled =
+  QUICK_ADMIN_EMAIL.length > 0 &&
+  QUICK_ADMIN_PASSWORD.length > 0 &&
+  QUICK_CLIENT_EMAIL.length > 0 &&
+  QUICK_CLIENT_PASSWORD.length > 0;
+
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -10,17 +21,15 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
   const router = useRouter();
 
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
+  async function signIn(emailValue: string, passwordValue: string) {
     if (busy) return;
     setBusy(true);
     setError(null);
-
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: emailValue, password: passwordValue }),
       });
       const data = await res.json().catch(() => ({}) as { ok?: boolean; error?: string; role?: string });
 
@@ -40,6 +49,19 @@ export default function Login() {
       setError("We could not reach the server. Check your connection and try again.");
       setBusy(false);
     }
+  }
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    await signIn(email, password);
+  }
+
+  function onQuickLogin(kind: "admin" | "client") {
+    const e = kind === "admin" ? QUICK_ADMIN_EMAIL : QUICK_CLIENT_EMAIL;
+    const p = kind === "admin" ? QUICK_ADMIN_PASSWORD : QUICK_CLIENT_PASSWORD;
+    setEmail(e);
+    setPassword(p);
+    void signIn(e, p);
   }
 
   return (
@@ -92,6 +114,33 @@ export default function Login() {
               {busy ? "Signing in…" : "Sign in"}
             </button>
           </form>
+
+          {quickLoginEnabled ? (
+            <div className="login-quick" aria-label="Quick login (temporary dev shortcut)">
+              <p className="login-quick-label">
+                <span className="login-quick-tag">QUICK LOGIN</span>
+                <span className="login-quick-sub">Temporary while we finish changes</span>
+              </p>
+              <div className="login-quick-buttons">
+                <button
+                  type="button"
+                  className="login-quick-btn login-quick-btn-admin"
+                  onClick={() => onQuickLogin("admin")}
+                  disabled={busy}
+                >
+                  Sign in as Admin
+                </button>
+                <button
+                  type="button"
+                  className="login-quick-btn login-quick-btn-client"
+                  onClick={() => onQuickLogin("client")}
+                  disabled={busy}
+                >
+                  Sign in as Client
+                </button>
+              </div>
+            </div>
+          ) : null}
 
           <p className="login-preview-note">
             This portal is for your tax documents and messages. Please do not submit sensitive tax
