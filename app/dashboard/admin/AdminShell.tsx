@@ -111,6 +111,7 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
           </button>
         </header>
 
+        <details className="adm-mobile-nav"><summary>Navigate your workspace</summary><nav aria-label="Mobile admin navigation">{[...WORK,...PRACTICE,...ADMIN].map(item=><a key={item.href} href={item.href} aria-current={currentHref===item.href?"page":undefined}>{item.label}</a>)}</nav></details>
         <div className="adm-c">
           {preview ? (
             <div style={{ marginBottom: 14, padding: "8px 14px", background: "#efe3cb", color: "#7b5c31", borderRadius: 8, font: "800 10px Manrope, sans-serif", letterSpacing: ".12em", textTransform: "uppercase", display: "inline-block" }}>
