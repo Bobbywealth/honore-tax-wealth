@@ -1,8 +1,23 @@
-import type {MetadataRoute} from "next";
-export default function sitemap():MetadataRoute.Sitemap{
+import type { MetadataRoute } from "next";
+
+/**
+ * Public, indexable pages only.
+ *
+ * Private areas are deliberately absent: the client dashboard, admin area,
+ * consultation intake, and account recovery routes. Those either require a
+ * session or would otherwise invite indexing of pages that show nothing
+ * useful to a crawler.
+ */
+export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://honore-tax-wealth.onrender.com";
+  const now = new Date();
+
   return [
-    {url:`${base}/`, lastModified:new Date(), changeFrequency:"weekly", priority:1},
-    {url:`${base}/login/`, lastModified:new Date(), changeFrequency:"monthly", priority:0.4},
+    { url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${base}/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${base}/login`, lastModified: now, changeFrequency: "monthly", priority: 0.4 },
   ];
 }
