@@ -6,6 +6,11 @@ export default function ClientDashboard() {
     <DashboardShell audience="Client" title="Your tax home" description="A clear place to see what comes next in your tax preparation.">
       <div className="dashboard-alert"><LockKeyhole size={20} /><p><strong>Secure account setup is in progress.</strong> This preview does not contain your tax information. Do not enter or upload sensitive documents here.</p></div>
 
+      <div className="client-summary" aria-label="Account overview">
+        <article><small>Tax preparation</small><strong>Your next chapter</strong><p>Start with a conversation about your filing needs.</p></article>
+        <article><small>Documents</small><strong>Prepare your checklist</strong><p>Gather records offline. Uploads are not available in this preview.</p></article>
+        <article><small>Appointments</small><strong>Let’s connect</strong><p>Request a consultation to discuss scope and timing.</p></article>
+      </div>
       <div className="dashboard-grid">
         <section className="dashboard-section dashboard-primary" id="next-steps">
           <div className="dashboard-section-head"><span className="dashboard-eyebrow">GET STARTED</span><h2>Your next steps</h2></div>
@@ -25,6 +30,13 @@ export default function ClientDashboard() {
           <div className="dashboard-quiet"><CheckCircle2 size={18} /><span>Need help now? Contact the Honoré team through the consultation form.</span></div>
         </section>
       </div>
+      <section className="dashboard-section client-checklist" aria-labelledby="checklist-title">
+        <span className="dashboard-eyebrow">BEFORE YOUR CONSULTATION</span>
+        <h2 id="checklist-title">A clearer starting point.</h2>
+        <p>General preparation guidance, not a personalized document request.</p>
+        <ul><li><strong>Income records</strong><br />Set aside the tax statements you received.</li><li><strong>Prior-year return</strong><br />Keep a copy handy if available.</li><li><strong>Your questions</strong><br />Note business, income, or family changes to discuss.</li></ul>
+        <a className="dashboard-button" href="/#prepare">View the preparation guide <ArrowUpRight size={18} /></a>
+      </section>
     </DashboardShell>
   );
 }
