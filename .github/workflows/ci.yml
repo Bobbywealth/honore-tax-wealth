@@ -27,7 +27,7 @@ jobs:
       - name: Lint
         run: pnpm lint
       - name: Typecheck
-        run: node --experimental-strip-types -e "console.log('ok')" || true
+        run: pnpm exec tsc --noEmit
       - name: Build
         run: pnpm build
         env:

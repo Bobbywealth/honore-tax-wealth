@@ -25,10 +25,6 @@ export default function Login() {
           </form>
 
           <p className="login-preview-note" id="login-preview-note">The secure portal is coming soon. Sign-in is currently unavailable; please do not enter personal or tax information here.</p>
-          <div className="login-preview-links" aria-label="Explore dashboard previews">
-            <a href="/dashboard/client">View client dashboard</a>
-            <a href="/dashboard/admin?preview=1">View admin dashboard</a>
-          </div>
           <a className="login-help" href="/#contact">Need help? Contact our team</a>
         </section>
       </main>
