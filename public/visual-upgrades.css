@@ -63,3 +63,36 @@
 @media(max-width:1024px){.client-summary{grid-template-columns:1fr}.adm-kp{grid-template-columns:repeat(2,minmax(0,1fr))}.adm-search{display:none}}
 @media(max-width:700px){.dashboard-grid{grid-template-columns:1fr}.dashboard-heading{flex-wrap:wrap;gap:16px}.dashboard-section{padding:22px}.adm-g{grid-template-columns:1fr}.adm-kp{grid-template-columns:1fr 1fr}.adm-h1{font-size:30px}.adm-hero{flex-wrap:wrap;gap:18px}.adm-alert{flex-wrap:wrap;gap:10px}.adm-top{padding-inline:16px}.mobile-action-bar{bottom:calc(12px + env(safe-area-inset-bottom))}.footer{padding-bottom:90px!important}.login-simple-main{padding:24px 16px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*::before,*::after{animation:none!important;transition:none!important}.reveal,.reveal-stagger>*{opacity:1!important;transform:none!important}}
+
+/* Motion is decorative; content and controls remain available without scripts. */
+@keyframes honore-enter{from{opacity:.35;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes honore-soft-enter{from{opacity:.5}to{opacity:1}}
+@media(prefers-reduced-motion:no-preference){
+  .hero-content h1{animation:honore-enter .75s cubic-bezier(.22,1,.36,1) both}
+  .hero-bottom-upgraded{animation:honore-enter .85s .12s cubic-bezier(.22,1,.36,1) both}
+  .hero-tax-strip{animation:honore-enter .85s .22s cubic-bezier(.22,1,.36,1) both}
+  .login-simple-panel,.dashboard-heading,.adm-hero{animation:honore-enter .6s cubic-bezier(.22,1,.36,1) both}
+  .client-summary article,.dashboard-section,.adm-k,.adm-card,.adm-cal{animation:honore-enter .6s cubic-bezier(.22,1,.36,1) both}
+  .client-summary article:nth-child(2),.adm-k:nth-child(2){animation-delay:.07s}
+  .client-summary article:nth-child(3),.adm-k:nth-child(3){animation-delay:.14s}
+  .adm-k:nth-child(4){animation-delay:.21s}
+  .adm-k:nth-child(5){animation-delay:.28s}
+  .consultation-dialog[open]{animation:honore-enter .25s cubic-bezier(.22,1,.36,1) both}
+  .consultation-dialog[open]::backdrop{animation:honore-soft-enter .25s ease both}
+  .form-panel:not(.hidden){animation:honore-enter .22s ease both}
+  .tax-panel,.client-summary article,.adm-k,.adm-ticket{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+  .dashboard-sidebar nav a,.adm-it,.dashboard-button,.form-next,.form-submit,.service-card{transition:background-color .2s ease,color .2s ease,box-shadow .2s ease,transform .2s ease}
+  .dashboard-button:active,.form-next:active,.form-submit:active,.hero-primary:active,.primary-btn:active{transform:scale(.98)}
+  .faq-list details[open]>p{animation:honore-enter .25s ease both}
+  @media(hover:hover) and (pointer:fine){
+    .tax-panel:hover,.client-summary article:hover,.adm-k:hover{transform:translateY(-4px);box-shadow:0 16px 36px #0b1a2a12}
+    .adm-ticket:hover{transform:translateY(-2px);border-color:#d9b878;box-shadow:0 8px 20px #0b1a2a10}
+    .dashboard-button:hover,.form-next:hover,.form-submit:hover{transform:translateY(-2px)}
+    .dashboard-sidebar nav a:hover,.adm-it:hover{transform:translateX(2px)}
+  }
+  @supports(animation-timeline:view()){
+    .statement-grid,.services-intro,.tax-panels,.experience-grid,.people-title,.portrait-grid,.prepare-header,.prep-columns,.faq-layout{
+      animation:honore-enter linear both;animation-timeline:view();animation-range:entry 0% entry 25%
+    }
+  }
+}
