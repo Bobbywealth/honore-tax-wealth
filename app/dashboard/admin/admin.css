@@ -8,15 +8,15 @@
 .adm-root{--ink:#0e1a26;--muted:#5b6a78;--line:#e4e1d6;--paper:#efece4;--gold:#d4a755;--gold-deep:#9a7a2e;--gold-soft:#b58a3a;--red:#c0504d;--red-soft:#a63b37;--green:#2f8a5b;--blue:#2a5d8f;--purple:#7a5ca8;--orange:#c98a2e;--bg:#efece4;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,"Segoe UI",sans-serif;font-size:13px;-webkit-font-smoothing:antialiased;min-height:100svh;display:grid;grid-template-columns:264px minmax(0,1fr)}
 
 /* Sidebar */
-.adm-sb{background:linear-gradient(180deg,#0a1622 0%,#0e1f30 60%,#0a1828 100%);color:#b9c4ce;padding:22px 14px 16px;display:flex;flex-direction:column;position:sticky;top:0;align-self:start;height:100svh;max-height:100svh;overflow-y:auto;box-shadow:1px 0 0 rgba(212,167,85,.08),8px 0 32px rgba(10,22,34,.18)}
+.adm-sb{background:linear-gradient(180deg,#0a1622 0%,#0e1f30 60%,#0a1828 100%);color:#b9c4ce;padding:16px 12px 12px;display:flex;flex-direction:column;position:sticky;top:0;align-self:start;height:100svh;max-height:100svh;overflow-y:auto;box-shadow:1px 0 0 rgba(212,167,85,.08),8px 0 32px rgba(10,22,34,.18)}
 .adm-sb::after{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,rgba(212,167,85,.4),rgba(212,167,85,0))}
-.adm-brand{padding:0 4px 14px;border-bottom:1px solid rgba(212,167,85,.12);margin-bottom:4px}
-.adm-brand-plate{background:linear-gradient(180deg,#f5ecd6 0%,#ecdfba 100%);border:1px solid rgba(184,138,58,.35);border-radius:12px;padding:14px 12px;display:grid;place-items:center}
-.adm-brand-plate img{display:block;height:96px;width:auto;max-width:100%}
-.adm-grp{font-size:9.5px;letter-spacing:2.2px;color:#5b6a78;margin:18px 14px 8px;font-weight:600;text-transform:uppercase;display:flex;align-items:center}
+.adm-brand{padding:0 4px 10px;border-bottom:1px solid rgba(212,167,85,.12);margin-bottom:4px}
+.adm-brand-plate{background:linear-gradient(180deg,#f5ecd6 0%,#ecdfba 100%);border:1px solid rgba(184,138,58,.35);border-radius:10px;padding:10px 10px;display:grid;place-items:center}
+.adm-brand-plate img{display:block;height:72px;width:auto;max-width:100%}
+.adm-grp{font-size:9.5px;letter-spacing:2.2px;color:#5b6a78;margin:12px 12px 6px;font-weight:600;text-transform:uppercase;display:flex;align-items:center}
 .adm-grp::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.06);margin-left:8px}
-.adm-it{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;margin:1px 0;color:#b9c4ce;font-weight:500;cursor:pointer;position:relative;transition:all .15s;text-decoration:none}
-.adm-it svg{width:18px;height:18px;flex:0 0 18px;color:#7e8e9c;stroke-width:1.6}
+.adm-it{display:flex;align-items:center;gap:12px;padding:7px 12px;border-radius:10px;margin:1px 0;color:#b9c4ce;font-weight:500;cursor:pointer;position:relative;transition:all .15s;text-decoration:none}
+.adm-it svg{width:17px;height:17px;flex:0 0 17px;color:#7e8e9c;stroke-width:1.6}
 .adm-it:hover{background:rgba(255,255,255,.04);color:#fff}
 .adm-it:hover svg{color:var(--gold)}
 .adm-it.is-active{background:linear-gradient(90deg,rgba(212,167,85,.14),rgba(212,167,85,.04));color:#fff}
@@ -24,8 +24,8 @@
 .adm-it.is-active::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:3px;height:24px;background:var(--gold);border-radius:0 3px 3px 0;box-shadow:0 0 12px rgba(212,167,85,.5)}
 .adm-badge{margin-left:auto;background:var(--gold);color:#0a1828;border-radius:8px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.3px;min-width:18px;text-align:center}
 .adm-badge.red{background:var(--red);color:#fff;box-shadow:0 0 0 2px rgba(192,80,77,.18)}
-.adm-me{margin-top:auto;padding:16px 10px 0;border-top:1px solid rgba(255,255,255,.05);position:relative}
-.adm-me-row{display:flex;align-items:center;gap:11px;padding:4px 0}
+.adm-me{margin-top:auto;padding:12px 6px 0;border-top:1px solid rgba(255,255,255,.05);position:relative}
+.adm-me-row{display:flex;align-items:center;gap:11px;padding:2px 0}
 .adm-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#d4a755,#a8853a);color:#0a1828;display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.5px;box-shadow:0 0 0 2px rgba(212,167,85,.18);flex:0 0 40px}
 .adm-me b{color:#fff;font-weight:600;font-size:13px;display:block;line-height:1.2}
 .adm-sm{color:#6a7785;font-size:10.5px}
