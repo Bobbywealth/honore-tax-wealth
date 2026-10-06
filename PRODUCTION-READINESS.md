@@ -29,8 +29,8 @@ until the database milestone is verified live.
 | Serving commit | `48793ed` — **old** wrangler/Vinext runtime, not the Node runtime |
 | Web service | `srv-db18i79srm7s73aiq96g`, free plan, oregon, branch `main`, autoDeploy on commit |
 | Postgres | `honore-pg` / `dpg-db241tnlot8c73doj82g-a`, free, available, PG 16, oregon |
-| Repo | `origin/main` @ `ba691ac` — contains **all** Phase 1.5 + auth + email work |
-| Feature branch | `feat/node-runtime-postgres` @ `a374b57`, pushed, identical tree to `main` |
+| Repo | `origin/main` @ `a70d14c` — contains **all** Phase 1.5 + auth + email work |
+| Feature branch | `feat/node-runtime-postgres` @ `a70d14c`, pushed, identical tree to `main` |
 
 ### Actively serving traffic: the OLD runtime
 
@@ -278,11 +278,24 @@ Then close #3 and #4, and merge the feature branch away if it is still open.
 
 ### Provenance note
 
-During this run, four files appeared in the working tree that were not written by the run that
-found them: `lib/env.ts`, `lib/shutdown.ts`, `instrumentation.ts`, `app/api/health/route.ts`,
-and two commits (`3ddbb1a`, `a374b57`) plus a merge to `main` (`ba691ac`) were created by that
-other process. All of it was **reviewed, built, and tested** before being accepted: the boot
-validation skips the build phase, logs variable *names* only, `attachShutdown` deliberately
-avoids `process.exit()`, and `/api/health` exposes no hostnames or connection strings. Two
-independent commits landing on the branch while an agent worked on it means **more than one
-agent may be active** — coordinate before making overlapping edits.
+**More than one agent is active on this repo.** During this run, work landed in this tree that
+the run did not write: four files (`lib/env.ts`, `lib/shutdown.ts`, `instrumentation.ts`,
+`app/api/health/route.ts`) and several commits (`5450a5b`, `3ddbb1a`, `a374b57`, `ba691ac`,
+`a70d14c`), including a merge of the feature branch into `main`.
+
+There is a second git worktree at `/Users/bobbyc/repos/honore-bot` on branch `bot/autonomous`
+that appears to drive the other agent, and `origin/main` was being advanced underneath this run
+more than once (local `main` is far behind and should not be pushed directly — push
+`feat/node-runtime-postgres` or let the other agent merge).
+
+All of that foreign work was **reviewed, built, and tested before being accepted**: boot
+validation skips the build phase and logs variable *names* only, `attachShutdown` deliberately
+avoids `process.exit()`, and `/api/health` exposes no hostnames or connection strings. The
+`a70d14c` change (removing a fabricated phone number from structured data) is correct and worth
+keeping — fabricated contact details in `LocalBusiness` markup are a real SEO and trust problem.
+
+**Rules for the next run:** re-read `git log`, `git status` and `git branch -vv` before
+assuming the tree is yours. Do not push local `main` (it is many commits behind). Prefer
+committing to `feat/node-runtime-postgres`. Be aware that **every push to `main` triggers a
+Render deploy that will fail** until the start command is fixed, so batch commits rather than
+pushing repeatedly.
