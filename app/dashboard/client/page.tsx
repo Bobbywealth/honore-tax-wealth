@@ -345,14 +345,36 @@ export default async function ClientDashboard() {
       <section className="dashboard-section client-checklist" aria-labelledby="checklist-title">
         <span className="dashboard-eyebrow">MESSAGES</span>
         <h2 id="checklist-title">Secure messaging</h2>
-        <p className="dashboard-quiet">
-          <MessageSquareText size={18} aria-hidden="true" style={{ verticalAlign: "-3px" }} />{" "}
-          Portal messaging is not yet available. Use the consultation form or contact your preparer
-          directly for now.
-        </p>
-        <a className="dashboard-button" href="/#prepare">
-          View the preparation guide <ArrowUpRight size={18} />
-        </a>
+        {snapshot && snapshot.conversations.length > 0 ? (
+          <div className="dashboard-status-list">
+            {snapshot.conversations.slice(0, 5).map((c) => (
+              <div key={c.id} className="dashboard-status-row">
+                <MessageSquareText size={20} aria-hidden="true" />
+                <div>
+                  <strong>{c.subject}</strong>
+                  <span>
+                    {c.lastMessageAt ? `Last reply ${formatDate(c.lastMessageAt)}` : "Awaiting first reply"}
+                    {c.unread > 0 ? ` · ${c.unread} unread` : ""}
+                  </span>
+                  {c.messages.length > 0 ? (
+                    <span className="dashboard-quiet" style={{ display: "block", marginTop: 4 }}>
+                      &ldquo;{c.messages[c.messages.length - 1].body.slice(0, 200)}{c.messages[c.messages.length - 1].body.length > 200 ? "…" : ""}&rdquo;
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <form className="dashboard-quick-form" action="/api/client/conversations" method="post" style={{ marginTop: 14 }}>
+          <div className="dashboard-form-row">
+            <label>Subject<input name="subject" required maxLength={200} placeholder="e.g. Question about my 1099" /></label>
+          </div>
+          <label className="dashboard-form-notes">Message<textarea name="body" required maxLength={4000} rows={3} placeholder="What can we help with?" /></label>
+          <div className="dashboard-form-actions">
+            <button type="submit" className="dashboard-button">Send to preparer <ArrowUpRight size={18} /></button>
+          </div>
+        </form>
       </section>
     </DashboardShell>
   );
