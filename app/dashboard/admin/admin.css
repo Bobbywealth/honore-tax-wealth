@@ -8,7 +8,7 @@
 .adm-root{--ink:#0e1a26;--muted:#5b6a78;--line:#e4e1d6;--paper:#efece4;--gold:#d4a755;--gold-deep:#9a7a2e;--gold-soft:#b58a3a;--red:#c0504d;--red-soft:#a63b37;--green:#2f8a5b;--blue:#2a5d8f;--purple:#7a5ca8;--orange:#c98a2e;--bg:#efece4;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,"Segoe UI",sans-serif;font-size:13px;-webkit-font-smoothing:antialiased;min-height:100svh;display:grid;grid-template-columns:264px minmax(0,1fr)}
 
 /* Sidebar */
-.adm-sb{background:linear-gradient(180deg,#0a1622 0%,#0e1f30 60%,#0a1828 100%);color:#b9c4ce;padding:22px 14px 16px;display:flex;flex-direction:column;position:relative;box-shadow:1px 0 0 rgba(212,167,85,.08),8px 0 32px rgba(10,22,34,.18)}
+.adm-sb{background:linear-gradient(180deg,#0a1622 0%,#0e1f30 60%,#0a1828 100%);color:#b9c4ce;padding:22px 14px 16px;display:flex;flex-direction:column;position:sticky;top:0;align-self:start;height:100svh;max-height:100svh;overflow-y:auto;box-shadow:1px 0 0 rgba(212,167,85,.08),8px 0 32px rgba(10,22,34,.18)}
 .adm-sb::after{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,rgba(212,167,85,.4),rgba(212,167,85,0))}
 .adm-brand{padding:0 4px 14px;border-bottom:1px solid rgba(212,167,85,.12);margin-bottom:4px}
 .adm-brand-plate{background:linear-gradient(180deg,#f5ecd6 0%,#ecdfba 100%);border:1px solid rgba(184,138,58,.35);border-radius:12px;padding:14px 12px;display:grid;place-items:center}
