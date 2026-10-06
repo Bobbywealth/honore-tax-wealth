@@ -328,30 +328,71 @@ export async function consumeEmailVerification(token: string): Promise<boolean> 
 
 /* --------------------------- Bootstrap ----------------------------- */
 
-/**
- * Create the first administrator from ADMIN_EMAIL / ADMIN_PASSWORD.
- *
- * Runs only when the users table is empty, so it cannot resurrect or alter an
- * existing account. A no-op when the env vars are unset.
- */
-export async function ensureBootstrapAdmin(): Promise<void> {
-  const email = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
+async function ensureBootstrapUser(
+  role: "admin" | "client",
+  emailEnv: string,
+  passwordEnv: string,
+  displayName: string,
+): Promise<void> {
+  const email = process.env[emailEnv];
+  const password = process.env[passwordEnv];
   if (!email || !password) return;
   if (passwordProblem(password)) {
-    console.warn("[auth] ADMIN_PASSWORD rejected by policy; refusing to bootstrap");
+    console.warn(`[auth] ${passwordEnv} rejected by policy; refusing to bootstrap`);
     return;
   }
 
-  const existing = await getDb().select({ id: users.id }).from(users).limit(1);
-  if (existing.length > 0) return;
+  const normalizedEmail = normalizeEmail(email);
+  // If this exact email already exists with the requested role, leave it alone.
+  const existing = await getDb()
+    .select({ id: users.id, role: users.role })
+    .from(users)
+    .where(eq(users.email, normalizedEmail))
+    .limit(1);
+  if (existing.length > 0) {
+    if (existing[0].role !== role) {
+      console.warn(
+        JSON.stringify({
+          ts: new Date().toISOString(),
+          event: "auth.bootstrap_role_mismatch",
+          email: normalizedEmail,
+          existingRole: existing[0].role,
+          requestedRole: role,
+        }),
+      );
+    }
+    return;
+  }
 
   await getDb().insert(users).values({
-    email: normalizeEmail(email),
+    email: normalizedEmail,
     passwordHash: await hashPassword(password),
-    role: "admin",
-    displayName: "Site owner",
+    role,
+    displayName,
     emailVerifiedAt: new Date(),
   });
-  console.log(JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_admin_created" }));
+  console.log(
+    JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_user_created", role, email: normalizedEmail }),
+  );
+}
+
+/**
+ * Create the first administrator from ADMIN_EMAIL / ADMIN_PASSWORD.
+ *
+ * Runs only when no user with that email already exists, so it cannot resurrect
+ * or alter an existing account. A no-op when the env vars are unset.
+ */
+export async function ensureBootstrapAdmin(): Promise<void> {
+  await ensureBootstrapUser("admin", "ADMIN_EMAIL", "ADMIN_PASSWORD", "Site owner");
+}
+
+/**
+ * Create a demo client from CLIENT_EMAIL / CLIENT_PASSWORD.
+ *
+ * Skipped if the email is already taken (regardless of role) or the env vars
+ * are unset. Re-runs on every login attempt, so a cleared env var hides the
+ * user from future bootstrap runs without affecting the existing record.
+ */
+export async function ensureBootstrapClient(): Promise<void> {
+  await ensureBootstrapUser("client", "CLIENT_EMAIL", "CLIENT_PASSWORD", "Demo client");
 }

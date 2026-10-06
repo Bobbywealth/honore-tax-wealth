@@ -10,6 +10,7 @@ import {
   clearFailedLogins,
   createSession,
   ensureBootstrapAdmin,
+  ensureBootstrapClient,
   hashPassword,
   isLockedOut,
   normalizeEmail,
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
   try {
     await ensureMigrated();
     await ensureBootstrapAdmin();
+    await ensureBootstrapClient();
 
     const rate = await consumeRateLimit(`login:${iph}`, MAX_FAIL, WINDOW_SECONDS);
     if (!rate.allowed) {
