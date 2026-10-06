@@ -24,7 +24,7 @@
 .adm-it.is-active::before{content:"";position:absolute;left:-14px;top:50%;transform:translateY(-50%);width:3px;height:24px;background:var(--gold);border-radius:0 3px 3px 0;box-shadow:0 0 12px rgba(212,167,85,.5)}
 .adm-badge{margin-left:auto;background:var(--gold);color:#0a1828;border-radius:8px;padding:2px 7px;font-size:10px;font-weight:700;letter-spacing:.3px;min-width:18px;text-align:center}
 .adm-badge.red{background:var(--red);color:#fff;box-shadow:0 0 0 2px rgba(192,80,77,.18)}
-.adm-me{margin-top:auto;padding:12px 6px 0;border-top:1px solid rgba(255,255,255,.05);position:relative}
+.adm-me{margin-top:14px;padding:12px 6px 0;border-top:1px solid rgba(255,255,255,.05);position:relative}
 .adm-me-row{display:flex;align-items:center;gap:11px;padding:2px 0}
 .adm-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#d4a755,#a8853a);color:#0a1828;display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.5px;box-shadow:0 0 0 2px rgba(212,167,85,.18);flex:0 0 40px}
 .adm-me b{color:#fff;font-weight:600;font-size:13px;display:block;line-height:1.2}
