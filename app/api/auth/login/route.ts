@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import {
   SESSION_COOKIE,
   clearFailedLogins,
@@ -20,33 +21,18 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Credential stuffing guard: 8 attempts per IP per 15 minutes. Successful
-// logins do not count against the bucket so a legitimate user who mistypes
-// twice is not locked out by an attacker sharing their egress IP.
-const buckets = new Map<string, number[]>();
-const WINDOW_MS = 15 * 60 * 1000;
+// Credential stuffing guard: 8 attempts per IP per 15 minutes, stored in
+// Postgres so it is shared across instances and survives the cold starts a
+// free instance performs constantly. Successful logins do not consume quota,
+// so a legitimate user who mistypes twice is not locked out by an attacker
+// sharing their egress IP.
 const MAX_FAIL = 8;
+const WINDOW_SECONDS = 900;
 const MAX_BODY_BYTES = 2048;
 
 function clientIp(request: Request): string {
   const fwd = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || "";
   return fwd.split(",")[0].trim() || "unknown";
-}
-
-function noteFailure(ip: string): boolean {
-  const now = Date.now();
-  const recent = (buckets.get(ip) || []).filter(t => now - t < WINDOW_MS);
-  if (recent.length >= MAX_FAIL) {
-    buckets.set(ip, recent);
-    return true;
-  }
-  recent.push(now);
-  buckets.set(ip, recent);
-  return false;
-}
-
-function clearFailures(ip: string): void {
-  buckets.delete(ip);
 }
 
 const hashSalt = process.env.LOG_SALT ?? "";
@@ -98,14 +84,18 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "invalid_credentials" }, { status: 400 });
   }
 
-  if (noteFailure(ip)) {
-    logEvent("auth.login.rate_limited", { iph });
-    return Response.json({ ok: false, error: "too_many_attempts" }, { status: 429 });
-  }
-
   try {
     await ensureMigrated();
     await ensureBootstrapAdmin();
+
+    const rate = await consumeRateLimit(`login:${iph}`, MAX_FAIL, WINDOW_SECONDS);
+    if (!rate.allowed) {
+      logEvent("auth.login.rate_limited", { iph });
+      return Response.json(
+        { ok: false, error: "too_many_attempts" },
+        { status: 429, headers: { "retry-after": String(rate.retryAfterSeconds) } },
+      );
+    }
 
     const email = normalizeEmail(parsed.email);
     const rows = await getDb()
@@ -129,7 +119,6 @@ export async function POST(request: Request) {
       return Response.json({ ok: false, error: "invalid_credentials" }, { status: 401 });
     }
 
-    clearFailures(ip);
     await clearFailedLogins(account.id);
     const { token, expires } = await createSession(account.id, {
       userAgent: request.headers.get("user-agent") ?? undefined,

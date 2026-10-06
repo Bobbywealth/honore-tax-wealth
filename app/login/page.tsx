@@ -97,6 +97,7 @@ export default function Login() {
             This portal is for your tax documents and messages. Please do not submit sensitive tax
             information through the public consultation form.
           </p>
+          <a className="login-help" href="/forgot-password">Forgot your password?</a>
           <a className="login-help" href="/#contact">Need help? Contact our team</a>
         </section>
       </main>

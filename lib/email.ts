@@ -25,6 +25,11 @@ const BORDER = "#e3e0d6";
 
 const PRACTICE = "Honoré Tax & Wealth";
 
+/** Absolute site origin used for links in transactional email. */
+const SITE_ORIGIN = (
+  process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://honore-tax-wealth.onrender.com"
+).replace(/\/+$/, "");
+
 export type ConsultationLead = {
   name: string;
   email: string;
@@ -236,6 +241,111 @@ export async function sendConsultationEmails(lead: ConsultationLead): Promise<Ma
         ts: receivedAt.toISOString(),
         event: "email.error",
         detail,
+      }),
+    );
+    return { ok: false, reason: "send_failed" };
+  }
+}
+/* ======================= Account security mail ======================= */
+
+/**
+ * Sends a password reset link.
+ *
+ * The link carries an opaque token, never the password, and the token is
+ * single-use with a one-hour expiry. Never throws: if this fails the account
+ * is untouched and the user can retry.
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+): Promise<MailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  if (!apiKey || !from) return { ok: false, reason: "not_configured" };
+
+  const link = `${SITE_ORIGIN}/reset-password?token=${encodeURIComponent(token)}`;
+  const subject = "Reset your Honoré Tax & Wealth password";
+
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from,
+      to: email,
+      subject,
+      html: shell(
+        "Reset your password",
+        `<p>We received a request to reset the password for your Honoré Tax &amp; Wealth account.</p>
+         <p><a href="${escapeHtml(link)}" style="display:inline-block;background:${NAVY};color:#fff;padding:13px 24px;border-radius:8px;text-decoration:none;font-weight:700">Choose a new password</a></p>
+         <p style="color:${MUTED};font-size:13px">This link expires in one hour and can be used once. If you did not request a reset, you can ignore this email — your password will not change.</p>`,
+      ),
+      text: `We received a request to reset your Honoré Tax & Wealth password.\n\nChoose a new password: ${link}\n\nThis link expires in one hour and can be used once. If you did not request a reset, ignore this email.`,
+    });
+    if (result.error) {
+      console.log(
+        JSON.stringify({
+          ts: new Date().toISOString(),
+          event: "email.reset_failed",
+          detail: redact(String(result.error.message ?? "unknown")),
+        }),
+      );
+      return { ok: false, reason: "send_failed" };
+    }
+    return { ok: true, client: true, staff: false };
+  } catch (error) {
+    console.log(
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        event: "email.reset_error",
+        detail: redact(error instanceof Error ? error.message : "unknown error"),
+      }),
+    );
+    return { ok: false, reason: "send_failed" };
+  }
+}
+
+/** Sends an address-verification link. */
+export async function sendVerificationEmail(
+  email: string,
+  token: string,
+): Promise<MailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  if (!apiKey || !from) return { ok: false, reason: "not_configured" };
+
+  const link = `${SITE_ORIGIN}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+  const subject = "Confirm your email address";
+
+  try {
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from,
+      to: email,
+      subject,
+      html: shell(
+        "Confirm your email address",
+        `<p>Please confirm this email address to finish setting up your Honoré Tax &amp; Wealth account.</p>
+         <p><a href="${escapeHtml(link)}" style="display:inline-block;background:${NAVY};color:#fff;padding:13px 24px;border-radius:8px;text-decoration:none;font-weight:700">Confirm my email</a></p>
+         <p style="color:${MUTED};font-size:13px">If you did not create this account, you can ignore this email.</p>`,
+      ),
+      text: `Confirm your email address to finish setting up your account: ${link}\n\nIf you did not create this account, ignore this email.`,
+    });
+    if (result.error) {
+      console.log(
+        JSON.stringify({
+          ts: new Date().toISOString(),
+          event: "email.verify_failed",
+          detail: redact(String(result.error.message ?? "unknown")),
+        }),
+      );
+      return { ok: false, reason: "send_failed" };
+    }
+    return { ok: true, client: true, staff: false };
+  } catch (error) {
+    console.log(
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        event: "email.verify_error",
+        detail: redact(error instanceof Error ? error.message : "unknown error"),
       }),
     );
     return { ok: false, reason: "send_failed" };
