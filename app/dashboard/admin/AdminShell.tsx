@@ -31,7 +31,7 @@ function Group({ label, items, currentHref }: { label: string; items: NavItem[];
       {items.map((item) => {
         const active = currentHref === item.href;
         return (
-          <a key={item.label} href={item.href} className={`adm-it${active ? " is-active" : ""}`}>
+          <a key={item.label} href={item.href} aria-current={active ? "page" : undefined} className={`adm-it${active ? " is-active" : ""}`}>
             {item.icon}
             <span>{item.label}</span>
             {item.badge ? <span className={`adm-badge${item.badge.tone === "red" ? " red" : ""}`}>{item.badge.value}</span> : null}
@@ -117,6 +117,7 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
               Portal preview · Live data is gated
             </div>
           ) : null}
+          <div className="adm-sample-note" role="note"><strong>Workspace design preview.</strong> Pipeline, revenue, calendar, and activity examples are illustrative. Only consultation records loaded from the database represent actual requests.</div>
           {children}
         </div>
       </main>

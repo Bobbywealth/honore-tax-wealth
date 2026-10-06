@@ -49,6 +49,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
         <link rel="preload" as="image" href="/assets/hero-consultation.webp" fetchPriority="low"/>
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}}/>
         {children}
+        <link rel="stylesheet" href="/visual-upgrades.css" />
         <script src="/consultation.js" defer />
         <script src="/cookie-banner.js" defer />
       </body>
