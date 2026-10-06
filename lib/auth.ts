@@ -4,9 +4,14 @@ import { promisify } from "node:util";
 import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  clientAccess,
+  clients,
   emailVerificationTokens,
+  engagements,
+  invoices,
   passwordResetTokens,
   sessions,
+  taxYears,
   users,
   type Role,
 } from "@/db/schema";
@@ -395,4 +400,93 @@ export async function ensureBootstrapAdmin(): Promise<void> {
  */
 export async function ensureBootstrapClient(): Promise<void> {
   await ensureBootstrapUser("client", "CLIENT_EMAIL", "CLIENT_PASSWORD", "Demo client");
+  // The bootstrap user is now in the users table; look it up by email and seed their client.
+  if (!process.env.DATABASE_URL) return;
+  const email = normalizeEmail(process.env.CLIENT_EMAIL ?? "");
+  if (!email) return;
+  const rows = await getDb()
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  if (rows[0]) await ensureClientDataFor(rows[0].id);
+}
+
+/**
+ * For the bootstrap client, ensure there is a `clients` row linked to the
+ * user via `clientAccess`, plus a sample engagement / taxYear / invoice so
+ * the client dashboard has real rows to render on first sign-in.
+ */
+async function ensureClientDataFor(userId: string): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const access = await getDb()
+      .select({ id: clientAccess.clientId })
+      .from(clientAccess)
+      .where(eq(clientAccess.userId, userId))
+      .limit(1);
+    if (access.length > 0) return;
+
+    const [client] = await getDb()
+      .insert(clients)
+      .values({
+        displayName: "Demo Client",
+        legalName: "Demo Client LLC",
+        email: "client@honoretaxwealth.com",
+        entityType: "individual",
+        status: "active",
+      })
+      .returning({ id: clients.id });
+    if (!client) return;
+
+    await getDb()
+      .insert(clientAccess)
+      .values({ userId, clientId: client.id });
+
+    // A 2025 individual 1040 engagement so the dashboard has work to show
+    const [eg] = await getDb()
+      .insert(engagements)
+      .values({
+        clientId: client.id,
+        name: "2025 individual tax return",
+        serviceType: "tax_prep",
+        status: "in_preparation",
+        progressPercent: 35,
+        internalNotes: "Bootstrapped demo data for the client dashboard.",
+      })
+      .returning({ id: engagements.id });
+
+    if (eg) {
+      const yearRow = await getDb()
+        .insert(taxYears)
+        .values({
+          clientId: client.id,
+          year: 2025,
+          filingStatus: "in_progress",
+          dueDate: new Date("2026-04-15T00:00:00-04:00"),
+        })
+        .returning({ id: taxYears.id });
+      if (yearRow[0]) {
+        // Best-effort invoice so the Invoices section isn't empty.
+        await getDb()
+          .insert(invoices)
+          .values({
+            clientId: client.id,
+            number: "INV-2025-DEMO-001",
+            status: "draft",
+            currency: "USD",
+            subtotal: "540.00",
+            tax: "0.00",
+            total: "540.00",
+            dueAt: new Date("2026-04-15T00:00:00-04:00"),
+          })
+          .catch(() => {
+            // number is unique; swallow dupes from a re-run
+          });
+      }
+    }
+    console.log(JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_client_seeded", userId }));
+  } catch (error) {
+    console.log(JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_client_seed_failed", userId, err: (error as Error).message }));
+  }
 }
