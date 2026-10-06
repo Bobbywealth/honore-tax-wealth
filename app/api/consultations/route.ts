@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { randomBytes } from "node:crypto";
 import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
@@ -93,7 +94,21 @@ export async function POST(request: Request) {
       throw Error("Database unavailable");
     }
     await ensureMigrated();
-    await getDb().insert(consultations).values({ name, email, phone, service, message });
+
+    // Public reference so a visitor can quote their own submission without
+    // exposing a sequential id. Uses an unambiguous alphabet (no 0/O/1/I).
+    const reference = "HTW-" + randomBytes(5).toString("hex").toUpperCase().slice(0, 8);
+
+    await getDb().insert(consultations).values({
+      reference,
+      name,
+      email,
+      phone,
+      service,
+      message,
+      ipHash: iph,
+      userAgent: (request.headers.get("user-agent") ?? "").slice(0, 300) || null,
+    });
     // Note: name/email/phone are NOT included in the log line — they are PII.
     logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
     // The lead is durably stored at this point, so email is strictly
@@ -104,7 +119,8 @@ export async function POST(request: Request) {
       "consult.email",
       mail.ok ? { iph, sent: true } : { iph, sent: false, reason: mail.reason },
     );
-    return Response.json({ ok: true }, { status: 201 });
+    // Only returned after the row is committed, so a 201 always means saved.
+    return Response.json({ ok: true, reference }, { status: 201 });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "unknown";
     logEvent("consult.error", { iph, reason: msg });

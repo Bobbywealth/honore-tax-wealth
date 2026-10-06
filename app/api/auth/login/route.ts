@@ -6,10 +6,13 @@ import { users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import {
   SESSION_COOKIE,
+  clearFailedLogins,
   createSession,
   ensureBootstrapAdmin,
   hashPassword,
+  isLockedOut,
   normalizeEmail,
+  recordFailedLogin,
   sessionCookieOptions,
   verifyPassword,
 } from "@/lib/auth";
@@ -112,15 +115,26 @@ export async function POST(request: Request) {
       .limit(1);
     const account = rows[0];
 
-    const ok = await verifyPassword(parsed.password, account?.passwordHash ?? (await decoy()));
+    // Account-level lockout, persisted so it survives a cold start and
+    // applies across instances.
+    const locked = account ? await isLockedOut(account.id) : false;
+    const ok = locked
+      ? false
+      : await verifyPassword(parsed.password, account?.passwordHash ?? (await decoy()));
+
     if (!account || !ok) {
-      logEvent("auth.login.failed", { iph });
+      if (account) await recordFailedLogin(account.id);
+      logEvent("auth.login.failed", { iph, locked });
       // Deliberately identical to the unknown-account response.
       return Response.json({ ok: false, error: "invalid_credentials" }, { status: 401 });
     }
 
     clearFailures(ip);
-    const { token, expires } = await createSession(account.id);
+    await clearFailedLogins(account.id);
+    const { token, expires } = await createSession(account.id, {
+      userAgent: request.headers.get("user-agent") ?? undefined,
+      ipHash: iph,
+    });
     (await cookies()).set(SESSION_COOKIE, token, sessionCookieOptions(expires));
     logEvent("auth.login.success", { iph, role: account.role });
     return Response.json({ ok: true, role: account.role });
