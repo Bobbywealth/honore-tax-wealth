@@ -1,25 +1,6 @@
 import type { ReactNode } from "react";
 import { BarChart3, Calendar, CheckSquare, FileText, Globe, Home, Inbox, LayoutDashboard, LogOut, Settings, UserPlus, Users } from "lucide-react";
-import { getDb } from "@/db";
-import { consultations } from "@/db/schema";
-import { sql } from "drizzle-orm";
-
-
 type NavItem = { label: string; href: string; icon: ReactNode; badge?: { value: number; tone?: "default" | "red" } };
-
-async function loadUnansweredCount(): Promise<number> {
-  if (!process.env.DATABASE_URL) return 0;
-  try {
-    const row = await getDb()
-      .select({ count: sql<number>`count(*)::int` })
-      .from(consultations)
-      .where(sql`${consultations.status} = 'new'`)
-      .limit(1);
-    return row[0]?.count ?? 0;
-  } catch {
-    return 0;
-  }
-}
 
 const WORK_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard/admin", icon: <LayoutDashboard size={18} /> },
@@ -64,11 +45,11 @@ function Group({ label, items, currentHref, badges }: { label: string; items: Na
 type Props = {
   preview: boolean;
   currentHref?: string;
+  unanswered?: number;
   children: ReactNode;
 };
 
-export default async function AdminShell({ preview, currentHref = "/dashboard/admin", children }: Props) {
-  const unanswered = await loadUnansweredCount();
+export default function AdminShell({ preview, currentHref = "/dashboard/admin", unanswered = 0, children }: Props) {
   const badges: Record<string, number> = { inbox: unanswered };
 
   return (

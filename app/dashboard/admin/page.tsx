@@ -5,6 +5,7 @@ import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { desc } from "drizzle-orm";
+import { loadUnansweredCount } from "./lib/loadUnansweredCount";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
   if (!access.allowed) return access.restricted;
   const preview = access.preview;
   const sp = (await searchParams) ?? {};
+  const unanswered = await loadUnansweredCount();
   const dismissed = sp.dismiss === "ai";
 
   let inquiries: Inquiry[] = [];
@@ -96,7 +98,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
   const newInquiries = inquiries.length;
 
   return (
-    <AdminShell preview={preview} currentHref="/dashboard/admin">
+    <AdminShell preview={preview} currentHref="/dashboard/admin" unanswered={unanswered}>
       <div className="adm-hero">
         <div>
           <h1 className="adm-h1">Good morning, <em>Bobby</em></h1>
