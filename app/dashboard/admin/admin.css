@@ -397,3 +397,288 @@
 .adm-page-h{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;gap:14px;flex-wrap:wrap}
 .adm-page-h h1{font-family:Fraunces,Georgia,serif;font-size:30px;font-weight:500;letter-spacing:-.5px;color:#0a1828;margin:0}
 .adm-page-h .sub{color:#5b6a78;margin-top:4px;font-size:13px}
+
+/* ---- Inbox rows, status badges, and empty states -------------------
+   The inbox markup used row1/row2/row3 and had no rules for them, so
+   request rows rendered with no internal layout at all. Added here. */
+
+.adm-inbox-i .body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.adm-inbox-i .row1,
+.adm-inbox-i .row2,
+.adm-inbox-i .row3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.adm-inbox-i .row1 strong {
+  font-weight: 600;
+  color: #0b1a2a;
+}
+
+.adm-inbox-i .row1 time {
+  margin-left: auto;
+  font-size: 12px;
+  color: #7d8b96;
+  white-space: nowrap;
+}
+
+.adm-inbox-i .row2 {
+  font-size: 12.5px;
+}
+
+.adm-inbox-i .row3 {
+  font-size: 12.5px;
+  gap: 14px;
+}
+
+.adm-inbox-i .row3 a {
+  color: #9a7642;
+  text-decoration: none;
+}
+
+.adm-inbox-i .row3 a:hover,
+.adm-inbox-i .row3 a:focus-visible {
+  text-decoration: underline;
+}
+
+/* The visitor-facing reference they can quote. Monospaced so it can be
+   read aloud or transcribed without ambiguity. */
+.refcode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: #7d8b96;
+  background: #f1f4f6;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+/* Long visitor messages must not break the row layout. */
+.adm-inbox-i .preview {
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.adm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 56px 24px;
+  text-align: center;
+  color: #5b6c78;
+}
+
+.adm-empty h2 {
+  margin: 0;
+  font: 400 22px/1.25 Georgia, serif;
+  color: #0b1a2a;
+}
+
+.adm-empty p {
+  margin: 0;
+  max-width: 46ch;
+  line-height: 1.6;
+}
+
+/* Search row: input, status filter, submit. */
+.adm-inbox-search select {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 9px;
+  border: 1px solid #e4e8ed;
+  border-radius: 7px;
+  background: #fff;
+  color: #0b1a2a;
+}
+
+/* ---- Pipeline board and task list internals ------------------------
+   The markup for column headers, per-card metadata and task rows had no
+   rules, so those elements rendered unstyled. Added here. */
+
+.adm-col-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a97a2;
+}
+
+.adm-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #eef1f4;
+  color: #5b6c78;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.adm-col-empty {
+  margin: 0;
+  padding: 14px 4px;
+  font-size: 12.5px;
+  color: #9aa6b0;
+}
+
+.adm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 13px;
+  border: 1px solid #e4e8ed;
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 8px;
+}
+
+.adm-card strong {
+  color: #0b1a2a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.adm-card-sub {
+  font-size: 12.5px;
+  color: #9a7642;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.adm-card-sub:hover,
+.adm-card-sub:focus-visible {
+  text-decoration: underline;
+}
+
+.adm-card-meta {
+  font-size: 11.5px;
+  color: #7d8b96;
+}
+
+.adm-card-note {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: #5b6c78;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.adm-card .adm-tag {
+  align-self: flex-start;
+}
+
+.adm-section {
+  margin: 26px 0;
+}
+
+.adm-section h2 {
+  margin: 0 0 12px;
+  font: 600 13px/1.3 inherit;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a97a2;
+}
+
+.adm-task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.adm-task {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 15px;
+  border: 1px solid #e4e8ed;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* Overdue is called out with a border as well as colour, so it is not
+   communicated by hue alone. */
+.adm-task.is-overdue {
+  border-left: 3px solid #b4453c;
+}
+
+.adm-task.is-overdue time {
+  color: #b4453c;
+  font-weight: 600;
+}
+
+.adm-task time.is-today {
+  color: #9a6a1f;
+  font-weight: 600;
+}
+
+.adm-task-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.adm-task-main strong {
+  color: #0b1a2a;
+  font-size: 14.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.adm-task-main p {
+  margin: 0;
+  font-size: 13px;
+  color: #5b6c78;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.adm-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  font-size: 12px;
+  color: #7d8b96;
+  white-space: nowrap;
+}
+
+.adm-task-list.is-done .adm-task {
+  opacity: 0.72;
+}
+
+@media (max-width: 720px) {
+  .adm-task {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .adm-task-meta {
+    justify-content: flex-start;
+    white-space: normal;
+  }
+}

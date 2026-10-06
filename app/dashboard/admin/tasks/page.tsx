@@ -1,94 +1,176 @@
-import { Plus, Filter } from "lucide-react";
+import { CheckSquare, Filter } from "lucide-react";
+import { asc, eq, inArray, isNull, or, and } from "drizzle-orm";
 import AdminShell from "../AdminShell";
 import { checkAdminAccess } from "../auth";
+import { getDb } from "@/db";
+import { tasks } from "@/db/schema";
+import { ensureMigrated } from "@/db/migrate";
 
 export const dynamic = "force-dynamic";
 
-const today = [
-  { title: "Call Marcus Taylor", sub: "Discovery · 30 min", due: "TODAY · 10:30", tone: "today" as const, done: false },
-  { title: "Review Rivera 1040", sub: "Schedule C · needs sign-off", due: "TODAY · 13:00", tone: "today" as const, done: false },
-  { title: "Request 1099s from J. Okafor", sub: "Outstanding 14 days", due: "TODAY", tone: "today" as const, done: false },
-  { title: "Approve Sharon Kim engagement", sub: "Awaiting countersign", due: "TODAY · 15:30", tone: "today" as const, done: false },
-  { title: "End-of-day triage", sub: "Clear inbox, plan tomorrow", due: "TODAY · 17:00", tone: "today" as const, done: false },
-];
+const OPEN_STATUSES = ["open", "in_progress", "blocked"] as const;
 
-const overdue = [
-  { title: "Send K-1 request to J. Okafor", sub: "Was due Oct 1 · blocking 1065", due: "3 DAYS OVERDUE", tone: "overdue" as const, done: false },
-  { title: "Follow up on Patel depreciation", sub: "Awaiting Aanya's revision", due: "2 DAYS OVERDUE", tone: "overdue" as const, done: false },
-  { title: "Resend engagement to M. Hassan", sub: "Bounced email on file", due: "1 DAY OVERDUE", tone: "overdue" as const, done: false },
-];
+const PRIORITY_ORDER: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
 
-const week = [
-  { title: "Call Whitlock re: K-1 docs", sub: "Schedule 30-min slot", due: "TUE", tone: "today" as const, done: false },
-  { title: "Prep for Park 1040X review", sub: "Pull transcripts, prior return", due: "WED", tone: "today" as const, done: false },
-  { title: "File Hassan 1065 extension", sub: "Form 7004 · $3,420 fee", due: "WED", tone: "today" as const, done: false },
-  { title: "Quarterly newsletter draft", sub: "Top 5 tax moves for Q4", due: "THU", tone: "today" as const, done: false },
-  { title: "Hire interview — preparer", sub: "Aanya Cole, 2pm", due: "FRI", tone: "today" as const, done: false },
-  { title: "Review weekly reports", sub: "Revenue, turnaround, no-shows", due: "FRI", tone: "today" as const, done: false },
-];
+type Row = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  dueAt: Date | null;
+  completedAt: Date | null;
+  createdAt: Date;
+};
 
-const completed = [
-  { title: "Standup with staff", sub: "Marcus, Sharon, David", due: "9:00 AM", tone: "today" as const, done: true },
-  { title: "Confirm Mitchell engagement", sub: "Signed and returned", due: "Yesterday", tone: "today" as const, done: true },
-  { title: "Wire Castillo retainer", sub: "$680 · invoice 1042", due: "Yesterday", tone: "today" as const, done: true },
-];
+function dueLabel(dueAt: Date | null): { text: string; overdue: boolean; today: boolean } {
+  if (!dueAt) return { text: "No due date", overdue: false, today: false };
+  const target = new Date(dueAt);
+  const now = new Date();
+  const overdue = target.getTime() < now.getTime();
+  const today = target.toDateString() === now.toDateString();
+  const time = new Intl.DateTimeFormat("en-US", {
+    timeStyle: "short",
+    timeZone: "America/New_York",
+  }).format(target);
+  const date = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeZone: "America/New_York",
+  }).format(target);
+  return { text: today ? `Today ${time}` : date, overdue, today };
+}
 
-export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ preview?: string }> }) {
-  const access = await checkAdminAccess(searchParams);
+export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ view?: string }> }) {
+  const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
+
+  let open: Row[] = [];
+  let done: Row[] = [];
+  let unavailable = false;
+
+  try {
+    await ensureMigrated();
+    const db = getDb();
+    const selection = {
+      id: tasks.id,
+      title: tasks.title,
+      description: tasks.description,
+      status: tasks.status,
+      priority: tasks.priority,
+      dueAt: tasks.dueAt,
+      completedAt: tasks.completedAt,
+      createdAt: tasks.createdAt,
+    };
+
+    [open, done] = await Promise.all([
+      db
+        .select(selection)
+        .from(tasks)
+        .where(inArray(tasks.status, [...OPEN_STATUSES]))
+        // Overdue and due-today first, then by priority, then by date.
+        .orderBy(asc(tasks.dueAt))
+        .limit(200),
+      db
+        .select(selection)
+        .from(tasks)
+        .where(and(eq(tasks.status, "done"), or(isNull(tasks.completedAt), eq(tasks.completedAt, tasks.completedAt))))
+        .orderBy(asc(tasks.dueAt))
+        .limit(50),
+    ]);
+  } catch {
+    unavailable = true;
+  }
+
+  open.sort((a, b) => {
+    const pa = PRIORITY_ORDER[a.priority] ?? 9;
+    const pb = PRIORITY_ORDER[b.priority] ?? 9;
+    const aDue = a.dueAt ? new Date(a.dueAt).getTime() : Infinity;
+    const bDue = b.dueAt ? new Date(b.dueAt).getTime() : Infinity;
+    if (aDue !== bDue) return aDue - bDue;
+    return pa - pb;
+  });
+
+  const overdueCount = open.filter((t) => {
+    const d = dueLabel(t.dueAt);
+    return d.overdue;
+  }).length;
+
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/tasks">
       <div className="adm-page-h">
         <div>
           <h1>Tasks</h1>
-          <div className="sub">5 due today · 3 overdue · 6 this week · 17 total open</div>
+          <div className="sub">
+            {unavailable
+              ? "Unavailable"
+              : `${open.length} open · ${overdueCount} overdue`}
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="adm-btn" style={{ background: "#f1ede2", color: "#0e1a26", boxShadow: "none" }}><Filter size={13} /> Filter</button>
-          <button className="adm-btn"><Plus size={13} /> New task</button>
-        </div>
+        <span className="adm-badge">
+          <Filter size={13} aria-hidden="true" /> All assignees
+        </span>
       </div>
 
-      <div className="adm-tasks-cols">
-        <div className="adm-tasks-col">
-          <h3>Overdue <span className="ct">{overdue.length}</span></h3>
-          {overdue.map((t, i) => <Task key={i} {...t} />)}
-          <h3 style={{ marginTop: 18 }}>Today <span className="ct">{today.length}</span></h3>
-          {today.map((t, i) => <Task key={i} {...t} />)}
+      {unavailable ? (
+        <div className="adm-empty">
+          <p>We could not load tasks. Nothing has been lost — try again shortly.</p>
         </div>
-        <div className="adm-tasks-col">
-          <h3>This week <span className="ct">{week.length}</span></h3>
-          {week.map((t, i) => <Task key={i} {...t} />)}
-        </div>
-        <div className="adm-tasks-col">
-          <h3>Completed <span className="ct">{completed.length}</span></h3>
-          {completed.map((t, i) => <Task key={i} {...t} />)}
-          <h3 style={{ marginTop: 18 }}>Delegated to staff</h3>
-          <div style={{ background: "#fff", border: "1px solid rgba(14,26,38,.06)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 12 }}>
-            <b>Sharon: prep Whitlock K-1</b>
-            <div className="adm-sm" style={{ marginTop: 2 }}>Due Fri · 60% done</div>
-            <div style={{ height: 4, background: "#f1ede2", borderRadius: 2, marginTop: 8 }}><div style={{ width: "60%", height: 4, background: "#2f8a5b", borderRadius: 2 }} /></div>
-          </div>
-          <div style={{ background: "#fff", border: "1px solid rgba(14,26,38,.06)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 12 }}>
-            <b>David: collect Mitchell docs</b>
-            <div className="adm-sm" style={{ marginTop: 2 }}>Due Tue · 30% done</div>
-            <div style={{ height: 4, background: "#f1ede2", borderRadius: 2, marginTop: 8 }}><div style={{ width: "30%", height: 4, background: "#d4a755", borderRadius: 2 }} /></div>
-          </div>
-        </div>
-      </div>
+      ) : (
+        <>
+          <section className="adm-section">
+            <h2>Open</h2>
+            {open.length === 0 ? (
+              <div className="adm-empty">
+                <CheckSquare size={22} aria-hidden="true" />
+                <h2>Nothing open</h2>
+                <p>New tasks assigned to you or the team appear here.</p>
+              </div>
+            ) : (
+              <ul className="adm-task-list">
+                {open.map((t) => {
+                  const due = dueLabel(t.dueAt);
+                  return (
+                    <li key={t.id} className={`adm-task${due.overdue ? " is-overdue" : ""}`}>
+                      <div className="adm-task-main">
+                        <strong>{t.title}</strong>
+                        {t.description ? <p>{t.description}</p> : null}
+                      </div>
+                      <div className="adm-task-meta">
+                        <span className="adm-badge">{t.priority}</span>
+                        <span className="adm-badge">{t.status.replace("_", " ")}</span>
+                        <time dateTime={t.dueAt ? new Date(t.dueAt).toISOString() : undefined} className={due.overdue ? "is-overdue" : due.today ? "is-today" : undefined}>
+                          {due.text}
+                        </time>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          {done.length > 0 ? (
+            <section className="adm-section">
+              <h2>Recently completed</h2>
+              <ul className="adm-task-list is-done">
+                {done.slice(0, 25).map((t) => (
+                  <li key={t.id} className="adm-task">
+                    <div className="adm-task-main">
+                      <strong>{t.title}</strong>
+                    </div>
+                    <div className="adm-task-meta">
+                      <span className="adm-badge">done</span>
+                      <time dateTime={t.completedAt ? new Date(t.completedAt).toISOString() : undefined}>
+                        {t.completedAt ? new Date(t.completedAt).toLocaleDateString("en-US", { dateStyle: "medium", timeZone: "America/New_York" }) : ""}
+                      </time>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </>
+      )}
     </AdminShell>
-  );
-}
-
-function Task({ title, sub, due, tone, done }: { title: string; sub: string; due: string; tone: "today" | "overdue"; done: boolean }) {
-  return (
-    <div className={`adm-task${done ? " done" : ""}`}>
-      <div className="chk" />
-      <div className="adm-task-body">
-        <b>{title}</b>
-        <div className="sm">{sub}</div>
-        <div className={`due ${tone}`}>{due}</div>
-      </div>
-    </div>
   );
 }
