@@ -783,3 +783,29 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Clickable status badge (Documents, Team) -> navigates to settings */
+.adm-badge-link{cursor:pointer;text-decoration:none;transition:background .15s}
+.adm-badge-link:hover{background:#efe3cb}
+
+/* Mini / ghost button variants for inline row actions */
+.adm-btn-mini{height:30px;padding:0 12px;border-radius:7px;font:700 11px Manrope,sans-serif;letter-spacing:.04em;background:#0d2b3d;color:#fff;border:0;cursor:pointer;white-space:nowrap}
+.adm-btn-mini:hover{background:#1a3d52}
+.adm-btn-ghost{background:transparent;color:var(--ink);box-shadow:none;border:1px solid rgba(14,26,38,.12)}
+.adm-btn-ghost:hover{background:rgba(14,26,38,.04)}
+
+/* Task row action form (Mark done / Reopen) */
+.adm-task-action{margin:0}
+.adm-task.is-done .adm-task-action{margin-left:auto}
+.adm-task:not(.is-done) .adm-task-action{margin-left:8px}
+
+/* Quick-create inline form (Leads, Documents, etc.) */
+.adm-quick-form{background:#fff;border:1px solid rgba(14,26,38,.08);border-radius:12px;padding:18px 20px;margin:0 0 18px;display:grid;gap:12px;box-shadow:0 4px 16px rgba(14,26,38,.04)}
+.adm-quick-form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.adm-quick-form label{display:grid;gap:5px;font:600 11px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#5b6a78}
+.adm-quick-form input,.adm-quick-form textarea{width:100%;height:42px;border:1px solid #d6dce1;border-radius:7px;background:#fff;color:var(--ink);padding:0 12px;font:14px 'DM Sans',sans-serif;outline:0}
+.adm-quick-form input:focus,.adm-quick-form textarea:focus{border-color:#9a7642;box-shadow:0 0 0 3px #9a764226}
+.adm-quick-form textarea{height:auto;min-height:60px;padding:10px 12px;resize:vertical}
+.adm-quick-form-actions{display:flex;gap:10px;align-items:center}
+.adm-quick-form-notes{display:grid;gap:5px}
+@media(max-width:600px){.adm-quick-form-row{grid-template-columns:1fr}}

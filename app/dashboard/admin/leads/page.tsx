@@ -33,7 +33,9 @@ function formatDate(value: Date | null): string {
       );
 }
 
-export default async function LeadsPage() {
+export default async function LeadsPage({ searchParams }: { searchParams?: Promise<{ q?: string; stage?: string; new?: string }> }) {
+  const sp = (await searchParams) ?? {};
+  const showForm = sp.new === "1";
   const access = await checkAdminAccess();
   if (!access.allowed) return access.restricted;
 
@@ -91,10 +93,28 @@ export default async function LeadsPage() {
           {/* Real counts only. No invented pipeline values. */}
           <div className="sub">{unavailable ? "Unavailable" : `${total} lead${total === 1 ? "" : "s"} in the pipeline`}</div>
         </div>
-        <button className="adm-btn" disabled title="Add lead">
+        <a className="adm-btn" href="?new=1" title="Add a new lead">
           <Plus size={13} /> New lead
-        </button>
+        </a>
       </div>
+
+      {showForm ? (
+        <form className="adm-quick-form" action="/api/admin/leads" method="post">
+          <div className="adm-quick-form-row">
+            <label>Name<input name="name" required minLength={2} maxLength={100} autoComplete="name" /></label>
+            <label>Email<input name="email" type="email" required maxLength={180} autoComplete="email" /></label>
+          </div>
+          <div className="adm-quick-form-row">
+            <label>Phone<input name="phone" type="tel" maxLength={30} autoComplete="tel" /></label>
+            <label>Service<input name="service" maxLength={120} placeholder="e.g. Individual tax preparation" /></label>
+          </div>
+          <label className="adm-quick-form-notes">Notes<textarea name="notes" maxLength={2000} rows={2} placeholder="Optional context" /></label>
+          <div className="adm-quick-form-actions">
+            <button type="submit" className="adm-btn">Create lead</button>
+            <a className="adm-btn adm-btn-ghost" href="/dashboard/admin/leads">Cancel</a>
+          </div>
+        </form>
+      ) : null}
 
       {unavailable ? (
         <div className="adm-empty">

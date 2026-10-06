@@ -101,7 +101,7 @@ export default async function TeamPage() {
           </div>
         </div>
         <span className="adm-badge">
-          <Mail size={13} aria-hidden="true" /> Invitations are not enabled
+          <a className="adm-badge adm-badge-link" href="/dashboard/admin/settings#team" title="Open team settings to enable invitations"><Mail size={13} aria-hidden="true" /> Invitations are not enabled</a>
         </span>
       </div>
 
