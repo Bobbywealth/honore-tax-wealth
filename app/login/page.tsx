@@ -75,6 +75,13 @@ export default function Login() {
 
       <main className="login-simple-main">
         <section className="login-simple-panel" aria-labelledby="login-title">
+          <img
+            className="login-panel-logo"
+            src="/assets/honore-logo.png"
+            alt="Honoré Tax & Wealth"
+            width={96}
+            height={96}
+          />
           <span className="login-eyebrow">HONORÉ TAX &amp; WEALTH</span>
           <h1 id="login-title">Welcome back.</h1>
           <p className="login-intro">Access your account.</p>
