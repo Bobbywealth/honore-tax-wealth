@@ -1,12 +1,11 @@
 import { env } from "cloudflare:workers";
-import { headers } from "next/headers";
-import { Inbox, LockKeyhole } from "lucide-react";
+import { checkAdminAccess } from "./auth";
+import { Inbox } from "lucide-react";
 import AdminShell from "./AdminShell";
 
 export const dynamic = "force-dynamic";
 
 type Inquiry = { id: number; name: string; email: string; phone: string; service: string; message: string; created_at: string };
-const ownerId = "8ab18a5e-4d89-4089-b8bb-833ee47c7714";
 
 function dateStamp() {
   const d = new Date();
@@ -59,19 +58,9 @@ function KpiChart({ color, dir }: { color: string; dir: "up" | "down" }) {
 }
 
 export default async function AdminDashboard({ searchParams }: { searchParams?: Promise<{ preview?: string }> }) {
-  const requestHeaders = await headers();
-  const params = searchParams ? await searchParams : {};
-  const preview = params.preview === "1";
-  if (!preview && requestHeaders.get("oai-authenticated-user-id") !== ownerId) {
-    return (
-      <main className="adm-restricted">
-        <LockKeyhole size={32} />
-        <h1>Access restricted</h1>
-        <p>This dashboard is available to the site owner.</p>
-        <a href="/login">Back to portal</a>
-      </main>
-    );
-  }
+  const access = await checkAdminAccess(searchParams);
+  if (!access.allowed) return access.restricted;
+  const preview = access.preview;
 
   let inquiries: Inquiry[] = [];
   let unavailable = false;
