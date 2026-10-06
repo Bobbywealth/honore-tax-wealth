@@ -63,9 +63,12 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
         <Group label="Admin" items={ADMIN} currentHref={currentHref} />
 
         <div className="adm-me">
-          <button type="button" className="adm-logout" aria-label="Sign out" title="Sign out">
-            <LogOut size={14} />
-          </button>
+          <form className="adm-logout-form" action="/api/auth/logout" method="post">
+            <button type="submit" className="adm-logout" aria-label="Sign out" title="Sign out">
+              <LogOut size={14} />
+              <span>Sign out</span>
+            </button>
+          </form>
           <div className="adm-me-row">
             <div className="adm-av">BW</div>
             <div>
