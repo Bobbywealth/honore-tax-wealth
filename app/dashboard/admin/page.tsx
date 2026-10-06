@@ -60,10 +60,12 @@ function KpiChart({ color, dir }: { color: string; dir: "up" | "down" }) {
   );
 }
 
-export default async function AdminDashboard({ searchParams }: { searchParams?: Promise<{ preview?: string }> }) {
+export default async function AdminDashboard({ searchParams }: { searchParams?: Promise<{ preview?: string; dismiss?: string }> }) {
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
   const preview = access.preview;
+  const sp = (await searchParams) ?? {};
+  const dismissed = sp.dismiss === "ai";
 
   let inquiries: Inquiry[] = [];
   let unavailable = false;
@@ -114,7 +116,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
         </svg>
         <b>Action needed</b>
         <span className="adm-sm">2 returns rejected by IRS e-file · 1 consultation unanswered 26 hrs</span>
-        <a href="#" className="adm-act">Resolve now</a>
+        <a href="/dashboard/admin/returns?status=rejected" className="adm-act">Resolve now</a>
       </div>
 
       <div className="adm-kp">
@@ -153,7 +155,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
       <div className="adm-g">
         <div>
           <div className="adm-card">
-            <h3>Returns pipeline <a href="#">Open board →</a></h3>
+            <h3>Returns pipeline <a href="/dashboard/admin/returns">Open board →</a></h3>
             <div className="adm-kan">
               <div className="adm-col">
                 <h4><span className="d" style={{ background: "#8a97a3" }} />Intake<span className="ct">7</span></h4>
@@ -211,26 +213,29 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
                 })
               )}
             <div className="adm-actions">
-              <a href="#" className="primary">Reply</a>
-              <a href="#">Schedule</a>
-              <a href="#">Convert to client</a>
+              <a href={inquiries[0] ? `mailto:${inquiries[0].email}` : "/dashboard/admin/inbox"} className="primary">Reply</a>
+              <a href="/dashboard/admin/calendar?new=1">Schedule</a>
+              <a href="/dashboard/admin/clients?new=1">Convert to client</a>
             </div>
           </div>
 
+          {dismissed ? null : (
           <div className="adm-ai">
             <div className="lbl">✦ Practice AI</div>
             <h4>4 unfiled 2023 returns past the 30-day prep window.</h4>
             <p>Assign Marcus Hale to J. Okafor, draft K-1 request letters today, and surface extensions for the 2 at-risk for Oct 15.</p>
             <div className="ctas">
-              <a href="#">Plan my day →</a>
-              <a href="#">Dismiss</a>
+              <a href="/dashboard/admin/tasks">Plan my day →</a>
+              <a href="/dashboard/admin?dismiss=ai">Dismiss</a>
             </div>
           </div>
+          )}
+
         </div>
 
         <div>
           <div className="adm-card">
-            <h3>Today <a href="#">Calendar →</a></h3>
+            <h3>Today <a href="/dashboard/admin/calendar">Calendar →</a></h3>
             <div className="adm-tl">
               <div className="adm-tl-i done">
                 <div className="adm-tl-t">9:00</div>
@@ -273,7 +278,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
           </div>
 
           <div className="adm-cal">
-            <h3><span>October 2026</span><span className="mo">View all →</span></h3>
+            <h3><a href="/dashboard/admin/calendar"><span>October 2026</span><span className="mo">View all →</span></a></h3>
             <div className="adm-cal-grid">
               <div className="adm-cal-d">S</div>
               <div className="adm-cal-d">M</div>
