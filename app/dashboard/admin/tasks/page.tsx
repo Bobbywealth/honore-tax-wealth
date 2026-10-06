@@ -1,36 +1,36 @@
 import { Plus, Filter } from "lucide-react";
 import AdminShell from "../AdminShell";
-import { checkAdminAccess } from "../auth.tsx";
+import { checkAdminAccess } from "../auth";
 
 export const dynamic = "force-dynamic";
 
 const today = [
-  { title: "Call Marcus Taylor", sub: "Discovery · 30 min", due: "TODAY · 10:30", tone: "today", done: false },
-  { title: "Review Rivera 1040", sub: "Schedule C · needs sign-off", due: "TODAY · 13:00", tone: "today", done: false },
-  { title: "Request 1099s from J. Okafor", sub: "Outstanding 14 days", due: "TODAY", tone: "today", done: false },
-  { title: "Approve Sharon Kim engagement", sub: "Awaiting countersign", due: "TODAY · 15:30", tone: "today", done: false },
-  { title: "End-of-day triage", sub: "Clear inbox, plan tomorrow", due: "TODAY · 17:00", tone: "today", done: false },
+  { title: "Call Marcus Taylor", sub: "Discovery · 30 min", due: "TODAY · 10:30", tone: "today" as const, done: false },
+  { title: "Review Rivera 1040", sub: "Schedule C · needs sign-off", due: "TODAY · 13:00", tone: "today" as const, done: false },
+  { title: "Request 1099s from J. Okafor", sub: "Outstanding 14 days", due: "TODAY", tone: "today" as const, done: false },
+  { title: "Approve Sharon Kim engagement", sub: "Awaiting countersign", due: "TODAY · 15:30", tone: "today" as const, done: false },
+  { title: "End-of-day triage", sub: "Clear inbox, plan tomorrow", due: "TODAY · 17:00", tone: "today" as const, done: false },
 ];
 
 const overdue = [
-  { title: "Send K-1 request to J. Okafor", sub: "Was due Oct 1 · blocking 1065", due: "3 DAYS OVERDUE", tone: "overdue", done: false },
-  { title: "Follow up on Patel depreciation", sub: "Awaiting Aanya's revision", due: "2 DAYS OVERDUE", tone: "overdue", done: false },
-  { title: "Resend engagement to M. Hassan", sub: "Bounced email on file", due: "1 DAY OVERDUE", tone: "overdue", done: false },
+  { title: "Send K-1 request to J. Okafor", sub: "Was due Oct 1 · blocking 1065", due: "3 DAYS OVERDUE", tone: "overdue" as const, done: false },
+  { title: "Follow up on Patel depreciation", sub: "Awaiting Aanya's revision", due: "2 DAYS OVERDUE", tone: "overdue" as const, done: false },
+  { title: "Resend engagement to M. Hassan", sub: "Bounced email on file", due: "1 DAY OVERDUE", tone: "overdue" as const, done: false },
 ];
 
 const week = [
-  { title: "Call Whitlock re: K-1 docs", sub: "Schedule 30-min slot", due: "TUE", tone: "today", done: false },
-  { title: "Prep for Park 1040X review", sub: "Pull transcripts, prior return", due: "WED", tone: "today", done: false },
-  { title: "File Hassan 1065 extension", sub: "Form 7004 · $3,420 fee", due: "WED", tone: "today", done: false },
-  { title: "Quarterly newsletter draft", sub: "Top 5 tax moves for Q4", due: "THU", tone: "today", done: false },
-  { title: "Hire interview — preparer", sub: "Aanya Cole, 2pm", due: "FRI", tone: "today", done: false },
-  { title: "Review weekly reports", sub: "Revenue, turnaround, no-shows", due: "FRI", tone: "today", done: false },
+  { title: "Call Whitlock re: K-1 docs", sub: "Schedule 30-min slot", due: "TUE", tone: "today" as const, done: false },
+  { title: "Prep for Park 1040X review", sub: "Pull transcripts, prior return", due: "WED", tone: "today" as const, done: false },
+  { title: "File Hassan 1065 extension", sub: "Form 7004 · $3,420 fee", due: "WED", tone: "today" as const, done: false },
+  { title: "Quarterly newsletter draft", sub: "Top 5 tax moves for Q4", due: "THU", tone: "today" as const, done: false },
+  { title: "Hire interview — preparer", sub: "Aanya Cole, 2pm", due: "FRI", tone: "today" as const, done: false },
+  { title: "Review weekly reports", sub: "Revenue, turnaround, no-shows", due: "FRI", tone: "today" as const, done: false },
 ];
 
 const completed = [
-  { title: "Standup with staff", sub: "Marcus, Sharon, David", due: "9:00 AM", tone: "today", done: true },
-  { title: "Confirm Mitchell engagement", sub: "Signed and returned", due: "Yesterday", tone: "today", done: true },
-  { title: "Wire Castillo retainer", sub: "$680 · invoice 1042", due: "Yesterday", tone: "today", done: true },
+  { title: "Standup with staff", sub: "Marcus, Sharon, David", due: "9:00 AM", tone: "today" as const, done: true },
+  { title: "Confirm Mitchell engagement", sub: "Signed and returned", due: "Yesterday", tone: "today" as const, done: true },
+  { title: "Wire Castillo retainer", sub: "$680 · invoice 1042", due: "Yesterday", tone: "today" as const, done: true },
 ];
 
 export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ preview?: string }> }) {

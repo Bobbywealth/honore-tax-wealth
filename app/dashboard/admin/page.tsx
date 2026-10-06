@@ -77,7 +77,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
   let unavailable = false;
   try {
     if (!preview) {
-      const result = await env.DB.prepare("SELECT id,name,email,phone,service,message,created_at FROM consultations ORDER BY id DESC LIMIT 20").all<Inquiry>();
+      const result = await env.DB!.prepare("SELECT id,name,email,phone,service,message,created_at FROM consultations ORDER BY id DESC LIMIT 20").all<Inquiry>();
       inquiries = result.results || [];
     }
   } catch (error) {

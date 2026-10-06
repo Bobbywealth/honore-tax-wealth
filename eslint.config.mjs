@@ -14,6 +14,14 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
+    rules: {
+      // Stylistic only. Plain <a> is deliberate: next/link broke sidebar navigation under vinext (commit 89454ae).
+      "@next/next/no-html-link-for-pages": "off",
+      // Apostrophes/quotes in static legal copy are safe; no injection risk.
+      "react/no-unescaped-entities": "off",
+    },
+  },
+  {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
     rules: {
       // These files are vendored verbatim from shadcn@4.17.0. Keep the

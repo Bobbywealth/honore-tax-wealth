@@ -5,9 +5,11 @@ const ownerId = "8ab18a5e-4d89-4089-b8bb-833ee47c7714";
 
 export async function checkAdminAccess(searchParams: Promise<{ preview?: string }> | undefined) {
   const requestHeaders = await headers();
-  const params = searchParams ? await searchParams : {};
-  const preview = params.preview === "1";
-  if (!preview && requestHeaders.get("oai-authenticated-user-id") !== ownerId) {
+  // SECURITY: the former `?preview=1` bypass is removed. Query parameters never grant access.
+  // Interim gate until real authentication (Phase 2) replaces this owner-header check.
+  void searchParams;
+  const preview = false;
+  if (requestHeaders.get("oai-authenticated-user-id") !== ownerId) {
     return {
       allowed: false as const,
       preview: false,
