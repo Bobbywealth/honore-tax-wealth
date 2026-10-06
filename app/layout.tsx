@@ -35,7 +35,11 @@ const jsonLd = {
   "url":"https://honore-tax-wealth.onrender.com/",
   "image":"https://honore-tax-wealth.onrender.com/assets/og/og.jpg",
   "logo":"https://honore-tax-wealth.onrender.com/assets/honore-logo-cropped-sm.png",
-  "telephone":"+1-555-000-0000",
+  // No `telephone` property. This previously advertised "+1-555-000-0000",
+  // a reserved fictional number, in structured data on every page. Google
+  // treats fabricated contact details in JSON-LD as a spam signal and it
+  // violates the project's own rule against placeholder contact information.
+  // Restore the field once the practice supplies a verified number.
   "priceRange":"$$",
   "areaServed":{"@type":"AdministrativeArea","name":"New Jersey"},
   "serviceType":["Tax preparation","Tax filing","Tax planning","IRS notice help","Small business tax"],

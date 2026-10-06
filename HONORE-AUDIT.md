@@ -6,6 +6,50 @@
 
 ---
 
+## ⚠️ Corrections as of 2026-10-05 (later the same day)
+
+The audit above was taken against `main` before the runtime migration landed.
+The following sections are **stale** and have been superseded. Treat the rows
+marked ✅ below as authoritative.
+
+**Architecture changed.** The site is no longer VinEXT on Cloudflare D1. It is
+now plain **Next.js 16 on the Node runtime on Render**, with **Render Postgres**
+(`honore-pg`). The Vinext/wrangler toolchain has been removed entirely, which
+is what broke the build in the first place.
+
+**Four build blockers were found and fixed**, and Render now reports
+"Build successful 🎉": the pnpm lockfile still carried Cloudflare overrides; the
+deleted `pnpm-workspace.yaml` had held the `allowBuilds` policy that stopped
+`pnpm install` exiting 1; `globals.css` used `@import url()` shims that the Next
+build cannot resolve; and `db/index.ts` opened its pool at module scope, so the
+build demanded `DATABASE_URL` on the build machine. A build no longer needs a
+database.
+
+**Authentication is no longer a stub** (Phase 5 above is obsolete). The admin
+dashboard and `/inquiries` were gated on an `oai-authenticated-user-id` request
+header compared against a hardcoded UUID — any caller could set it and read
+every client's name, email, phone and tax message. That was a live PII exposure
+and is closed. Replaced with scrypt password hashing, server-side session rows
+storing only a SHA-256 of the token, HttpOnly/Secure/SameSite cookies, a real
+login form, and timing-safe login responses. Role checks are enforced
+server-side on every admin route.
+
+**Also now done**, contrary to the rows above: `.env.example` exists and is
+committed; startup env validation fails fast on a missing `DATABASE_URL`; a
+`/api/health` endpoint reports real database connectivity; SIGTERM/SIGINT close
+the pool; security headers and CSP were already configured (marked ❓ above);
+transactional email is wired via Resend and is strictly best-effort so a
+provider outage cannot lose a stored lead; the fabricated `+1-555-000-0000` phone
+was removed from the structured data.
+
+**Still true and still urgent:** the service start command in the Render
+dashboard is still wrangler, so every deploy builds and then dies at boot. No
+deploy can go live until that is changed to `pnpm run start` and `ADMIN_EMAIL`
+/ `ADMIN_PASSWORD` are set as environment variables. Neither is changeable
+through the Render API — both are dashboard-only.
+
+---
+
 ## Critical Blockers
 
 | # | Item | Status | Notes |
