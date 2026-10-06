@@ -1,7 +1,7 @@
-import { headers } from "next/headers";
 import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { requireRole } from "@/lib/auth";
 import { desc } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -16,17 +16,17 @@ type Inquiry = {
   created_at: string;
 };
 
-// Interim owner-header gate. Removed in Phase 2 when Better Auth lands.
-const OWNER_ID = "8ab18a5e-4d89-4089-b8bb-833ee47c7714";
-
 export default async function Inquiries() {
-  const h = await headers();
-  if (h.get("oai-authenticated-user-id") !== OWNER_ID) {
+  // Server-verified session only. The previous check trusted an
+  // `oai-authenticated-user-id` request header, which any caller could set to
+  // read every submitted consultation.
+  const user = await requireRole("admin", "staff");
+  if (!user) {
     return (
       <main style={{ padding: 40, fontFamily: "sans-serif" }}>
         <h1>Access restricted</h1>
-        <p>This page is for the site owner.</p>
-        <a href="/">Home</a>
+        <p>This page is available to authorized staff only.</p>
+        <a href="/login">Sign in</a>
       </main>
     );
   }
