@@ -12,6 +12,40 @@
     menu.querySelectorAll('a, .nav-book').forEach(link=>link.addEventListener('click',()=>closeMenu()));
   }
 
+  // Adaptive header: hidden only after deliberate downward scrolling.
+  const header=document.querySelector('header.nav');
+  if(header){
+    let lastY=Math.max(0,window.scrollY), distance=0, scheduled=false;
+    const show=()=>{header.classList.remove('nav-hidden');distance=0;};
+    const update=()=>{
+      scheduled=false;
+      const y=Math.max(0,window.scrollY), delta=y-lastY;
+      const locked=header.matches(':focus-within') || menu?.classList.contains('show') || document.querySelector('dialog[open]');
+      if(y<100 || locked){show();}
+      else if(Math.abs(delta)>2){
+        distance=(distance*delta<0)?delta:distance+delta;
+        if(distance>36){header.classList.add('nav-hidden');distance=0;}
+        else if(distance< -10){show();}
+      }
+      lastY=y;
+    };
+    addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(update);}},{passive:true});
+    header.addEventListener('focusin',show);
+    toggle?.addEventListener('click',show);
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape' && menu?.classList.contains('show')){
+        menu.classList.remove('show');toggle?.setAttribute('aria-expanded','false');toggle?.setAttribute('aria-label','Open menu');toggle?.focus();show();
+      }
+    });
+    document.addEventListener('click',e=>{
+      if(menu?.classList.contains('show') && !header.contains(e.target)){
+        menu.classList.remove('show');toggle?.setAttribute('aria-expanded','false');toggle?.setAttribute('aria-label','Open menu');
+      }
+    });
+    const desktop=matchMedia('(min-width:1025px)');
+    desktop.addEventListener('change',()=>{menu?.classList.remove('show');toggle?.setAttribute('aria-expanded','false');toggle?.setAttribute('aria-label','Open menu');show();});
+  }
+
   // Consultation dialog
   const dialog=document.getElementById('consultation-dialog');
   if(!dialog) return;
@@ -163,10 +197,11 @@
 
   // Lazy images
   document.querySelectorAll('img').forEach(img=>{if(!img.classList.contains('brand-logo') && !img.hasAttribute('loading')) img.setAttribute('loading','lazy')});
-})();
 
   // Mark dialog as touched on first interaction
   if(dialog2){
     dialog2.addEventListener('input',()=>dialog2.setAttribute('data-touched','1'),{once:true});
     dialog2.addEventListener('change',()=>dialog2.setAttribute('data-touched','1'),{once:true});
   }
+
+})();
