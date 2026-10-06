@@ -31,7 +31,7 @@ function Group({ label, items, currentHref }: { label: string; items: NavItem[];
       {items.map((item) => {
         const active = currentHref === item.href;
         return (
-          <a key={item.label} href={item.href} className={`adm-it${active ? " is-active" : ""}`}>
+          <a key={item.label} href={item.href} aria-current={active ? "page" : undefined} className={`adm-it${active ? " is-active" : ""}`}>
             {item.icon}
             <span>{item.label}</span>
             {item.badge ? <span className={`adm-badge${item.badge.tone === "red" ? " red" : ""}`}>{item.badge.value}</span> : null}
@@ -111,12 +111,14 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
           </button>
         </header>
 
+        <details className="adm-mobile-nav"><summary>Navigate your workspace</summary><nav aria-label="Mobile admin navigation">{[...WORK,...PRACTICE,...ADMIN].map(item=><a key={item.href} href={item.href} aria-current={currentHref===item.href?"page":undefined}>{item.label}</a>)}</nav></details>
         <div className="adm-c">
           {preview ? (
             <div style={{ marginBottom: 14, padding: "8px 14px", background: "#efe3cb", color: "#7b5c31", borderRadius: 8, font: "800 10px Manrope, sans-serif", letterSpacing: ".12em", textTransform: "uppercase", display: "inline-block" }}>
               Portal preview · Live data is gated
             </div>
           ) : null}
+          <div className="adm-sample-note" role="note"><strong>Workspace design preview.</strong> Pipeline, revenue, calendar, and activity examples are illustrative. Only consultation records loaded from the database represent actual requests.</div>
           {children}
         </div>
       </main>
