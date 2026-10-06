@@ -44,6 +44,14 @@ const jsonLd = {
 export default function RootLayout({children}:{children:React.ReactNode}){
   return (
     <html lang="en">
+      <head>
+        {/* Loaded here rather than via @import in globals.css: the plain
+            Next.js build resolves CSS imports at build time and cannot
+            resolve absolute /public paths. Order preserves the original
+            cascade: style.css then cleanup.css. */}
+        <link rel="stylesheet" href="/style.css"/>
+        <link rel="stylesheet" href="/cleanup.css"/>
+      </head>
       <body>
         <link rel="preload" as="image" href="/assets/hero-couple.webp" fetchPriority="high"/>
         <link rel="preload" as="image" href="/assets/hero-consultation.webp" fetchPriority="low"/>

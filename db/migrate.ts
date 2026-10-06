@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { db, pgPool } from "./index";
+import { getDb, getPool } from "./index";
 
 const STATEMENTS: string[] = [
   `CREATE TABLE IF NOT EXISTS consultations (
@@ -19,11 +19,11 @@ let ran = false;
 
 export async function ensureMigrated(): Promise<void> {
   if (ran) return;
-  for (const stmt of STATEMENTS) await db.execute(sql.raw(stmt));
+  for (const stmt of STATEMENTS) await getDb().execute(sql.raw(stmt));
   ran = true;
   console.log("[db] migrations ensured");
 }
 
 export async function close(): Promise<void> {
-  await pgPool.end();
+  await getPool().end();
 }

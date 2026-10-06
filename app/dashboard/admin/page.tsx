@@ -1,7 +1,7 @@
 import { checkAdminAccess } from "./auth";
 import { Inbox } from "lucide-react";
 import AdminShell from "./AdminShell";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { desc } from "drizzle-orm";
@@ -70,7 +70,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
   try {
     if (!preview && process.env.DATABASE_URL) {
       await ensureMigrated();
-      const rows = await db
+      const rows = await getDb()
         .select({
           id: consultations.id,
           name: consultations.name,

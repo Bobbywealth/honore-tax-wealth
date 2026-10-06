@@ -1,6 +1,8 @@
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./schema";
+
+export type Database = NodePgDatabase<typeof schema>;
 
 declare global {
   // eslint-disable-next-line no-var
@@ -21,5 +23,23 @@ function pool(): pg.Pool {
   return p;
 }
 
-export const db = drizzle(pool(), { schema });
-export const pgPool = pool();
+let cached: Database | undefined;
+
+/**
+ * Lazily construct the Drizzle client.
+ *
+ * This must not run at module scope. `next build` imports page modules while
+ * collecting page data, so an eagerly-created client required DATABASE_URL on
+ * the build machine and failed the production build with
+ * "Failed to collect configuration for /dashboard/admin ... DATABASE_URL is not
+ * set". A build must never need a live database.
+ */
+export function getDb(): Database {
+  if (!cached) cached = drizzle(pool(), { schema });
+  return cached;
+}
+
+/** Lazily construct the shared connection pool. See getDb() for why. */
+export function getPool(): pg.Pool {
+  return pool();
+}

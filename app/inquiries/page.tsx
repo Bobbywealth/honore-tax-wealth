@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { desc } from "drizzle-orm";
@@ -35,7 +35,7 @@ export default async function Inquiries() {
   try {
     if (process.env.DATABASE_URL) {
       await ensureMigrated();
-      const result = await db
+      const result = await getDb()
         .select({
           id: consultations.id,
           name: consultations.name,

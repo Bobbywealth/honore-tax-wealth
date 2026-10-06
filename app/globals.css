@@ -1,3 +1,14 @@
-@import url("/style.css");
-
-@import url("/cleanup.css");
+/*
+ * Intentionally empty.
+ *
+ * The site is styled by the hand-authored stylesheets served from /public
+ * (style.css, then cleanup.css, then visual-upgrades.css). They are loaded
+ * with <link rel="stylesheet"> tags in app/layout.tsx.
+ *
+ * This file previously shimmed them via `@import url("/style.css")`. That
+ * resolved under the old Cloudflare/Vinext (Vite) pipeline, but the plain
+ * Next.js build resolves CSS imports at build time and cannot resolve an
+ * absolute public/ path — it failed the production build with
+ * "Module not found: Can't resolve '/style.css'". Link tags are the
+ * supported equivalent and preserve the original cascade order.
+ */

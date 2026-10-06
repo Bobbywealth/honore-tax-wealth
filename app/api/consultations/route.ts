@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { db } from "@/db";
+import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 
@@ -92,7 +92,7 @@ export async function POST(request: Request) {
       throw Error("Database unavailable");
     }
     await ensureMigrated();
-    await db.insert(consultations).values({ name, email, phone, service, message });
+    await getDb().insert(consultations).values({ name, email, phone, service, message });
     // Note: name/email/phone are NOT included in the log line — they are PII.
     logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
     return Response.json({ ok: true }, { status: 201 });

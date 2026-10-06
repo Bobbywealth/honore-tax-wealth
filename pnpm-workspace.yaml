@@ -1,0 +1,13 @@
+# Dependency build policy for the standalone Node runtime.
+# The runtime rewrite dropped the Cloudflare/Vinext toolchain, so this is a
+# minimal successor to the old shared multi-site policy: only the packages
+# whose postinstall scripts are genuinely required are allowed to run.
+# `workerd` is intentionally absent — it shipped with wrangler, which is gone.
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+  sharp: true
+
+# Fail loudly if a future dependency introduces an unlisted build script
+# rather than silently shipping a broken native binary.
+strictDepBuilds: true
