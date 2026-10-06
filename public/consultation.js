@@ -55,6 +55,7 @@
     try { dialog.showModal(); } catch(_){}
     const sel=dialog.querySelector('[name=service]');
     if(sel) sel.value=button.dataset.service||'';
+    dialog.dispatchEvent(new Event('consultation-open'));
   }));
   const closeBtn=document.querySelector('[data-close-consultation]');
   if(closeBtn) closeBtn.addEventListener('click',()=>dialog.close());
@@ -76,11 +77,13 @@
       });
     });
     // Stepper
-    const steps=form.querySelectorAll('.form-step');
+    const steps=dialog.querySelectorAll('.form-step');
     const panels=form.querySelectorAll('.form-panel');
     const goStep=(n)=>{
       steps.forEach(s=>{const on=Number(s.dataset.step)===n; s.classList.toggle('active',on); s.setAttribute('aria-selected',String(on));});
       panels.forEach(p=>p.classList.toggle('hidden',Number(p.dataset.panel)!==n));
+      const summary=document.getElementById('selected-service-summary');if(summary)summary.textContent='Selected service: '+(serviceSelect?.value||'Not selected');
+      form.querySelector('[data-panel="'+n+'"] input, [data-panel="'+n+'"] textarea')?.focus({preventScroll:true});dialog.scrollTop=0;
     };
     form.querySelectorAll('[data-next]').forEach(b=>b.addEventListener('click',()=>{
       // Validate step 1 fields before moving on
@@ -90,6 +93,8 @@
       if(ok) goStep(Number(b.dataset.next));
     }));
     form.querySelectorAll('[data-prev]').forEach(b=>b.addEventListener('click',()=>goStep(Number(b.dataset.prev))));
+    steps.forEach(s=>s.addEventListener('click',()=>{if(Number(s.dataset.step)===1)goStep(1);else form.querySelector('[data-next]')?.click();}));
+    dialog.addEventListener('consultation-open',()=>{goStep(1);feedback.textContent='';});
     // Floating-label sync (works for placeholder-based)
     form.querySelectorAll('.float-field input, .float-field select, .float-field textarea').forEach(el=>{
       const sync=()=>el.closest('.float-field')?.classList.toggle('has-value', !!el.value);
