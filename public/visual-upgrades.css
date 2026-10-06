@@ -113,3 +113,26 @@
 .founder-desk-feature figcaption strong{display:block;font:400 clamp(22px,3vw,36px)/1.2 Georgia,serif;margin-top:10px}
 .founder-desk-feature figcaption p{margin:10px 0 0;font-size:15px}
 @media(max-width:700px){.founder-desk-feature{margin-bottom:40px;border-radius:14px}.founder-desk-feature figcaption{position:static;padding:22px;background:#0b1a2a}.founder-desk-feature img{aspect-ratio:3/2}}
+
+/* Adaptive navigation: preserve its layout space while it slides away. */
+header.nav.wrap{position:sticky!important;top:0;z-index:100;width:100%;max-width:none;margin:0;height:88px;padding:0 clamp(20px,6vw,96px);display:flex;align-items:center;gap:28px;background:#faf9f5f5;border-bottom:1px solid #0b1a2a12;box-shadow:0 4px 24px #0b1a2a05;backdrop-filter:blur(16px);transition:transform .28s ease,opacity .28s ease}
+header.nav.nav-hidden{transform:translateY(-105%);opacity:0;pointer-events:none}
+header.nav:focus-within{transform:none;opacity:1;pointer-events:auto}
+header.nav .brand{flex-shrink:0;margin-right:auto}
+header.nav .brand-logo,body.nav-scrolled header.nav .brand-logo{width:120px!important;height:76px!important;object-fit:contain!important;object-position:center!important}
+header.nav nav{gap:24px;align-items:center}
+header.nav nav>a{font-size:13px;font-weight:650;padding:12px 0}
+header.nav .nav-login{border:0;background:transparent;padding:12px!important}
+header.nav .nav-book{border:1px solid #c9a363;background:#d9b878;color:#0b1a2a;min-height:46px;padding:12px 20px;border-radius:8px;font-size:12px;letter-spacing:.03em;text-transform:none;white-space:nowrap}
+.nav-mobile-book{display:none}
+@media(min-width:1025px){body.nav-scrolled header.nav{height:88px}}
+@media(max-width:1024px){
+header.nav.wrap{height:76px;padding-inline:20px;gap:12px}
+header.nav .brand-logo,body.nav-scrolled header.nav .brand-logo{width:100px!important;height:64px!important}
+.nav-mobile-book{display:inline-flex;align-items:center;gap:10px;padding:12px 14px;min-height:44px;border:1px solid #c9a363;border-radius:8px;background:#d9b878;color:#0b1a2a;font-size:12px;font-weight:700}
+header.nav nav{position:absolute;top:84px;left:16px;right:16px;gap:8px;padding:16px;background:#fffefafc;border:1px solid #e8e0cf;border-radius:16px;box-shadow:0 24px 60px #0b1a2a24}
+header.nav nav>a{padding:16px!important;min-height:48px}
+header.nav .mobile-menu{flex-shrink:0}
+}
+@media(max-width:380px){header.nav.wrap{padding-inline:12px;gap:8px}.nav-mobile-book{padding-inline:10px}header.nav .brand-logo{width:84px!important}}
+@media(prefers-reduced-motion:reduce){header.nav.wrap{transition:none}}
