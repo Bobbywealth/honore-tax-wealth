@@ -40,6 +40,7 @@ const STATEMENTS: string[] = [
   `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS user_agent VARCHAR(300)`,
   `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`,
   `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS contacted_at TIMESTAMPTZ`,
+  `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS assigned_to_id UUID REFERENCES users(id) ON DELETE SET NULL`,
   `CREATE INDEX IF NOT EXISTS consultations_status_idx ON consultations (status)`,
 
   /* ============================ Identity ============================ */

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { randomBytes } from "node:crypto";
+import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { sendConsultationEmails } from "@/lib/email";
 
@@ -106,16 +106,14 @@ export async function POST(request: Request) {
     // assigned_to_id is defined in the Drizzle schema but was never
     // persisted to Postgres (ALTER TABLE IF NOT EXISTS silently skipped
     // adding it when it was already present without that column).
-    await getDb().insert(consultations).values({
-      reference,
-      name,
-      email,
-      phone,
-      service,
-      message,
-      ipHash: iph,
-      userAgent: (request.headers.get("user-agent") ?? "").slice(0, 300) || null,
-    });
+    // Raw SQL insert because the Drizzle schema includes assigned_to_id
+    // which doesn't exist in the actual database (ALTER TABLE IF NOT EXISTS
+    // silently skipped adding it). This bypasses Drizzle's automatic
+    // "include all schema columns" INSERT generation.
+    await getDb().execute(sql`
+      INSERT INTO consultations (reference, name, email, phone, service, message, ip_hash, user_agent)
+      VALUES (${reference}, ${name}, ${email}, ${phone}, ${service}, ${message}, ${iph}, ${(request.headers.get("user-agent") ?? "").slice(0, 300) || null})
+    `);
     // Note: name/email/phone are NOT included in the log line — they are PII.
     logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
     // The lead is durably stored at this point, so email is strictly
