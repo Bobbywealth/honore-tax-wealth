@@ -33,7 +33,11 @@ export async function consumeRateLimit(
   const db = getDb();
   const window = `${Math.max(1, Math.floor(windowSeconds))} seconds`;
 
-  const rows = await db.execute(sql`
+  // Drizzle's node-postgres execute() returns a Result wrapper
+  // ({ rows, rowCount, oid, ... }), not a raw array. Indexing the wrapper
+  // directly was silently picking up undefined and falling back to 1,
+  // which kept resetting the counter and never tripped the limit.
+  const result = await db.execute(sql`
     INSERT INTO rate_limit_counters (key, count, window_start, updated_at)
     VALUES (${key}, 1, now(), now())
     ON CONFLICT (key) DO UPDATE SET
@@ -49,7 +53,8 @@ export async function consumeRateLimit(
     RETURNING count, window_start
   `);
 
-  const row = (rows as unknown as Array<{ count: number; window_start: Date }>)[0];
+  const rows = (result as unknown as { rows: Array<{ count: number; window_start: Date }> }).rows ?? [];
+  const row = rows[0];
   const count = Number(row?.count ?? 1);
   const windowStart = new Date(row?.window_start ?? Date.now());
 
@@ -71,10 +76,11 @@ export async function peekRateLimit(
   limit: number,
   windowSeconds: number,
 ): Promise<RateResult> {
-  const rows = await getDb().execute(sql`
+  const result = await getDb().execute(sql`
     SELECT count, window_start FROM rate_limit_counters WHERE key = ${key}
   `);
-  const row = (rows as unknown as Array<{ count: number; window_start: Date }>)[0];
+  const rows = (result as unknown as { rows: Array<{ count: number; window_start: Date }> }).rows ?? [];
+  const row = rows[0];
   if (!row) return { allowed: true, remaining: limit, retryAfterSeconds: 0 };
 
   const windowStart = new Date(row.window_start);
