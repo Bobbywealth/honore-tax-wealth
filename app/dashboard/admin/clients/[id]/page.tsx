@@ -19,7 +19,7 @@ import {
   taxYears,
 } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
-import { ArrowUpRight, ClipboardList, FileText, MessageSquareText, Receipt, CalendarDays, Mail } from "lucide-react";
+import { CalendarDays, ClipboardList, FileText, MessageSquareText, Receipt } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
