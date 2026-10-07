@@ -1,7 +1,8 @@
 import { CheckSquare, Filter } from "lucide-react";
 import { asc, eq, inArray, isNull, or, and } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { tasks } from "@/db/schema";
@@ -44,6 +45,8 @@ function dueLabel(dueAt: Date | null): { text: string; overdue: boolean; today: 
 export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ view?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
 
   let open: Row[] = [];
   let done: Row[] = [];
@@ -99,7 +102,7 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/tasks">
+    <DashboardShell nav={nav} currentHref="/dashboard/admin/tasks" audience="Admin" title="Tasks" description="Open work for staff and clients, with deadlines.">
       <div className="adm-page-h">
         <div>
           <h1>Tasks</h1>
@@ -177,6 +180,6 @@ const navCounts = await loadAdminNavCounts();
           ) : null}
         </>
       )}
-    </AdminShell>
+    </DashboardShell>
   );
 }

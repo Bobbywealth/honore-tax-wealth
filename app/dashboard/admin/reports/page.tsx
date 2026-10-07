@@ -1,6 +1,7 @@
 import { and, count, desc, eq, gte, sql, sum } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, engagements, invoices, leads, returns } from "@/db/schema";
@@ -32,6 +33,8 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 export default async function ReportsPage({ searchParams }: { searchParams?: Promise<{ preview?: string; period?: string }> }) {
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
 
   const sp = (await searchParams) ?? {};
   const period: Period = sp.period === "quarter" || sp.period === "ytd" ? sp.period : "month";
@@ -161,7 +164,7 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/reports">
+    <DashboardShell nav={nav} currentHref="/dashboard/admin/reports" audience="Admin" title="Reports" description="Practice pulse and trend reports across consultations, returns, leads, and clients.">
       <div className="adm-page-h">
         <div>
           <h1>Reports</h1>
@@ -253,6 +256,6 @@ const navCounts = await loadAdminNavCounts();
           </div>
         )}
       </div>
-    </AdminShell>
+    </DashboardShell>
   );
 }

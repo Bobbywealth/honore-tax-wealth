@@ -1,7 +1,8 @@
 import { Search, Filter, Upload, FileText } from "lucide-react";
 import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, documents, documentRequests } from "@/db/schema";
@@ -50,6 +51,8 @@ function formatDate(value: Date): string {
 export default async function DocumentsPage({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
 
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
@@ -112,7 +115,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/documents">
+    <DashboardShell audience="Admin" title="Documents" description="Files reviewed on intake, plus the document requests still waiting on the client." nav={nav} currentHref="/dashboard/admin/documents">
       <div className="adm-page-h">
         <div>
           <h1>Documents</h1>
@@ -202,6 +205,6 @@ const navCounts = await loadAdminNavCounts();
           </div>
         </>
       )}
-    </AdminShell>
+    </DashboardShell>
   );
 }

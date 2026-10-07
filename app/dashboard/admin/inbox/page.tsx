@@ -1,8 +1,10 @@
 import { Mail, Search } from "lucide-react";
 import { desc, eq, and, or, ilike } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { checkAdminAccess } from "../auth";
 import { loadUnansweredCount } from "../lib/loadUnansweredCount";
+import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
@@ -45,6 +47,8 @@ type SearchParams = Promise<{ q?: string; status?: string }>;
 export default async function InboxPage({ searchParams }: { searchParams?: SearchParams }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
   const unanswered = await loadUnansweredCount();
 
   const params = (await searchParams) ?? {};
@@ -107,7 +111,7 @@ export default async function InboxPage({ searchParams }: { searchParams?: Searc
   const newCount = rows.filter((r) => r.status === "new").length;
 
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/inbox" unanswered={unanswered}>
+    <DashboardShell audience="Admin" title="Inbox" description="Every new consultation request from the public form lands here. Reply or convert to a client." nav={nav} currentHref="/dashboard/admin/inbox">
       <div className="adm-page-h">
         <div>
           <h1>Inbox</h1>
@@ -188,6 +192,6 @@ export default async function InboxPage({ searchParams }: { searchParams?: Searc
           </div>
         </div>
       )}
-    </AdminShell>
+    </DashboardShell>
   );
 }

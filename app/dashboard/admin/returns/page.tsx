@@ -1,7 +1,8 @@
 import { Search, Plus, Calendar } from "lucide-react";
 import { eq, sql, desc, and, or, like } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { returns, engagements, clients, taxYears } from "@/db/schema";
@@ -63,6 +64,8 @@ function dueLabel(due: Date | null): { text: string; tone: "red" | "green" | "mu
 export default async function ReturnsPage({ searchParams }: { searchParams?: Promise<{ preview?: string; status?: string; q?: string; new?: string }> }) {
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
 
   const sp = (await searchParams) ?? {};
   const statusFilter = (sp.status ?? "all").toLowerCase();
@@ -160,7 +163,7 @@ export default async function ReturnsPage({ searchParams }: { searchParams?: Pro
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/returns">
+    <DashboardShell nav={nav} currentHref="/dashboard/admin/returns" audience="Admin" title="Returns" description="All 1040 / 1065 / 1120 / 990 returns in motion, grouped by stage.">
       <div className="adm-page-h">
         <div>
           <h1>Returns</h1>
@@ -276,6 +279,6 @@ const navCounts = await loadAdminNavCounts();
           );
         })}
       </div>
-    </AdminShell>
+    </DashboardShell>
   );
 }

@@ -1,7 +1,8 @@
 import { Globe, Plus } from "lucide-react";
 import { asc, desc, eq } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { leads } from "@/db/schema";
@@ -39,6 +40,8 @@ export default async function LeadsPage({ searchParams }: { searchParams?: Promi
   const showForm = sp.new === "1";
   const access = await checkAdminAccess();
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
 
   let rows: Array<{
     id: string;
@@ -89,7 +92,7 @@ export default async function LeadsPage({ searchParams }: { searchParams?: Promi
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/leads">
+    <DashboardShell audience="Admin" title="Leads" description="Leads captured from the consultation form. Move them through new → contacted → won." nav={nav} currentHref="/dashboard/admin/leads">
       <div className="adm-page-h">
         <div>
           <h1>Leads</h1>
@@ -160,6 +163,6 @@ const navCounts = await loadAdminNavCounts();
           })}
         </div>
       )}
-    </AdminShell>
+    </DashboardShell>
   );
 }

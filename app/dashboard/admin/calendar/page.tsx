@@ -1,7 +1,8 @@
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalIcon } from "lucide-react";
 import { and, eq, gte, lt } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { appointments, clients } from "@/db/schema";
@@ -68,6 +69,8 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
 
+  const nav = adminNav(await loadAdminNavCounts());
+
   const sp = (await searchParams) ?? {};
   const today = new Date();
   const year = sp.y ? parseInt(sp.y, 10) : today.getUTCFullYear();
@@ -133,7 +136,7 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/calendar">
+    <DashboardShell audience="Admin" title="Calendar" description="All scheduled calls and on-site meetings across every preparer." nav={nav} currentHref="/dashboard/admin/calendar">
       <div className="adm-page-h">
         <div>
           <h1>Calendar</h1>
@@ -239,6 +242,6 @@ const navCounts = await loadAdminNavCounts();
           )}
         </div>
       </div>
-    </AdminShell>
+    </DashboardShell>
   );
 }

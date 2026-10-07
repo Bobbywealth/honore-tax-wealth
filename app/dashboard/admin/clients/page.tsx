@@ -1,7 +1,8 @@
 import { Search, Filter } from "lucide-react";
 import { and, count, desc, eq, ilike, inArray, isNull, or, sum, type SQL } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, engagements, invoices } from "@/db/schema";
@@ -36,6 +37,8 @@ function initials(name: string): string {
 export default async function ClientsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
 
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
@@ -148,7 +151,7 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/clients">
+    <DashboardShell audience="Admin" title="Clients" description="Every client record in one place, with their tax work, documents, and messages linked." nav={nav} currentHref="/dashboard/admin/clients">
       <div className="adm-page-h">
         <div>
           <h1>Clients</h1>
@@ -267,7 +270,7 @@ const navCounts = await loadAdminNavCounts();
           )}
         </>
       )}
-    </AdminShell>
+    </DashboardShell>
   );
 }
 

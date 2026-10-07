@@ -1,7 +1,8 @@
 import { Mail } from "lucide-react";
 import { asc, eq, inArray, isNull, sql } from "drizzle-orm";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { engagements, users } from "@/db/schema";
@@ -42,6 +43,8 @@ function formatDate(value: Date | null): string {
 export default async function TeamPage() {
   const access = await checkAdminAccess();
   if (!access.allowed) return access.restricted;
+
+  const nav = adminNav(await loadAdminNavCounts());
 
   let rows: Array<{
     id: string;
@@ -93,7 +96,7 @@ export default async function TeamPage() {
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/team">
+    <DashboardShell nav={nav} currentHref="/dashboard/admin/team" audience="Admin" title="Team" description="Staff members and their roles.">
       <div className="adm-page-h">
         <div>
           <h1>Team</h1>
@@ -173,6 +176,6 @@ const navCounts = await loadAdminNavCounts();
           </table>
         </div>
       )}
-    </AdminShell>
+    </DashboardShell>
   );
 }

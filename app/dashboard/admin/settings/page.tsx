@@ -1,6 +1,7 @@
 import { User, Building2, Palette, Bell, Mail, FileText, Users, Plug, Lock, CreditCard } from "lucide-react";
-import AdminShell from "../AdminShell";
+import DashboardShell from "../../DashboardShell";import { adminNav } from "../_lib/nav";
 import { loadAdminNavCounts } from "../lib/nav-counts";
+
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
@@ -9,7 +10,7 @@ import SettingsForm from "./SettingsForm";
 
 export const dynamic = "force-dynamic";
 
-const nav = [
+const sections = [
   { key: "profile", label: "Profile", icon: User },
   { key: "practice", label: "Practice", icon: Building2 },
   { key: "branding", label: "Branding", icon: Palette },
@@ -66,8 +67,9 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
 
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
+  const nav = adminNav(navCounts);
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/settings">
+    <DashboardShell nav={nav} currentHref="/dashboard/admin/settings" audience="Admin" title="Settings" description="Practice, team, branding, integrations, and security.">
       <div className="adm-page-h">
         <div>
           <h1>Settings</h1>
@@ -77,7 +79,7 @@ const navCounts = await loadAdminNavCounts();
 
       <div className="adm-settings-grid">
         <nav className="adm-settings-nav">
-          {nav.map((n, i) => {
+          {sections.map((n, i) => {
             const Icon = n.icon;
             return (
               <a key={n.key} href={`#${n.key}`} className={i === 0 ? "active" : ""}>
@@ -92,6 +94,6 @@ const navCounts = await loadAdminNavCounts();
           <SettingsForm profile={profile} integrations={integrations} />
         </div>
       </div>
-    </AdminShell>
+    </DashboardShell>
   );
 }
