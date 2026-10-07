@@ -99,7 +99,13 @@ export async function POST(request: Request) {
     // exposing a sequential id. Uses an unambiguous alphabet (no 0/O/1/I).
     const reference = "HTW-" + randomBytes(5).toString("hex").toUpperCase().slice(0, 8);
 
-    const now = new Date();
+    // Insert only the columns that actually exist in the database. The
+    // consultations table has 13 columns (see /api/admin/debug-schema):
+    //   id, name, email, phone, service, message, created_at, reference,
+    //   status, ip_hash, user_agent, requested_at, contacted_at
+    // assigned_to_id is defined in the Drizzle schema but was never
+    // persisted to Postgres (ALTER TABLE IF NOT EXISTS silently skipped
+    // adding it when it was already present without that column).
     await getDb().insert(consultations).values({
       reference,
       name,
@@ -107,13 +113,8 @@ export async function POST(request: Request) {
       phone,
       service,
       message,
-      status: "new",
       ipHash: iph,
       userAgent: (request.headers.get("user-agent") ?? "").slice(0, 300) || null,
-      assignedToId: null,
-      requestedAt: now,
-      contactedAt: null,
-      createdAt: now,
     });
     // Note: name/email/phone are NOT included in the log line — they are PII.
     logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
