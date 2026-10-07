@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, CheckCircle2, MessageSquareText, Search, Send } from "lucide-react";
+import { ArrowUpRight, Bookmark, CheckCircle2, MessageSquareText, Search, Send, Zap } from "lucide-react";
 
 type Sender = { id: string; name: string };
 type Message = {
@@ -85,6 +85,9 @@ export default function StaffChatClient({
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread" | "open">("all");
   const [search, setSearch] = useState("");
+  const [canned, setCanned] = useState<Array<{ id: string; title: string; body: string; shortcut: string | null; sortOrder: number }>>([]);
+  const [cannedOpen, setCannedOpen] = useState(false);
+  const [cannedFilter, setCannedFilter] = useState("");
   const [pulse, setPulse] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -128,6 +131,22 @@ export default function StaffChatClient({
   useEffect(() => {
     lastIdRef.current = messages.length ? messages[messages.length - 1].id : null;
   }, [messages]);
+
+  // Load canned responses on mount; they don't change often.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/canned-responses", { headers: { accept: "application/json" } });
+        if (!res.ok || cancelled) return;
+        const json = (await res.json()) as { canned?: Array<{ id: string; title: string; body: string; shortcut: string | null; sortOrder: number }> };
+        if (Array.isArray(json.canned)) setCanned(json.canned);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const id = window.setInterval(async () => {
@@ -363,6 +382,68 @@ export default function StaffChatClient({
                 )}
               </div>
 
+              {cannedOpen ? (
+                <div className="chat-canned-popover">
+                  <div className="chat-canned-header">
+                    <Bookmark size={14} aria-hidden="true" />
+                    <strong>Quick replies</strong>
+                    <span>Type <code>/</code> to toggle, <kbd>esc</kbd> to close</span>
+                    <button type="button" onClick={() => setCannedOpen(false)} aria-label="Close quick replies">×</button>
+                  </div>
+                  <div className="chat-canned-search">
+                    <Search size={14} aria-hidden="true" />
+                    <input
+                      autoFocus
+                      placeholder="Filter replies…"
+                      value={cannedFilter}
+                      onChange={(e) => setCannedFilter(e.target.value)}
+                    />
+                  </div>
+                  <ul className="chat-canned-list">
+                    {canned
+                      .filter((c) => !cannedFilter || (c.title + c.body).toLowerCase().includes(cannedFilter.toLowerCase()))
+                      .slice(0, 12)
+                      .map((c) => (
+                        <li key={c.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDraft(c.body);
+                              setCannedOpen(false);
+                              setCannedFilter("");
+                            }}
+                          >
+                            <strong>{c.title}{c.shortcut ? <code className="chat-canned-shortcut">/{c.shortcut}</code> : null}</strong>
+                            <span>{c.body.slice(0, 110)}{c.body.length > 110 ? "…" : ""}</span>
+                          </button>
+                        </li>
+                      ))}
+                    {canned.filter((c) => !cannedFilter || (c.title + c.body).toLowerCase().includes(cannedFilter.toLowerCase())).length === 0 ? (
+                      <li className="chat-canned-empty">No matches.</li>
+                    ) : null}
+                  </ul>
+                  <div className="chat-canned-footer">
+                    <Zap size={12} aria-hidden="true" /> {canned.length} canned response{canned.length === 1 ? "" : "s"} loaded.
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="chat-composer-toolbar">
+                <button
+                  type="button"
+                  className="chat-cannert-toggle"
+                  onClick={() => setCannedOpen(!cannedOpen)}
+                  aria-expanded={cannedOpen}
+                  aria-label="Toggle quick replies"
+                  disabled={canned.length === 0}
+                >
+                  <Bookmark size={14} aria-hidden="true" /> Quick replies
+                </button>
+                <span className="chat-cannert-hint">
+                  Press <code>/</code> on an empty composer to insert.
+                </span>
+              </div>
+
               <form
                 className="chat-composer"
                 onSubmit={(e) => {
@@ -385,6 +466,13 @@ export default function StaffChatClient({
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
                       void send();
+                    } else if (e.key === "/" && draft.trim() === "" && canned.length > 0) {
+                      // Open the canned-response picker when the user types "/"
+                      // on an empty composer. Pressing it again closes it.
+                      e.preventDefault();
+                      setCannedOpen(true);
+                    } else if (e.key === "Escape" && cannedOpen) {
+                      setCannedOpen(false);
                     }
                   }}
                   disabled={sending}

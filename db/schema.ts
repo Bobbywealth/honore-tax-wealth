@@ -725,6 +725,25 @@ export const idempotencyKeys = pgTable(
   }),
 );
 
+/* ====================== Canned staff responses ====================== */
+export const cannedResponses = pgTable(
+  "canned_responses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: varchar("title", { length: 80 }).notNull(),
+    body: text("body").notNull(),
+    shortcut: varchar("shortcut", { length: 12 }),
+    sortOrder: integer("sort_order").notNull().default(100),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(now),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().default(now),
+  },
+  (t) => ({
+    activeIdx: index("canned_responses_active_idx").on(t.active, t.sortOrder),
+  }),
+);
+
+
 /* ============================== Types ============================= */
 
 export type User = typeof users.$inferSelect;
@@ -735,3 +754,4 @@ export type Document = typeof documents.$inferSelect;
 export type Appointment = typeof appointments.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type Lead = typeof leads.$inferSelect;
+export type CannedResponse = typeof cannedResponses.$inferSelect;

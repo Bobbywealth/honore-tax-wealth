@@ -443,6 +443,19 @@ const STATEMENTS: string[] = [
    )`,
   `CREATE INDEX IF NOT EXISTS rate_limit_counters_window_idx ON rate_limit_counters (window_start)`,
 
+  /* Canned staff responses for the inbox quick-pick chips. */
+  `CREATE TABLE IF NOT EXISTS canned_responses (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     title VARCHAR(80) NOT NULL,
+     body TEXT NOT NULL,
+     shortcut VARCHAR(12),
+     sort_order INTEGER NOT NULL DEFAULT 100,
+     active BOOLEAN NOT NULL DEFAULT TRUE,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS canned_responses_active_idx ON canned_responses (active, sort_order)`,
+
   /* Makes a retried submission or payment a no-op instead of a duplicate. */
   `CREATE TABLE IF NOT EXISTS idempotency_keys (
      key VARCHAR(160) PRIMARY KEY,
@@ -484,4 +497,65 @@ export async function ensureMigrated(): Promise<void> {
 
 export async function close(): Promise<void> {
   await getPool().end();
+}
+
+
+
+import { cannedResponses } from "@/db/schema";
+
+const SEED: Array<{ title: string; body: string; shortcut: string; sortOrder: number }> = [
+  {
+    title: "Received — review",
+    shortcut: "rcv",
+    sortOrder: 10,
+    body:
+      "Thanks for reaching out — I have this and will take a look. You don't need to do anything else right now; I'll message back as soon as I have an update.",
+  },
+  {
+    title: "Need a document",
+    shortcut: "doc",
+    sortOrder: 20,
+    body:
+      "Could you send me the document we talked about? You can reply here and I'll see it. If it's sensitive, mention that and we'll set up a secure upload link.",
+  },
+  {
+    title: "Schedule a call",
+    shortcut: "cal",
+    sortOrder: 30,
+    body:
+      "Happy to walk through this on a quick call. Any time between 9 and 4 Eastern works for me — let me know a window that suits you and I'll confirm a slot.",
+  },
+  {
+    title: "Closing the loop",
+    shortcut: "cls",
+    sortOrder: 40,
+    body:
+      "All set on our end — thanks again for the update. Ping me whenever anything else comes up.",
+  },
+  {
+    title: "Out of office (1 day)",
+    shortcut: "ooo",
+    sortOrder: 50,
+    body:
+      "I'm out of the office today and back tomorrow morning. For anything urgent, please reach out to the office line and the team will pick it up.",
+  },
+  {
+    title: "Payment question",
+    shortcut: "pay",
+    sortOrder: 60,
+    body:
+      "Thanks for the note — the invoice is on its way. ACH is our preferred method; let me know if you need the routing details or a card-payment link and I'll send it over.",
+  },
+];
+
+export async function seedCannedResponsesIfEmpty(): Promise<void> {
+  try {
+    await ensureMigrated();
+    const db = getDb();
+    const existing = await db.select({ id: cannedResponses.id }).from(cannedResponses).limit(1);
+    if (existing.length > 0) return;
+    await db.insert(cannedResponses).values(SEED);
+  } catch {
+    // best-effort; do not block page renders
+  }
 }
