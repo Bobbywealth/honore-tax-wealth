@@ -2,13 +2,24 @@
 
 import React, { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, LogOut, LayoutDashboard, Menu, X, type LucideIcon } from "lucide-react";
+import {
+  ArrowLeft, LogOut, LayoutDashboard, Mail, MessageSquareText,
+  Users as UsersIcon, FileText, Receipt, ClipboardList, CalendarDays,
+  UserPlus as UserPlusIcon, BarChart3, Contact, Settings, Menu, X, type LucideIcon,
+} from "lucide-react";
 import CommandPalette from "./admin/_components/CommandPalette";
+
+
+export type NavIconKey =
+  | "dashboard" | "inbox" | "messages" | "clients" | "returns"
+  | "documents" | "tasks" | "calendar" | "leads" | "reports"
+  | "team" | "settings" | "overview" | "tax-work"
+  | "invoices" | "appointments" | "client";
 
 export type PortalNavItem = {
   href: string;
   label: string;
-  icon?: LucideIcon | ReactNode;
+  icon?: NavIconKey | ReactNode;
   badge?: { value: number; tone?: "default" | "red" | "amber" };
 };
 
@@ -26,6 +37,31 @@ type Props = {
  * Chrome for the signed-in portals. Multi-page sidebar; on small screens it
  * collapses behind a hamburger menu and slides over the content.
  */
+function renderNavIcon(key: NavIconKey): ReactNode {
+  const Icon = NAV_ICONS[key];
+  return Icon ? <Icon size={20} aria-hidden="true" /> : null;
+}
+
+const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  inbox: Mail,
+  messages: MessageSquareText,
+  clients: UsersIcon,
+  returns: ClipboardList,
+  documents: FileText,
+  tasks: Receipt,
+  calendar: CalendarDays,
+  leads: UserPlusIcon,
+  reports: BarChart3,
+  team: Contact,
+  settings: Settings,
+  overview: LayoutDashboard,
+  "tax-work": ClipboardList,
+  invoices: Receipt,
+  appointments: CalendarDays,
+  client: UsersIcon,
+};
+
 export default function DashboardShell({
   audience,
   title,
@@ -66,7 +102,7 @@ export default function DashboardShell({
               >
                 {Icon ? (
                   <span className="dashboard-nav-icon">
-                    {React.isValidElement(Icon) ? Icon : React.createElement(Icon as React.ElementType, { size: 20, "aria-hidden": true })}
+                    {typeof Icon === "string" ? renderNavIcon(Icon as NavIconKey) : React.isValidElement(Icon) ? Icon : null}
                   </span>
                 ) : null}
                 <span className="dashboard-nav-label">{item.label}</span>
