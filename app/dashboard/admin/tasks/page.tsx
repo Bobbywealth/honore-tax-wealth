@@ -1,6 +1,7 @@
 import { CheckSquare, Filter } from "lucide-react";
 import { asc, eq, inArray, isNull, or, and } from "drizzle-orm";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { tasks } from "@/db/schema";
@@ -95,6 +96,8 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
     return d.overdue;
   }).length;
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/tasks">
       <div className="adm-page-h">

@@ -1,6 +1,7 @@
 import { Search, Plus, Calendar } from "lucide-react";
 import { eq, sql, desc, and, or, like } from "drizzle-orm";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { returns, engagements, clients, taxYears } from "@/db/schema";
@@ -156,6 +157,8 @@ export default async function ReturnsPage({ searchParams }: { searchParams?: Pro
     byStage.set(key, arr);
   }
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/returns">
       <div className="adm-page-h">

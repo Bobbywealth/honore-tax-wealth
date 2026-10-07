@@ -1,5 +1,6 @@
 import { User, Building2, Palette, Bell, Mail, FileText, Users, Plug, Lock, CreditCard } from "lucide-react";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
@@ -63,6 +64,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
     // keep the default profile values
   }
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/settings">
       <div className="adm-page-h">

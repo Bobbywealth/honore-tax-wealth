@@ -1,6 +1,7 @@
 import { Search, Filter, Upload, FileText } from "lucide-react";
 import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, documents, documentRequests } from "@/db/schema";
@@ -108,6 +109,8 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
     unavailable = true;
   }
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/documents">
       <div className="adm-page-h">

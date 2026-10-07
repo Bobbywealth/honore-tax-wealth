@@ -1,6 +1,7 @@
 import { Globe, Plus } from "lucide-react";
 import { asc, desc, eq } from "drizzle-orm";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { leads } from "@/db/schema";
@@ -85,6 +86,8 @@ export default async function LeadsPage({ searchParams }: { searchParams?: Promi
 
   const total = rows.length;
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/leads">
       <div className="adm-page-h">

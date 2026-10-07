@@ -47,11 +47,19 @@ type Props = {
   preview: boolean;
   currentHref?: string;
   unanswered?: number;
+  /** Live unread count for the client-message threads sidebar badge. */
+  conversationsUnread?: number;
   children: ReactNode;
 };
 
-export default function AdminShell({ preview, currentHref = "/dashboard/admin", unanswered = 0, children }: Props) {
-  const badges: Record<string, number> = { inbox: unanswered };
+export default function AdminShell({
+  preview,
+  currentHref = "/dashboard/admin",
+  unanswered = 0,
+  conversationsUnread = 0,
+  children,
+}: Props) {
+  const badges: Record<string, number> = { inbox: unanswered, messages: conversationsUnread };
 
   return (
     <div className="adm-root">

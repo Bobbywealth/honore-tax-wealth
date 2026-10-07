@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalIcon } from "lucide-react";
 import { and, eq, gte, lt } from "drizzle-orm";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { appointments, clients } from "@/db/schema";
@@ -129,6 +130,8 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
     return { time: dateLabel, title: a.title, sub: a.status, tag: isToday ? "Today" : "Scheduled" };
   });
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/calendar">
       <div className="adm-page-h">

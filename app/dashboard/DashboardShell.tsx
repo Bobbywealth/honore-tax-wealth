@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import React, { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, LogOut, LayoutDashboard, Menu, X, type LucideIcon } from "lucide-react";
 
@@ -64,7 +64,7 @@ export default function DashboardShell({
               >
                 {Icon ? (
                   <span className="dashboard-nav-icon">
-                    {typeof Icon === "function" ? <Icon size={20} aria-hidden="true" /> : Icon}
+                    {React.isValidElement(Icon) ? Icon : React.createElement(Icon as React.ElementType, { size: 20, "aria-hidden": true })}
                   </span>
                 ) : null}
                 <span className="dashboard-nav-label">{item.label}</span>

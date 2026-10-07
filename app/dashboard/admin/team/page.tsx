@@ -1,6 +1,7 @@
 import { Mail } from "lucide-react";
 import { asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { engagements, users } from "@/db/schema";
@@ -89,6 +90,8 @@ export default async function TeamPage() {
     unavailable = true;
   }
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/team">
       <div className="adm-page-h">

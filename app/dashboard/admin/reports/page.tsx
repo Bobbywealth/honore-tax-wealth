@@ -1,5 +1,6 @@
 import { and, count, desc, eq, gte, sql, sum } from "drizzle-orm";
 import AdminShell from "../AdminShell";
+import { loadAdminNavCounts } from "../lib/nav-counts";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, engagements, invoices, leads, returns } from "@/db/schema";
@@ -157,6 +158,8 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
   const maxLead = Math.max(1, ...leadSources.map((l) => l.count));
   const monthMax = Math.max(1, ...monthly.map((m) => m.rev));
 
+const navCounts = await loadAdminNavCounts();
+  const conversationsUnread = navCounts.conversationsUnread;
   return (
     <AdminShell preview={access.preview} currentHref="/dashboard/admin/reports">
       <div className="adm-page-h">
