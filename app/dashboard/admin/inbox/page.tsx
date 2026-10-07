@@ -2,6 +2,7 @@ import { Mail, Search } from "lucide-react";
 import { desc, eq, and, or, ilike } from "drizzle-orm";
 import AdminShell from "../AdminShell";
 import { checkAdminAccess } from "../auth";
+import { loadUnansweredCount } from "../lib/loadUnansweredCount";
 import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
@@ -44,6 +45,7 @@ type SearchParams = Promise<{ q?: string; status?: string }>;
 export default async function InboxPage({ searchParams }: { searchParams?: SearchParams }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
+  const unanswered = await loadUnansweredCount();
 
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
@@ -105,7 +107,7 @@ export default async function InboxPage({ searchParams }: { searchParams?: Searc
   const newCount = rows.filter((r) => r.status === "new").length;
 
   return (
-    <AdminShell preview={access.preview} currentHref="/dashboard/admin/inbox">
+    <AdminShell preview={access.preview} currentHref="/dashboard/admin/inbox" unanswered={unanswered}>
       <div className="adm-page-h">
         <div>
           <h1>Inbox</h1>

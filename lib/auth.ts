@@ -4,9 +4,14 @@ import { promisify } from "node:util";
 import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
+  clientAccess,
+  clients,
   emailVerificationTokens,
+  engagements,
+  invoices,
   passwordResetTokens,
   sessions,
+  taxYears,
   users,
   type Role,
 } from "@/db/schema";
@@ -328,30 +333,160 @@ export async function consumeEmailVerification(token: string): Promise<boolean> 
 
 /* --------------------------- Bootstrap ----------------------------- */
 
-/**
- * Create the first administrator from ADMIN_EMAIL / ADMIN_PASSWORD.
- *
- * Runs only when the users table is empty, so it cannot resurrect or alter an
- * existing account. A no-op when the env vars are unset.
- */
-export async function ensureBootstrapAdmin(): Promise<void> {
-  const email = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
+async function ensureBootstrapUser(
+  role: "admin" | "client",
+  emailEnv: string,
+  passwordEnv: string,
+  displayName: string,
+): Promise<void> {
+  const email = process.env[emailEnv];
+  const password = process.env[passwordEnv];
   if (!email || !password) return;
   if (passwordProblem(password)) {
-    console.warn("[auth] ADMIN_PASSWORD rejected by policy; refusing to bootstrap");
+    console.warn(`[auth] ${passwordEnv} rejected by policy; refusing to bootstrap`);
     return;
   }
 
-  const existing = await getDb().select({ id: users.id }).from(users).limit(1);
-  if (existing.length > 0) return;
+  const normalizedEmail = normalizeEmail(email);
+  // If this exact email already exists with the requested role, leave it alone.
+  const existing = await getDb()
+    .select({ id: users.id, role: users.role })
+    .from(users)
+    .where(eq(users.email, normalizedEmail))
+    .limit(1);
+  if (existing.length > 0) {
+    if (existing[0].role !== role) {
+      console.warn(
+        JSON.stringify({
+          ts: new Date().toISOString(),
+          event: "auth.bootstrap_role_mismatch",
+          email: normalizedEmail,
+          existingRole: existing[0].role,
+          requestedRole: role,
+        }),
+      );
+    }
+    return;
+  }
 
   await getDb().insert(users).values({
-    email: normalizeEmail(email),
+    email: normalizedEmail,
     passwordHash: await hashPassword(password),
-    role: "admin",
-    displayName: "Site owner",
+    role,
+    displayName,
     emailVerifiedAt: new Date(),
   });
-  console.log(JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_admin_created" }));
+  console.log(
+    JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_user_created", role, email: normalizedEmail }),
+  );
+}
+
+/**
+ * Create the first administrator from ADMIN_EMAIL / ADMIN_PASSWORD.
+ *
+ * Runs only when no user with that email already exists, so it cannot resurrect
+ * or alter an existing account. A no-op when the env vars are unset.
+ */
+export async function ensureBootstrapAdmin(): Promise<void> {
+  await ensureBootstrapUser("admin", "ADMIN_EMAIL", "ADMIN_PASSWORD", "Site owner");
+}
+
+/**
+ * Create a demo client from CLIENT_EMAIL / CLIENT_PASSWORD.
+ *
+ * Skipped if the email is already taken (regardless of role) or the env vars
+ * are unset. Re-runs on every login attempt, so a cleared env var hides the
+ * user from future bootstrap runs without affecting the existing record.
+ */
+export async function ensureBootstrapClient(): Promise<void> {
+  await ensureBootstrapUser("client", "CLIENT_EMAIL", "CLIENT_PASSWORD", "Demo client");
+  // The bootstrap user is now in the users table; look it up by email and seed their client.
+  if (!process.env.DATABASE_URL) return;
+  const email = normalizeEmail(process.env.CLIENT_EMAIL ?? "");
+  if (!email) return;
+  const rows = await getDb()
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  if (rows[0]) await ensureClientDataFor(rows[0].id);
+}
+
+/**
+ * For the bootstrap client, ensure there is a `clients` row linked to the
+ * user via `clientAccess`, plus a sample engagement / taxYear / invoice so
+ * the client dashboard has real rows to render on first sign-in.
+ */
+async function ensureClientDataFor(userId: string): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const access = await getDb()
+      .select({ id: clientAccess.clientId })
+      .from(clientAccess)
+      .where(eq(clientAccess.userId, userId))
+      .limit(1);
+    if (access.length > 0) return;
+
+    const [client] = await getDb()
+      .insert(clients)
+      .values({
+        displayName: "Demo Client",
+        legalName: "Demo Client LLC",
+        email: "client@honoretaxwealth.com",
+        entityType: "individual",
+        status: "active",
+      })
+      .returning({ id: clients.id });
+    if (!client) return;
+
+    await getDb()
+      .insert(clientAccess)
+      .values({ userId, clientId: client.id });
+
+    // A 2025 individual 1040 engagement so the dashboard has work to show
+    const [eg] = await getDb()
+      .insert(engagements)
+      .values({
+        clientId: client.id,
+        name: "2025 individual tax return",
+        serviceType: "tax_prep",
+        status: "in_preparation",
+        progressPercent: 35,
+        internalNotes: "Bootstrapped demo data for the client dashboard.",
+      })
+      .returning({ id: engagements.id });
+
+    if (eg) {
+      const yearRow = await getDb()
+        .insert(taxYears)
+        .values({
+          clientId: client.id,
+          year: 2025,
+          filingStatus: "in_progress",
+          dueDate: new Date("2026-04-15T00:00:00-04:00"),
+        })
+        .returning({ id: taxYears.id });
+      if (yearRow[0]) {
+        // Best-effort invoice so the Invoices section isn't empty.
+        await getDb()
+          .insert(invoices)
+          .values({
+            clientId: client.id,
+            number: "INV-2025-DEMO-001",
+            status: "draft",
+            currency: "USD",
+            subtotal: "540.00",
+            tax: "0.00",
+            total: "540.00",
+            dueAt: new Date("2026-04-15T00:00:00-04:00"),
+          })
+          .catch(() => {
+            // number is unique; swallow dupes from a re-run
+          });
+      }
+    }
+    console.log(JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_client_seeded", userId }));
+  } catch (error) {
+    console.log(JSON.stringify({ ts: new Date().toISOString(), event: "auth.bootstrap_client_seed_failed", userId, err: (error as Error).message }));
+  }
 }

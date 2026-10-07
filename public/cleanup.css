@@ -70,6 +70,7 @@ body{background:#faf9f5;color:#172435}.login-page{background:#0b1a2a;color:#fff}
 .login-home:hover,.login-help:hover{text-decoration:underline;text-underline-offset:4px}
 .login-simple-main{flex:1;display:grid;place-items:center;padding:44px 24px 88px;background:none}
 .login-simple-panel{width:min(100%,440px);margin:0;padding:42px 44px 38px;background:#fff;border:1px solid #dfe2df;border-radius:10px;box-shadow:0 18px 45px #17243512}
+.login-panel-logo{display:block;width:96px;height:96px;margin:0 auto 22px;object-fit:contain}
 .login-eyebrow{display:block;font:800 10px Manrope,sans-serif;letter-spacing:.18em;color:#987442}
 .login-simple h1{font:500 42px/1.08 Manrope,sans-serif;letter-spacing:-.035em;margin:14px 0 8px;color:#172435}
 .login-intro{font-size:16px;line-height:1.5;color:#61707a;margin:0 0 26px}
@@ -85,7 +86,21 @@ body{background:#faf9f5;color:#172435}.login-page{background:#0b1a2a;color:#fff}
 .login-preview-links{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 18px}
 .login-preview-links a,.login-help{font:700 12px Manrope,sans-serif;color:#987442;text-decoration:none}
 .login-preview-links a{border-bottom:1px solid #c8a46e;padding-bottom:3px}
-@media(max-width:700px){.login-simple-header{width:calc(100% - 36px);min-height:76px}.login-simple-header img{width:112px;height:74px}.login-simple-main{padding:28px 18px 58px}.login-simple-panel{padding:32px 24px 28px;border-radius:8px}.login-simple h1{font-size:36px}.login-intro{font-size:15px}.login-preview-links{display:grid;gap:10px}.login-preview-links a{width:max-content}}
+@media(max-width:700px){.login-simple-header{width:calc(100% - 36px);min-height:76px}.login-simple-header img{width:112px;height:74px}.login-simple-main{padding:28px 18px 58px}.login-simple-panel{padding:32px 24px 28px;border-radius:8px}.login-panel-logo{width:80px;height:80px;margin-bottom:18px}.login-simple h1{font-size:36px}.login-intro{font-size:15px}.login-preview-links{display:grid;gap:10px}.login-preview-links a{width:max-content}}
+
+/* Dev-only quick-login block. Renders only when all four NEXT_PUBLIC_QUICK_* env vars are set. */
+.login-quick{margin:22px 0 4px;padding:18px 18px 16px;border:1px dashed #c8a46e;background:#fdf8ec;border-radius:8px}
+.login-quick-label{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.login-quick-tag{font:800 10px Manrope,sans-serif;letter-spacing:.16em;color:#7d5d2b;background:#f3e2bd;padding:5px 9px;border-radius:3px}
+.login-quick-sub{font:600 12px 'DM Sans',sans-serif;color:#8a7245}
+.login-quick-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.login-quick-btn{min-height:46px;border-radius:5px;border:1px solid #987442;font:800 12px Manrope,sans-serif;letter-spacing:.04em;cursor:pointer;background:#fff;color:#263746;transition:background .15s,color .15s,border-color .15s}
+.login-quick-btn-admin{background:#172435;color:#fff;border-color:#172435}
+.login-quick-btn-admin:hover:not(:disabled){background:#0b1a2a;border-color:#0b1a2a}
+.login-quick-btn-client{background:#987442;color:#fff;border-color:#987442}
+.login-quick-btn-client:hover:not(:disabled){background:#866135;border-color:#866135}
+.login-quick-btn:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:700px){.login-quick{padding:14px 14px 12px}.login-quick-buttons{grid-template-columns:1fr;gap:8px}.login-quick-btn{min-height:44px;font-size:11px}}
 
 /* Mobile hero: compact header, readable headline, visible CTA, compact service grid. */
 @media(max-width:700px){
@@ -381,3 +396,13 @@ html{scroll-behavior:smooth;scroll-padding-top:90px}
 
 /* Logo: keep emblem centered even if aspect ratio shifts */
 .nav .brand-logo, .footer .brand-logo, .login-brand .brand-logo{object-fit:cover;object-position:center 38%}
+
+/* Client portal quick-form (e.g. start-a-conversation) */
+.dashboard-quick-form{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:grid;gap:12px;box-shadow:0 4px 16px rgba(14,26,38,.04)}
+.dashboard-form-row{display:grid;gap:14px}
+.dashboard-quick-form label{display:grid;gap:5px;font:600 11px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dashboard-quick-form input,.dashboard-quick-form textarea{width:100%;height:42px;border:1px solid #d6dce1;border-radius:7px;background:#fff;color:var(--ink);padding:0 12px;font:14px 'DM Sans',sans-serif;outline:0}
+.dashboard-quick-form textarea{height:auto;min-height:80px;padding:10px 12px;resize:vertical}
+.dashboard-quick-form input:focus,.dashboard-quick-form textarea:focus{border-color:#9a7642;box-shadow:0 0 0 3px #9a764226}
+.dashboard-form-actions{display:flex;gap:10px;align-items:center}
+.dashboard-form-notes{display:grid;gap:5px}

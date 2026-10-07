@@ -4,10 +4,12 @@ import {
   appointments,
   clientAccess,
   clients,
+  conversations,
   documentRequests,
   documents,
   engagements,
   invoices,
+  messages,
   tasks,
   taxYears,
   type Role,
@@ -157,6 +159,18 @@ export type ClientSnapshot = {
     dueAt: Date | null;
     paidAt: Date | null;
   }>;
+  conversations: Array<{
+    id: string;
+    subject: string;
+    lastMessageAt: Date | null;
+    unread: number;
+    messages: Array<{
+      id: string;
+      senderId: string;
+      body: string;
+      createdAt: Date;
+    }>;
+  }>;
 };
 
 /**
@@ -168,7 +182,7 @@ export type ClientSnapshot = {
 export async function clientSnapshot(clientId: string): Promise<ClientSnapshot> {
   const db = getDb();
 
-  const [engagementRows, taxYearRows, requestRows, documentRows, taskRows, appointmentRows, invoiceRows] =
+  const [engagementRows, taxYearRows, requestRows, documentRows, taskRows, appointmentRows, invoiceRows, conversationRows] =
     await Promise.all([
       db
         .select({
@@ -265,7 +279,42 @@ export async function clientSnapshot(clientId: string): Promise<ClientSnapshot> 
         .where(and(eq(invoices.clientId, clientId), or(eq(invoices.status, "sent"), eq(invoices.status, "overdue"), eq(invoices.status, "paid"))))
         .orderBy(desc(invoices.createdAt))
         .limit(25),
+
+      db
+        .select({
+          id: conversations.id,
+          subject: conversations.subject,
+          lastMessageAt: conversations.lastMessageAt,
+          unread: conversations.clientUnreadCount,
+        })
+        .from(conversations)
+        .where(eq(conversations.clientId, clientId))
+        .orderBy(desc(conversations.lastMessageAt))
+        .limit(20),
     ]);
+
+  // Load the most recent messages for each conversation in one batched query.
+  const conversationIds = conversationRows.map((c) => c.id);
+  const messageRows = conversationIds.length
+    ? await db
+        .select({
+          id: messages.id,
+          conversationId: messages.conversationId,
+          senderId: messages.senderId,
+          body: messages.body,
+          createdAt: messages.createdAt,
+        })
+        .from(messages)
+        .where(inArray(messages.conversationId, conversationIds))
+        .orderBy(desc(messages.createdAt))
+        .limit(100)
+    : [];
+  const messagesByConvo = new Map<string, typeof messageRows>();
+  for (const m of messageRows) {
+    const arr = messagesByConvo.get(m.conversationId) ?? [];
+    if (arr.length < 5) arr.push(m);
+    messagesByConvo.set(m.conversationId, arr);
+  }
 
   return {
     engagements: engagementRows,
@@ -275,5 +324,9 @@ export async function clientSnapshot(clientId: string): Promise<ClientSnapshot> 
     tasks: taskRows,
     appointments: appointmentRows,
     invoices: invoiceRows,
+    conversations: conversationRows.map((c) => ({
+      ...c,
+      messages: (messagesByConvo.get(c.id) ?? []).reverse(),
+    })),
   };
 }

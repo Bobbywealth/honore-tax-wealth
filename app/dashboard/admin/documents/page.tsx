@@ -117,9 +117,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
             {unavailable ? "Unavailable" : `${rows.length} on file · ${outstanding} outstanding requests`}
           </div>
         </div>
-        <span className="adm-badge" title="Private storage is not configured yet">
+        <a className="adm-badge adm-badge-link" href="/dashboard/admin/settings#storage" title="Open storage settings to enable document uploads">
           <Upload size={13} aria-hidden="true" /> Upload not configured
-        </span>
+        </a>
       </div>
 
       {unavailable ? (

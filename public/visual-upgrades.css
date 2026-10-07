@@ -29,7 +29,7 @@
 .login-simple-form label{font-size:12px;letter-spacing:.04em;text-transform:uppercase}
 .login-simple-form input:focus{border-color:var(--honore-gold);box-shadow:0 0 0 3px #d9b87830}
 .login-simple-form button:hover{background:#d9b878;color:#0b1a2a}
-.login-simple-panel::before{content:"";display:block;width:44px;height:44px;background:var(--honore-gold);border-radius:50%;margin-bottom:24px}
+.login-simple-panel::before{content:none;display:none}
 .dashboard{background:#f4f6f9}
 .dashboard-sidebar{background:#0b1a2a;color:#fff}
 .dashboard-sidebar nav a{border-radius:10px;color:#d9e2ec}

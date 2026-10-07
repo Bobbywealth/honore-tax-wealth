@@ -1,16 +1,14 @@
 import type { ReactNode } from "react";
 import { BarChart3, Calendar, CheckSquare, FileText, Globe, Home, Inbox, LayoutDashboard, LogOut, Settings, UserPlus, Users } from "lucide-react";
-
-
 type NavItem = { label: string; href: string; icon: ReactNode; badge?: { value: number; tone?: "default" | "red" } };
 
-const WORK: NavItem[] = [
+const WORK_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard/admin", icon: <LayoutDashboard size={18} /> },
-  { label: "Inbox", href: "/dashboard/admin/inbox", icon: <Inbox size={18} />, badge: { value: 3 } },
+  { label: "Inbox", href: "/dashboard/admin/inbox", icon: <Inbox size={18} /> },
   { label: "Clients", href: "/dashboard/admin/clients", icon: <Users size={18} /> },
-  { label: "Returns", href: "/dashboard/admin/returns", icon: <FileText size={18} />, badge: { value: 2, tone: "red" } },
-  { label: "Documents", href: "/dashboard/admin/documents", icon: <FileText size={18} />, badge: { value: 7 } },
-  { label: "Tasks", href: "/dashboard/admin/tasks", icon: <CheckSquare size={18} />, badge: { value: 5 } },
+  { label: "Returns", href: "/dashboard/admin/returns", icon: <FileText size={18} /> },
+  { label: "Documents", href: "/dashboard/admin/documents", icon: <FileText size={18} /> },
+  { label: "Tasks", href: "/dashboard/admin/tasks", icon: <CheckSquare size={18} /> },
 ];
 
 const PRACTICE: NavItem[] = [
@@ -24,17 +22,19 @@ const ADMIN: NavItem[] = [
   { label: "Settings", href: "/dashboard/admin/settings", icon: <Settings size={18} /> },
 ];
 
-function Group({ label, items, currentHref }: { label: string; items: NavItem[]; currentHref: string }) {
+function Group({ label, items, currentHref, badges }: { label: string; items: NavItem[]; currentHref: string; badges?: Record<string, number> }) {
   return (
     <>
       <div className="adm-grp">{label}</div>
       {items.map((item) => {
         const active = currentHref === item.href;
+        const live = badges?.[item.label.toLowerCase()];
+        const badgeValue = typeof live === "number" ? live : item.badge?.value;
         return (
           <a key={item.label} href={item.href} aria-current={active ? "page" : undefined} className={`adm-it${active ? " is-active" : ""}`}>
             {item.icon}
             <span>{item.label}</span>
-            {item.badge ? <span className={`adm-badge${item.badge.tone === "red" ? " red" : ""}`}>{item.badge.value}</span> : null}
+            {badgeValue ? <span className={`adm-badge${item.badge?.tone === "red" ? " red" : ""}`}>{badgeValue}</span> : null}
           </a>
         );
       })}
@@ -45,10 +45,13 @@ function Group({ label, items, currentHref }: { label: string; items: NavItem[];
 type Props = {
   preview: boolean;
   currentHref?: string;
+  unanswered?: number;
   children: ReactNode;
 };
 
-export default function AdminShell({ preview, currentHref = "/dashboard/admin", children }: Props) {
+export default function AdminShell({ preview, currentHref = "/dashboard/admin", unanswered = 0, children }: Props) {
+  const badges: Record<string, number> = { inbox: unanswered };
+
   return (
     <div className="adm-root">
       <aside className="adm-sb">
@@ -58,14 +61,17 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
           </a>
         </div>
 
-        <Group label="Work" items={WORK} currentHref={currentHref} />
+        <Group label="Work" items={WORK_NAV} currentHref={currentHref} badges={badges} />
         <Group label="Practice" items={PRACTICE} currentHref={currentHref} />
         <Group label="Admin" items={ADMIN} currentHref={currentHref} />
 
         <div className="adm-me">
-          <button type="button" className="adm-logout" aria-label="Sign out" title="Sign out">
-            <LogOut size={14} />
-          </button>
+          <form className="adm-logout-form" action="/api/auth/logout" method="post">
+            <button type="submit" className="adm-logout" aria-label="Sign out" title="Sign out">
+              <LogOut size={14} />
+              <span>Sign out</span>
+            </button>
+          </form>
           <div className="adm-me-row">
             <div className="adm-av">BW</div>
             <div>
@@ -88,30 +94,52 @@ export default function AdminShell({ preview, currentHref = "/dashboard/admin", 
             <b>Admin</b>
           </div>
           <div className="adm-sp" />
-          <div className="adm-search">
+          <form className="adm-search" action="/dashboard/admin/inbox" method="get" role="search">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="7" />
               <path d="M21 21l-4.3-4.3" />
             </svg>
-            <input type="text" placeholder="Search clients, returns, documents…" aria-label="Search" />
+            <input type="search" name="q" placeholder="Search clients, returns, documents…" aria-label="Search" />
             <kbd>⌘K</kbd>
-          </div>
+          </form>
           <div className="adm-sp" />
-          <button type="button" className="adm-bell" aria-label="Notifications">
+          <a href="/dashboard/admin/inbox" className="adm-bell adm-bell-link" aria-label="Notifications">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 14V9a6 6 0 0 1 12 0v5l1.5 2H4.5z" />
               <path d="M9 19a3 3 0 0 0 6 0" />
             </svg>
-          </button>
-          <button type="button" className="adm-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            <span>New</span>
-          </button>
+            {unanswered > 0 ? <span className="adm-bell-dot" aria-hidden="true">{unanswered}</span> : null}
+          </a>
+          <details className="adm-new">
+            <summary className="adm-btn adm-new-trigger" aria-label="Create new">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              <span>New</span>
+              <svg className="adm-new-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+            </summary>
+            <div className="adm-new-menu" role="menu">
+              <a href="/dashboard/admin/leads?new=1" role="menuitem">
+                <span className="adm-new-ico" style={{ background: "#d4a755" }}>L</span>
+                <span><b>New lead</b><small>Capture a prospect</small></span>
+              </a>
+              <a href="/dashboard/admin/clients?new=1" role="menuitem">
+                <span className="adm-new-ico" style={{ background: "#2a5d8f" }}>C</span>
+                <span><b>New client</b><small>Onboard from a lead</small></span>
+              </a>
+              <a href="/dashboard/admin/tasks?new=1" role="menuitem">
+                <span className="adm-new-ico" style={{ background: "#7a5ca8" }}>T</span>
+                <span><b>New task</b><small>For me or the team</small></span>
+              </a>
+              <a href="/dashboard/admin/calendar?new=1" role="menuitem">
+                <span className="adm-new-ico" style={{ background: "#2f8a5b" }}>A</span>
+                <span><b>New appointment</b><small>Block time on the calendar</small></span>
+              </a>
+            </div>
+          </details>
         </header>
 
-        <details className="adm-mobile-nav"><summary>Navigate your workspace</summary><nav aria-label="Mobile admin navigation">{[...WORK,...PRACTICE,...ADMIN].map(item=><a key={item.href} href={item.href} aria-current={currentHref===item.href?"page":undefined}>{item.label}</a>)}</nav></details>
+        <details className="adm-mobile-nav"><summary>Navigate your workspace</summary><nav aria-label="Mobile admin navigation">{[...WORK_NAV,...PRACTICE,...ADMIN].map(item=><a key={item.href} href={item.href} aria-current={currentHref===item.href?"page":undefined}>{item.label}</a>)}</nav></details>
         <div className="adm-c">
           {preview ? (
             <div style={{ marginBottom: 14, padding: "8px 14px", background: "#efe3cb", color: "#7b5c31", borderRadius: 8, font: "800 10px Manrope, sans-serif", letterSpacing: ".12em", textTransform: "uppercase", display: "inline-block" }}>

@@ -163,6 +163,9 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
                       <time dateTime={t.completedAt ? new Date(t.completedAt).toISOString() : undefined}>
                         {t.completedAt ? new Date(t.completedAt).toLocaleDateString("en-US", { dateStyle: "medium", timeZone: "America/New_York" }) : ""}
                       </time>
+                      <form action={`/api/admin/tasks/${t.id}/toggle`} method="post" className="adm-task-action">
+                        <button type="submit" className="adm-btn adm-btn-mini" title="Reopen this task">Reopen</button>
+                      </form>
                     </div>
                   </li>
                 ))}
