@@ -22,12 +22,7 @@ export function adminNav(counts: Counts): PortalNavItem[] {
       icon: "inbox",
       badge: counts.unanswered > 0 ? { value: counts.unanswered, tone: "red" as const } : undefined,
     },
-    {
-      href: "/dashboard/admin/messages",
-      label: "Messages",
-      icon: "messages",
-      badge: counts.conversationsUnread > 0 ? { value: counts.conversationsUnread, tone: "red" as const } : undefined,
-    },
+
     { href: "/dashboard/admin/clients", label: "Clients", icon: "clients" },
     { href: "/dashboard/admin/returns", label: "Returns", icon: "returns" },
     { href: "/dashboard/admin/documents", label: "Documents", icon: "documents" },
