@@ -1,55 +1,69 @@
 import type { ReactNode } from "react";
-import { ArrowLeft, LayoutDashboard, LogOut } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, LogOut, LayoutDashboard, type LucideIcon } from "lucide-react";
 
-export type PortalNavItem = { href: string; label: string };
+export type PortalNavItem = {
+  href: string;
+  label: string;
+  icon?: LucideIcon | ReactNode;
+  badge?: { value: number; tone?: "default" | "red" | "amber" };
+};
 
 type Props = {
   audience: "Client" | "Admin";
   title: string;
   description: string;
   children: ReactNode;
-  nav?: PortalNavItem[];
+  nav: PortalNavItem[];
   /** Display name of the signed-in account, shown in the topbar. */
   userLabel?: string | null;
+  currentHref?: string;
 };
-
-const defaultNav: PortalNavItem[] = [
-  { href: "#overview", label: "Overview" },
-  { href: "#activity", label: "Activity" },
-  { href: "#next-steps", label: "Next steps" },
-];
 
 /**
  * Chrome for the signed-in portals.
  *
- * The previous version stamped a "PORTAL PREVIEW" badge and an "Exit preview"
- * link on every page, which claimed these screens were not real. They are now
- * backed by authorized database reads, so that badge would be false. Sign-out
- * posts to the API, which deletes the session row server-side rather than
- * only clearing the cookie in the browser.
+ * Multi-page sidebar navigation: each link points at its own /dashboard/...
+ * route, not an in-page anchor. The `currentHref` prop is what the shell uses
+ * to mark the active item.
  */
 export default function DashboardShell({
   audience,
   title,
   description,
   children,
-  nav = defaultNav,
+  nav,
   userLabel,
+  currentHref,
 }: Props) {
   return (
     <div className="dashboard">
       <aside className="dashboard-sidebar">
-        <a className="dashboard-logo" href="/">
+        <Link className="dashboard-logo" href="/">
           <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
-        </a>
+        </Link>
         <div className="dashboard-side-label">{audience} portal</div>
         <nav aria-label="Dashboard navigation">
-          {nav.map((item, i) => (
-            <a key={item.href} href={item.href} className={i === 0 ? "is-active" : undefined}>
-              {i === 0 ? <LayoutDashboard size={18} aria-hidden="true" /> : null}
-              {item.label}
-            </a>
-          ))}
+          {nav.map((item) => {
+            const Icon = item.icon ?? (item.href === "/dashboard/client" || item.href === "/dashboard/admin" ? LayoutDashboard : null);
+            const active = currentHref === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={active ? "is-active" : undefined}
+                aria-current={active ? "page" : undefined}
+              >
+                {Icon ? <span className="dashboard-nav-icon">{typeof Icon === "function" ? <Icon size={20} aria-hidden="true" /> : Icon}</span> : null}
+                <span className="dashboard-nav-label">{item.label}</span>
+                {item.badge ? (
+                  <span className={`dashboard-nav-badge${item.badge.tone === "red" ? " is-red" : item.badge.tone === "amber" ? " is-amber" : ""}`}>
+                    {item.badge.value}
+                  </span>
+                ) : null}
+              </Link>
+            );
+          })}
         </nav>
         <div className="dashboard-sidebar-bottom">
           <a href="/"><ArrowLeft size={16} aria-hidden="true" /> Website</a>
@@ -61,11 +75,11 @@ export default function DashboardShell({
         </div>
       </aside>
 
-      <div className="dashboard-main" id="overview">
+      <div className="dashboard-main">
         <header className="dashboard-topbar">
-          <a className="dashboard-mobile-logo" href="/">
+          <Link className="dashboard-mobile-logo" href="/">
             <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
-          </a>
+          </Link>
           <span>{audience} dashboard</span>
           {userLabel ? <span className="dashboard-user">{userLabel}</span> : null}
         </header>

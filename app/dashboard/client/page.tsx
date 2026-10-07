@@ -6,14 +6,32 @@ import {
   FileText,
   MessageSquareText,
   Receipt,
+  ClipboardList,
+  Sparkles,
+  AlertTriangle,
+  ChevronRight,
 } from "lucide-react";
-import DashboardShell, { type PortalNavItem } from "../DashboardShell";
-import { primaryClientFor, clientSnapshot } from "@/lib/access";
+import Link from "next/link";
+import DashboardShell from "../DashboardShell";
+import { currentUser } from "@/lib/auth";
+import { clientNav } from "./_lib/nav";
+import { getDb } from "@/db";
+import {
+  appointments,
+  conversations,
+  documentRequests,
+  documents,
+  engagements,
+  invoices,
+  messages,
+  taxYears,
+} from "@/db/schema";
+import { and, asc, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { ensureMigrated } from "@/db/migrate";
+import { authorizedClientIds, primaryClientFor } from "@/lib/access";
 
 export const dynamic = "force-dynamic";
 
-/** Wording for a staff-set engagement status. Never implies filing status. */
 const ENGAGEMENT_STATUS: Record<string, string> = {
   intake: "Getting started",
   in_preparation: "In preparation",
@@ -31,13 +49,6 @@ const RETURN_STATUS: Record<string, string> = {
   accepted: "Accepted",
 };
 
-const REVIEW_STATUS: Record<string, string> = {
-  pending: "Awaiting review",
-  approved: "Reviewed",
-  rejected: "Needs attention",
-  superseded: "Replaced",
-};
-
 function formatDate(value: Date | null, timeZone = "America/New_York"): string {
   if (!value) return "";
   return new Intl.DateTimeFormat("en-US", {
@@ -46,32 +57,72 @@ function formatDate(value: Date | null, timeZone = "America/New_York"): string {
     timeZone,
   }).format(new Date(value));
 }
+function dateOnly(value: Date | null, timeZone = "America/New_York"): string {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone }).format(new Date(value));
+}
+function relative(value: Date): string {
+  const diff = Date.now() - new Date(value).getTime();
+  const mins = Math.round(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return dateOnly(value);
+}
+
+type Counters = {
+  activeEngagements: number;
+  openRequests: number;
+  upcomingAppointments: number;
+  unpaidInvoices: number;
+  unreadMessages: number;
+};
+
+async function loadCounters(clientId: string): Promise<Counters> {
+  try {
+    if (!process.env.DATABASE_URL) {
+      return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+    }
+    await ensureMigrated();
+    const db = getDb();
+    const [eg, req, appt, inv, msg] = await Promise.all([
+      db.select({ c: count() }).from(engagements).where(and(eq(engagements.clientId, clientId), isNull(engagements.archivedAt))),
+      db.select({ c: count() }).from(documentRequests).where(and(eq(documentRequests.clientId, clientId), isNull(documentRequests.fulfilledAt))),
+      db.select({ c: count() }).from(appointments).where(and(eq(appointments.clientId, clientId), inArray(appointments.status, ["requested", "confirmed"]))),
+      db.select({ c: count() }).from(invoices).where(and(eq(invoices.clientId, clientId), inArray(invoices.status, ["sent", "overdue"]))),
+      db.select({ c: sql<number>`coalesce(sum(${conversations.clientUnreadCount}), 0)::int` }).from(conversations).where(eq(conversations.clientId, clientId)),
+    ]);
+    return {
+      activeEngagements: eg[0]?.c ?? 0,
+      openRequests: req[0]?.c ?? 0,
+      upcomingAppointments: appt[0]?.c ?? 0,
+      unpaidInvoices: inv[0]?.c ?? 0,
+      unreadMessages: Number(msg[0]?.c ?? 0),
+    };
+  } catch {
+    return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+  }
+}
 
 export default async function ClientDashboard() {
-  const { requireUser } = await import("@/lib/access");
-  const user = await requireUser();
+  const user = await currentUser();
   if (!user) redirect("/login?next=/dashboard/client");
 
-  const nav: PortalNavItem[] = [
-    { href: "#overview", label: "Overview" },
-    { href: "#engagements", label: "Your tax work" },
-    { href: "#documents", label: "Documents" },
-    { href: "#appointments", label: "Appointments" },
-    { href: "#next-steps", label: "Next steps" },
-  ];
-
+  // Not linked yet: show the "no record" landing, with the sidebar still pointing at sections.
   const clientId = await primaryClientFor(user);
 
-  // Signed in, but no client record is linked to this account yet. That is a
-  // real state, not an error, so it gets a real explanation.
   if (!clientId) {
     return (
       <DashboardShell
         audience="Client"
         title="Your tax home"
-        description="A clear place to see what comes next in your tax preparation."
-        nav={nav}
+        description="Your preparer will connect your account to a client record shortly."
+        nav={clientNav({ activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 })}
         userLabel={user.displayName ?? user.email}
+        currentHref="/dashboard/client"
       >
         <div className="dashboard-alert">
           <CheckCircle2 size={20} aria-hidden="true" />
@@ -85,294 +136,430 @@ export default async function ClientDashboard() {
     );
   }
 
-  let snapshot: Awaited<ReturnType<typeof clientSnapshot>> | null = null;
+  const counts = await loadCounters(clientId);
+  const nav = clientNav(counts);
+
+  // Pull a rich landing dataset for the work surface.
+  let dashboardData:
+    | {
+        nextAppt: { title: string; startsAt: Date; status: string; timezone: string } | null;
+        overdueRequests: Array<{ id: string; title: string; dueAt: Date | null; required: boolean }>;
+        recentDocs: Array<{ id: string; originalFilename: string; reviewStatus: string; createdAt: Date; category: string }>;
+        recentMessages: Array<{ conversationId: string; subject: string; body: string; senderId: string; createdAt: Date; unread: number }>;
+        activeEngagements: Array<{ id: string; name: string; serviceType: string; status: string; progressPercent: number; updatedAt: Date }>;
+        taxYears: Array<{ id: string; year: number; filingStatus: string; dueDate: Date | null }>;
+        unpaidInvoices: Array<{ id: string; number: string; status: string; total: string; dueAt: Date | null }>;
+        timeline: Array<{ at: Date; tone: "neutral" | "good" | "warn" | "info"; label: string; detail?: string }>;
+      }
+    | null = null;
   let unavailable = false;
+
   try {
-    await ensureMigrated();
-    snapshot = await clientSnapshot(clientId);
+    if (process.env.DATABASE_URL) {
+      await ensureMigrated();
+      const db = getDb();
+
+      // Next upcoming appointment.
+      const apptRows = await db
+        .select({
+          title: appointments.title,
+          startsAt: appointments.startsAt,
+          status: appointments.status,
+          timezone: appointments.timezone,
+        })
+        .from(appointments)
+        .where(and(eq(appointments.clientId, clientId), inArray(appointments.status, ["requested", "confirmed"])))
+        .orderBy(asc(appointments.startsAt))
+        .limit(1);
+
+      // Overdue open document requests.
+      const overdueReqs = await db
+        .select({ id: documentRequests.id, title: documentRequests.title, dueAt: documentRequests.dueAt, required: documentRequests.required })
+        .from(documentRequests)
+        .where(and(eq(documentRequests.clientId, clientId), isNull(documentRequests.fulfilledAt), sql`${documentRequests.dueAt} is not null`, sql`${documentRequests.dueAt} < now()`))
+        .orderBy(asc(documentRequests.dueAt))
+        .limit(5);
+
+      // Last 5 documents uploaded for this client.
+      const docsRows = await db
+        .select({ id: documents.id, originalFilename: documents.originalFilename, reviewStatus: documents.reviewStatus, createdAt: documents.createdAt, category: documents.category })
+        .from(documents)
+        .where(and(eq(documents.clientId, clientId), isNull(documents.deletedAt)))
+        .orderBy(desc(documents.createdAt))
+        .limit(5);
+
+      // Last 5 messages across all conversations.
+      const convoRows = await db
+        .select({ id: conversations.id, subject: conversations.subject, lastMessageAt: conversations.lastMessageAt, unread: conversations.clientUnreadCount })
+        .from(conversations)
+        .where(eq(conversations.clientId, clientId))
+        .orderBy(desc(conversations.lastMessageAt))
+        .limit(5);
+      const convoIds = convoRows.map((c) => c.id);
+      const recentMsgs = convoIds.length
+        ? await db
+            .select({ id: messages.id, conversationId: messages.conversationId, senderId: messages.senderId, body: messages.body, createdAt: messages.createdAt })
+            .from(messages)
+            .where(inArray(messages.conversationId, convoIds))
+            .orderBy(desc(messages.createdAt))
+            .limit(8)
+        : [];
+
+      const egRows = await db
+        .select({ id: engagements.id, name: engagements.name, serviceType: engagements.serviceType, status: engagements.status, progressPercent: engagements.progressPercent, updatedAt: engagements.updatedAt })
+        .from(engagements)
+        .where(and(eq(engagements.clientId, clientId), isNull(engagements.archivedAt)))
+        .orderBy(desc(engagements.updatedAt))
+        .limit(5);
+
+      const tyRows = await db
+        .select({ id: taxYears.id, year: taxYears.year, filingStatus: taxYears.filingStatus, dueDate: taxYears.dueDate })
+        .from(taxYears)
+        .where(eq(taxYears.clientId, clientId))
+        .orderBy(desc(taxYears.year))
+        .limit(5);
+
+      const invRows = await db
+        .select({ id: invoices.id, number: invoices.number, status: invoices.status, total: invoices.total, dueAt: invoices.dueAt })
+        .from(invoices)
+        .where(and(eq(invoices.clientId, clientId), inArray(invoices.status, ["sent", "overdue"])))
+        .orderBy(desc(invoices.createdAt))
+        .limit(5);
+
+      // Build a chronological "what changed since you last looked" feed.
+      const timeline: Array<{ at: Date; tone: "neutral" | "good" | "warn" | "info"; label: string; detail?: string }> = [];
+      for (const a of egRows.slice(0, 3)) {
+        timeline.push({ at: a.updatedAt, tone: "info", label: `Tax work updated`, detail: a.name });
+      }
+      for (const d of docsRows.slice(0, 3)) {
+        timeline.push({ at: d.createdAt, tone: d.reviewStatus === "approved" ? "good" : d.reviewStatus === "rejected" ? "warn" : "neutral", label: `Document ${d.reviewStatus === "approved" ? "approved" : "received"}`, detail: d.originalFilename });
+      }
+      for (const m of recentMsgs.slice(0, 3)) {
+        timeline.push({ at: m.createdAt, tone: "info", label: "New message", detail: convoRows.find((c) => c.id === m.conversationId)?.subject ?? "" });
+      }
+      timeline.sort((a, b) => b.at.getTime() - a.at.getTime());
+
+      dashboardData = {
+        nextAppt: apptRows[0] ?? null,
+        overdueRequests: overdueReqs,
+        recentDocs: docsRows,
+        recentMessages: recentMsgs.map((m) => ({
+          conversationId: m.conversationId,
+          subject: convoRows.find((c) => c.id === m.conversationId)?.subject ?? "",
+          body: m.body,
+          senderId: m.senderId,
+          createdAt: m.createdAt,
+          unread: convoRows.find((c) => c.id === m.conversationId)?.unread ?? 0,
+        })),
+        activeEngagements: egRows,
+        taxYears: tyRows,
+        unpaidInvoices: invRows,
+        timeline: timeline.slice(0, 8),
+      };
+    }
   } catch {
     unavailable = true;
   }
 
-  const openRequests = snapshot?.openDocumentRequests ?? [];
-  const openTasks = snapshot?.tasks ?? [];
-  const hasWork = (snapshot?.engagements.length ?? 0) > 0;
+  const totalAttention =
+    (dashboardData?.overdueRequests.length ?? 0) +
+    (dashboardData?.unpaidInvoices.length ?? 0) +
+    (dashboardData?.recentMessages.filter((m) => m.unread > 0).length ?? 0);
+
+  if (!dashboardData) {
+    return (
+      <DashboardShell
+        audience="Client"
+        title="Your tax home"
+        description="Live view of your account."
+        nav={nav}
+        userLabel={user.displayName ?? user.email}
+        currentHref="/dashboard/client"
+      >
+        <div className="dashboard-alert">
+          <p><strong>We could not load your account just now.</strong> Please refresh, or contact the team if it keeps happening. Nothing has been lost.</p>
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell
       audience="Client"
       title="Your tax home"
-      description="Everything below is your own record. Progress shown here is set by your preparer and is not a filing confirmation."
+      description="Live view of your account. Progress below is set by your preparer and is not a filing confirmation."
       nav={nav}
       userLabel={user.displayName ?? user.email}
+      currentHref="/dashboard/client"
     >
-      {unavailable ? (
+      {unavailable || !dashboardData ? (
         <div className="dashboard-alert">
           <p>
-            <strong>We could not load your account just now.</strong> Please refresh, or contact the
-            team if it keeps happening. Nothing has been lost.
+            <strong>We could not load your account just now.</strong> Please refresh, or contact the team if it keeps happening. Nothing has been lost.
           </p>
         </div>
       ) : null}
 
-      {/* ---------------------------- Overview ---------------------------- */}
-      <div className="client-summary" aria-label="Account overview">
-        <article>
-          <small>Active engagements</small>
-          <strong>{snapshot?.engagements.length ?? 0}</strong>
-          <p>{hasWork ? "Your current tax work." : "Nothing in progress yet."}</p>
+      {/* HERO STRIP — live state of the resource, merged across queues */}
+      <section className="client-kpi-strip" aria-label="Account overview">
+        <article className="client-kpi">
+          <small>Tax work in motion</small>
+          <strong>{counts.activeEngagements}</strong>
+          <p>{counts.activeEngagements ? "Engagements currently being prepared." : "Nothing in progress."}</p>
         </article>
-        <article>
+        <article className={`client-kpi${counts.openRequests ? " is-alert" : ""}`}>
           <small>Documents to send</small>
-          <strong>{openRequests.length}</strong>
-          <p>{openRequests.length ? "Requested by your preparer." : "Nothing outstanding."}</p>
+          <strong>{counts.openRequests}</strong>
+          <p>{counts.openRequests ? "Requested by your preparer." : "Nothing outstanding."}</p>
         </article>
-        <article>
+        <article className="client-kpi">
           <small>Upcoming appointments</small>
-          <strong>{snapshot?.appointments.length ?? 0}</strong>
-          <p>{snapshot?.appointments.length ? "Confirmed or awaiting confirmation." : "None scheduled."}</p>
+          <strong>{counts.upcomingAppointments}</strong>
+          <p>{counts.upcomingAppointments ? "Confirmed or awaiting confirmation." : "None scheduled."}</p>
         </article>
-      </div>
-
-      {/* --------------------------- Engagements -------------------------- */}
-      <section className="dashboard-section dashboard-primary" id="engagements">
-        <div className="dashboard-section-head">
-          <span className="dashboard-eyebrow">YOUR TAX WORK</span>
-          <h2>Engagements</h2>
-        </div>
-
-        {!hasWork ? (
-          <p className="dashboard-quiet">
-            You do not have any tax work in progress. If you have requested a consultation, your
-            preparer will confirm scope before anything begins.
-          </p>
-        ) : (
-          <div className="dashboard-status-list">
-            {snapshot!.engagements.map((e) => (
-              <div className="dashboard-status-row" key={e.id}>
-                <FileText size={20} aria-hidden="true" />
-                <div>
-                  <strong>{e.name}</strong>
-                  <span>
-                    {e.serviceType} &middot; {ENGAGEMENT_STATUS[e.status] ?? e.status}
-                  </span>
-                </div>
-                <span className="dashboard-muted">Updated {formatDate(e.updatedAt)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {snapshot && snapshot.taxYears.length > 0 ? (
-          <>
-            <h3>Tax years</h3>
-            <div className="dashboard-status-list">
-              {snapshot.taxYears.map((ty) => (
-                <div className="dashboard-status-row" key={ty.id}>
-                  <div>
-                    <strong>{ty.year} tax year</strong>
-                    <span>{RETURN_STATUS[ty.filingStatus] ?? ty.filingStatus}</span>
-                  </div>
-                  {ty.dueDate ? (
-                    <span className="dashboard-muted">Due {formatDate(ty.dueDate)}</span>
-                  ) : null}
-                  {ty.externalConfirmationRef ? (
-                    // Only ever rendered from a real integration reference.
-                    <span className="dashboard-muted">Confirmed by filing provider</span>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </>
-        ) : null}
+        <article className={`client-kpi${counts.unpaidInvoices ? " is-warn" : ""}`}>
+          <small>Outstanding balance</small>
+          <strong>${dashboardData.unpaidInvoices.reduce((s, i) => s + Number(i.total || 0), 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}</strong>
+          <p>{counts.unpaidInvoices ? `${counts.unpaidInvoices} invoice${counts.unpaidInvoices === 1 ? "" : "s"} unpaid.` : "All caught up."}</p>
+        </article>
       </section>
 
-      {/* ---------------------------- Documents --------------------------- */}
-      <section className="dashboard-section" id="documents">
+      {/* MERGED TRIAGE — "Needs your attention" */}
+      <section className="dashboard-section" aria-labelledby="needs-you">
         <div className="dashboard-section-head">
-          <span className="dashboard-eyebrow">DOCUMENTS</span>
-          <h2>What we need, and what you have</h2>
+          <span className="dashboard-eyebrow"><AlertTriangle size={14} aria-hidden="true" /> ACTION QUEUE</span>
+          <h2 id="needs-you">Needs your attention</h2>
+          <p className="dashboard-quiet">One merged list of overdue documents, pending replies, and unpaid invoices.</p>
         </div>
 
-        <h3>Requested from you</h3>
-        {openRequests.length === 0 ? (
-          <p className="dashboard-quiet">Nothing is outstanding right now.</p>
+        {totalAttention === 0 ? (
+          <div className="dashboard-empty">
+            <CheckCircle2 size={22} aria-hidden="true" />
+            <h3>You are all caught up</h3>
+            <p>Nothing is waiting on you. Your preparer will reach out when there is something new.</p>
+          </div>
         ) : (
-          <ul className="dashboard-list">
-            {openRequests.map((r) => (
-              <li key={r.id}>
-                <strong>
-                  {r.title}
-                  {r.required ? "" : " (optional)"}
-                </strong>
-                {r.description ? <span>{r.description}</span> : null}
-                {r.dueAt ? <span className="dashboard-muted">Requested by {formatDate(r.dueAt)}</span> : null}
+          <ul className="dashboard-triage-list">
+            {dashboardData.overdueRequests.map((r) => (
+              <li key={`req-${r.id}`} className="dashboard-triage-i is-overdue">
+                <span className="dashboard-triage-icon"><FileText size={18} aria-hidden="true" /></span>
+                <div className="dashboard-triage-body">
+                  <strong>{r.title}</strong>
+                  <span>Document overdue · due {dateOnly(r.dueAt)}</span>
+                </div>
+                <Link className="dashboard-triage-cta" href="/dashboard/client/documents">
+                  Open <ChevronRight size={14} aria-hidden="true" />
+                </Link>
               </li>
             ))}
+            {dashboardData.unpaidInvoices.map((inv) => (
+              <li key={`inv-${inv.id}`} className="dashboard-triage-i is-billing">
+                <span className="dashboard-triage-icon"><Receipt size={18} aria-hidden="true" /></span>
+                <div className="dashboard-triage-body">
+                  <strong>Invoice {inv.number}</strong>
+                  <span>${inv.total} {inv.status === "overdue" ? "overdue" : "due"} {dateOnly(inv.dueAt)}</span>
+                </div>
+                <Link className="dashboard-triage-cta" href="/dashboard/client/invoices">
+                  Pay <ChevronRight size={14} aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+            {dashboardData.recentMessages
+              .filter((m) => m.unread > 0)
+              .map((m) => (
+                <li key={`msg-${m.conversationId}-${m.senderId}-${m.createdAt.getTime()}`} className="dashboard-triage-i is-message">
+                  <span className="dashboard-triage-icon"><MessageSquareText size={18} aria-hidden="true" /></span>
+                  <div className="dashboard-triage-body">
+                    <strong>{m.subject || "New message from your preparer"}</strong>
+                    <span>&ldquo;{m.body.slice(0, 140)}{m.body.length > 140 ? "…" : ""}&rdquo; · {relative(m.createdAt)}</span>
+                  </div>
+                  <Link className="dashboard-triage-cta" href="/dashboard/client/messages">
+                    Reply <ChevronRight size={14} aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
           </ul>
         )}
-
-        <h3>On file</h3>
-        {!snapshot || snapshot.documents.length === 0 ? (
-          <p className="dashboard-quiet">No documents have been uploaded yet.</p>
-        ) : (
-          <div className="dashboard-status-list">
-            {snapshot.documents.map((d) => (
-              <div className="dashboard-status-row" key={d.id}>
-                <div>
-                  <strong>{d.originalFilename}</strong>
-                  <span>{REVIEW_STATUS[d.reviewStatus] ?? d.reviewStatus}</span>
-                </div>
-                <span className="dashboard-muted">Added {formatDate(d.createdAt)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className="dashboard-alert">
-          <p>
-            <strong>Do not email tax documents.</strong> Secure upload is not yet available, so your
-            preparer will give you a private method for sending anything sensitive.
-          </p>
-        </div>
       </section>
 
-      {/* --------------------------- Appointments ------------------------- */}
-      <section className="dashboard-section" id="appointments">
-        <div className="dashboard-section-head">
-          <span className="dashboard-eyebrow">APPOINTMENTS</span>
-          <h2>Scheduled</h2>
-        </div>
-
-        {!snapshot || snapshot.appointments.length === 0 ? (
-          <p className="dashboard-quiet">
-            You have no upcoming appointments. Request a consultation and the team will confirm a
-            time with you.
-          </p>
-        ) : (
-          <div className="dashboard-status-list">
-            {snapshot.appointments.map((a) => (
-              <div className="dashboard-status-row" key={a.id}>
-                <CalendarDays size={20} aria-hidden="true" />
-                <div>
-                  <strong>{a.title}</strong>
-                  <span>
-                    {a.status === "requested" ? "Requested — awaiting confirmation" : "Confirmed"}
-                  </span>
-                </div>
-                {/* Rendered in the appointment's own timezone, so a DST change
-                    cannot shift what the client sees. */}
-                <span className="dashboard-muted">{formatDate(a.startsAt, a.timezone)}</span>
-              </div>
-            ))}
+      <div className="dashboard-cols">
+        {/* TAX WORK SUMMARY — quick link into the engagements page */}
+        <section className="dashboard-section" aria-labelledby="work-summary">
+          <div className="dashboard-section-head">
+            <span className="dashboard-eyebrow"><ClipboardList size={14} aria-hidden="true" /> TAX WORK</span>
+            <h2 id="work-summary">Engagements</h2>
+            <Link href="/dashboard/client/engagements" className="dashboard-eyebrow-link">
+              See all <ArrowUpRight size={12} aria-hidden="true" />
+            </Link>
           </div>
-        )}
 
-        {snapshot && snapshot.invoices.length > 0 ? (
-          <>
-            <h3>Invoices</h3>
-            <div className="dashboard-status-list">
-              {snapshot.invoices.map((inv) => (
-                <div className="dashboard-status-row" key={inv.id}>
-                  <Receipt size={20} aria-hidden="true" />
-                  <div>
-                    <strong>{inv.number}</strong>
-                    <span>{inv.status}</span>
-                  </div>
-                  <span className="dashboard-muted">
-                    ${inv.total}
-                    {inv.dueAt && inv.status !== "paid" ? ` — due ${formatDate(inv.dueAt)}` : ""}
-                  </span>
-                </div>
-              ))}
+          {dashboardData.activeEngagements.length === 0 ? (
+            <div className="dashboard-empty">
+              <h3>No engagements yet</h3>
+              <p>Your preparer will create an engagement when your scope is confirmed.</p>
             </div>
-          </>
-        ) : null}
-      </section>
-
-      {/* ---------------------------- Next steps -------------------------- */}
-      <section className="dashboard-section" id="next-steps">
-        <div className="dashboard-section-head">
-          <span className="dashboard-eyebrow">GET STARTED</span>
-          <h2>Your next steps</h2>
-        </div>
-        <ol className="dashboard-steps">
-          <li>
-            <span>01</span>
-            <div>
-              <strong>Tell us what you need</strong>
-              <p>Request a consultation for individual filing, business taxes, or planning.</p>
-            </div>
-            <a href="/#contact" aria-label="Request a consultation">
-              <ArrowUpRight size={20} />
-            </a>
-          </li>
-          <li>
-            <span>02</span>
-            <div>
-              <strong>Prepare for the conversation</strong>
-              <p>Review the general checklist before your appointment.</p>
-            </div>
-            <a href="/#prepare" aria-label="View preparation checklist">
-              <ArrowUpRight size={20} />
-            </a>
-          </li>
-          {openTasks.length > 0 ? (
-            <li>
-              <span>03</span>
-              <div>
-                <strong>Open tasks</strong>
-                <p>
-                  {openTasks.map((t) => t.title).join(", ")}
-                </p>
-              </div>
-            </li>
           ) : (
-            <li>
-              <span>03</span>
-              <div>
-                <strong>Share documents securely</strong>
-                <p>Your preparer will provide instructions when secure document access is available.</p>
-              </div>
-            </li>
+            <ul className="dashboard-eng-list">
+              {dashboardData.activeEngagements.map((e) => {
+                const progress = Math.min(100, Math.max(0, Number(e.progressPercent ?? 0)));
+                return (
+                  <li key={e.id} className="dashboard-eng-i">
+                    <div className="dashboard-eng-row1">
+                      <strong>{e.name}</strong>
+                      <span className="dashboard-eng-tag">{ENGAGEMENT_STATUS[e.status] ?? e.status}</span>
+                    </div>
+                    <div className="dashboard-eng-progress" role="img" aria-label={`${progress}% complete`}>
+                      <span style={{ width: `${progress}%` }} />
+                    </div>
+                    <div className="dashboard-eng-foot">
+                      <span>{e.serviceType}</span>
+                      <span className="dashboard-muted">Updated {relative(e.updatedAt)}</span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
-        </ol>
-        <a className="dashboard-button" href="/#contact">
-          Request a consultation <ArrowUpRight size={18} />
-        </a>
-      </section>
+        </section>
 
-      <section className="dashboard-section client-checklist" aria-labelledby="checklist-title">
-        <span className="dashboard-eyebrow">MESSAGES</span>
-        <h2 id="checklist-title">Secure messaging</h2>
-        {snapshot && snapshot.conversations.length > 0 ? (
-          <div className="dashboard-status-list">
-            {snapshot.conversations.slice(0, 5).map((c) => (
-              <div key={c.id} className="dashboard-status-row">
-                <MessageSquareText size={20} aria-hidden="true" />
-                <div>
-                  <strong>{c.subject}</strong>
-                  <span>
-                    {c.lastMessageAt ? `Last reply ${formatDate(c.lastMessageAt)}` : "Awaiting first reply"}
-                    {c.unread > 0 ? ` · ${c.unread} unread` : ""}
-                  </span>
-                  {c.messages.length > 0 ? (
-                    <span className="dashboard-quiet" style={{ display: "block", marginTop: 4 }}>
-                      &ldquo;{c.messages[c.messages.length - 1].body.slice(0, 200)}{c.messages[c.messages.length - 1].body.length > 200 ? "…" : ""}&rdquo;
-                    </span>
-                  ) : null}
-                </div>
+        {/* TAX YEARS — small detail card */}
+        <section className="dashboard-section" aria-labelledby="tax-years">
+          <div className="dashboard-section-head">
+            <span className="dashboard-eyebrow">YEARS</span>
+            <h2 id="tax-years">Tax years on file</h2>
+          </div>
+
+          {dashboardData.taxYears.length === 0 ? (
+            <div className="dashboard-empty">
+              <h3>No tax years yet</h3>
+              <p>Once your preparer opens a tax year, it will appear here.</p>
+            </div>
+          ) : (
+            <ul className="dashboard-years-list">
+              {dashboardData.taxYears.map((ty) => (
+                <li key={ty.id} className="dashboard-years-i">
+                  <strong>{ty.year}</strong>
+                  <span>{RETURN_STATUS[ty.filingStatus] ?? ty.filingStatus}</span>
+                  <span className="dashboard-muted">{ty.dueDate ? `Due ${dateOnly(ty.dueDate)}` : ""}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      <div className="dashboard-cols">
+        {/* NEXT APPOINTMENT — compact card */}
+        <section className="dashboard-section" aria-labelledby="next-appt">
+          <div className="dashboard-section-head">
+            <span className="dashboard-eyebrow"><CalendarDays size={14} aria-hidden="true" /> NEXT APPOINTMENT</span>
+            <h2 id="next-appt">
+              {dashboardData.nextAppt ? formatDate(dashboardData.nextAppt.startsAt, dashboardData.nextAppt.timezone) : "No upcoming time"}
+            </h2>
+          </div>
+          {dashboardData.nextAppt ? (
+            <div className="dashboard-appt-card">
+              <div className="dashboard-appt-title">{dashboardData.nextAppt.title}</div>
+              <div className="dashboard-appt-status">
+                {dashboardData.nextAppt.status === "requested" ? "Awaiting confirmation" : "Confirmed"}
               </div>
-            ))}
+              <Link href="/dashboard/client/appointments" className="dashboard-button dashboard-button-secondary">
+                Open calendar <ArrowUpRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+          ) : (
+            <div className="dashboard-empty">
+              <p>Request a consultation and the team will confirm a time with you.</p>
+              <Link href="/#contact" className="dashboard-button">Request a consultation <ArrowUpRight size={16} aria-hidden="true" /></Link>
+            </div>
+          )}
+        </section>
+
+        {/* ACTIVITY FEED */}
+        <section className="dashboard-section" aria-labelledby="activity">
+          <div className="dashboard-section-head">
+            <span className="dashboard-eyebrow"><Sparkles size={14} aria-hidden="true" /> ACTIVITY</span>
+            <h2 id="activity">What changed recently</h2>
           </div>
-        ) : null}
-        <form className="dashboard-quick-form" action="/api/client/conversations" method="post" style={{ marginTop: 14 }}>
+          {dashboardData.timeline.length === 0 ? (
+            <div className="dashboard-empty">
+              <h3>No recent activity</h3>
+              <p>Updates to your tax work and documents will show up here.</p>
+            </div>
+          ) : (
+            <ul className="dashboard-feed">
+              {dashboardData.timeline.map((item, idx) => (
+                <li key={idx} className={`dashboard-feed-i is-${item.tone}`}>
+                  <span className="dashboard-feed-dot" aria-hidden="true" />
+                  <div className="dashboard-feed-body">
+                    <strong>{item.label}</strong>
+                    {item.detail ? <span>{item.detail}</span> : null}
+                  </div>
+                  <time className="dashboard-muted">{relative(item.at)}</time>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* RECENT DOCUMENTS — quick table */}
+      {dashboardData.recentDocs.length > 0 ? (
+        <section className="dashboard-section" aria-labelledby="recent-docs">
+          <div className="dashboard-section-head">
+            <span className="dashboard-eyebrow"><FileText size={14} aria-hidden="true" /> RECENT DOCUMENTS</span>
+            <h2 id="recent-docs">Files received</h2>
+            <Link href="/dashboard/client/documents" className="dashboard-eyebrow-link">
+              See all <ArrowUpRight size={12} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="dashboard-table">
+            <table>
+              <thead>
+                <tr><th>File</th><th>Category</th><th>Status</th><th>Received</th></tr>
+              </thead>
+              <tbody>
+                {dashboardData.recentDocs.map((d) => (
+                  <tr key={d.id}>
+                    <td><b>{d.originalFilename}</b></td>
+                    <td className="dashboard-muted">{d.category}</td>
+                    <td>
+                      <span className={`dashboard-tag ${d.reviewStatus === "approved" ? "is-good" : d.reviewStatus === "rejected" ? "is-bad" : "is-pending"}`}>
+                        {d.reviewStatus === "approved" ? "Approved" : d.reviewStatus === "rejected" ? "Needs attention" : "Under review"}
+                      </span>
+                    </td>
+                    <td className="dashboard-muted">{relative(d.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
+      {/* SEND MESSAGE — quick composer */}
+      <section className="dashboard-section client-checklist" aria-labelledby="send-msg">
+        <span className="dashboard-eyebrow"><MessageSquareText size={14} aria-hidden="true" /> SEND A MESSAGE</span>
+        <h2 id="send-msg">Ask your preparer anything</h2>
+        <p className="dashboard-quiet">Reply in your existing threads from the Messages page, or open a new one here.</p>
+        <form className="dashboard-quick-form" action="/api/client/conversations" method="post">
           <div className="dashboard-form-row">
-            <label>Subject<input name="subject" required maxLength={200} placeholder="e.g. Question about my 1099" /></label>
+            <label>
+              Subject
+              <input name="subject" required maxLength={200} placeholder="e.g. Question about my 1099" />
+            </label>
           </div>
-          <label className="dashboard-form-notes">Message<textarea name="body" required maxLength={4000} rows={3} placeholder="What can we help with?" /></label>
+          <label className="dashboard-form-notes">
+            Message
+            <textarea name="body" required maxLength={4000} rows={3} placeholder="What can we help with?" />
+          </label>
           <div className="dashboard-form-actions">
-            <button type="submit" className="dashboard-button">Send to preparer <ArrowUpRight size={18} /></button>
+            <button type="submit" className="dashboard-button">
+              Send to preparer <ArrowUpRight size={16} aria-hidden="true" />
+            </button>
+            <Link href="/dashboard/client/messages" className="dashboard-button dashboard-button-secondary">
+              Open messages
+            </Link>
           </div>
         </form>
       </section>
