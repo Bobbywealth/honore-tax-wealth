@@ -464,3 +464,24 @@
 .dashboard-scrim{position:fixed;inset:0;background:rgba(11,26,46,.45);z-index:35;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 /* .dashboard-mobile-menu-toggle defaults to display:none on wide screens; the
    @media(max-width:900px) block above turns it into a grid button. */
+
+/* Staff chat (admin inbox) */
+.adm-staff-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 22px}
+.adm-staff-kpi{background:#fff;border:1px solid var(--honore-line,#e4e8ed);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:5px}
+.adm-staff-kpi small{font:700 11px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#5b6c78}
+.adm-staff-kpi strong{font:700 24px Fraunces,Georgia,serif;color:#0b1a2a;letter-spacing:-.02em}
+.adm-staff-kpi p{margin:0;color:#5b6c78;font-size:13px}
+.adm-staff-kpi.is-alert{border-color:#a63b37;background:linear-gradient(135deg,#fff 0%,#fff7f5 100%)}
+.chat-search{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--honore-line,#e4e8ed);border-radius:10px;background:#fff;margin-top:6px}
+.chat-search svg{color:#7d8b96}
+.chat-search input{flex:1 1 auto;border:0;outline:0;background:transparent;font:14px 'DM Sans',sans-serif;color:#0b1a2a}
+.chat-filter-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.chat-filter{padding:5px 11px;border-radius:999px;background:#fff;border:1px solid var(--honore-line,#e4e8ed);font:700 11px Manrope,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#5b6c78;cursor:pointer}
+.chat-filter.is-active{background:linear-gradient(135deg,#0b1a2a 0%,#143a5a 100%);color:#fff;border-color:#0b1a2a}
+.chat-thread-preview-subject{display:block;font-weight:600;color:#0b1a2a;margin-top:2px;font-size:12px}
+@media(max-width:900px){
+  .adm-staff-kpis{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+@media(max-width:480px){
+  .adm-staff-kpis{grid-template-columns:1fr !important}
+}

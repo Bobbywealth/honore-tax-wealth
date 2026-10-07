@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
-import { BarChart3, Calendar, CheckSquare, FileText, Globe, Home, Inbox, LayoutDashboard, LogOut, Settings, UserPlus, Users } from "lucide-react";
+import { BarChart3, Calendar, CheckSquare, FileText, Globe, Home, Inbox, LayoutDashboard, LogOut, MessageSquareText, Settings, UserPlus, Users } from "lucide-react";
 type NavItem = { label: string; href: string; icon: ReactNode; badge?: { value: number; tone?: "default" | "red" } };
 
 const WORK_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard/admin", icon: <LayoutDashboard size={18} /> },
   { label: "Inbox", href: "/dashboard/admin/inbox", icon: <Inbox size={18} /> },
+  { label: "Messages", href: "/dashboard/admin/messages", icon: <MessageSquareText size={18} />, badge: { value: 0 } },
   { label: "Clients", href: "/dashboard/admin/clients", icon: <Users size={18} /> },
   { label: "Returns", href: "/dashboard/admin/returns", icon: <FileText size={18} /> },
   { label: "Documents", href: "/dashboard/admin/documents", icon: <FileText size={18} /> },
