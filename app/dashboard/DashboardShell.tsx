@@ -3,6 +3,7 @@
 import React, { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft, LogOut, LayoutDashboard, Menu, X, type LucideIcon } from "lucide-react";
+import CommandPalette from "./admin/_components/CommandPalette";
 
 export type PortalNavItem = {
   href: string;
@@ -41,6 +42,7 @@ export default function DashboardShell({
       {menuOpen ? (
         <div className="dashboard-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
       ) : null}
+      <CommandPalette />
       <aside className={`dashboard-sidebar${menuOpen ? " is-open" : ""}`}>
         <Link className="dashboard-logo" href="/">
           <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
