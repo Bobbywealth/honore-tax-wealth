@@ -108,6 +108,8 @@ export async function POST(request: Request) {
       message,
       ipHash: iph,
       userAgent: (request.headers.get("user-agent") ?? "").slice(0, 300) || null,
+      assignedToId: null,
+      contactedAt: null,
     });
     // Note: name/email/phone are NOT included in the log line — they are PII.
     logEvent("consult.created", { iph, service, nameLen: name.length, msgLen: message.length });
