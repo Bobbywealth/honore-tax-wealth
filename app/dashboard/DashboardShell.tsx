@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowLeft, LogOut, LayoutDashboard, type LucideIcon } from "lucide-react";
+import { ArrowLeft, LogOut, LayoutDashboard, Menu, X, type LucideIcon } from "lucide-react";
 
 export type PortalNavItem = {
   href: string;
@@ -15,17 +17,13 @@ type Props = {
   description: string;
   children: ReactNode;
   nav: PortalNavItem[];
-  /** Display name of the signed-in account, shown in the topbar. */
   userLabel?: string | null;
   currentHref?: string;
 };
 
 /**
- * Chrome for the signed-in portals.
- *
- * Multi-page sidebar navigation: each link points at its own /dashboard/...
- * route, not an in-page anchor. The `currentHref` prop is what the shell uses
- * to mark the active item.
+ * Chrome for the signed-in portals. Multi-page sidebar; on small screens it
+ * collapses behind a hamburger menu and slides over the content.
  */
 export default function DashboardShell({
   audience,
@@ -36,16 +34,25 @@ export default function DashboardShell({
   userLabel,
   currentHref,
 }: Props) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="dashboard">
-      <aside className="dashboard-sidebar">
+      {menuOpen ? (
+        <div className="dashboard-scrim" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+      ) : null}
+      <aside className={`dashboard-sidebar${menuOpen ? " is-open" : ""}`}>
         <Link className="dashboard-logo" href="/">
           <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
         </Link>
         <div className="dashboard-side-label">{audience} portal</div>
         <nav aria-label="Dashboard navigation">
           {nav.map((item) => {
-            const Icon = item.icon ?? (item.href === "/dashboard/client" || item.href === "/dashboard/admin" ? LayoutDashboard : null);
+            const Icon =
+              item.icon ??
+              (item.href === "/dashboard/client" || item.href === "/dashboard/admin"
+                ? LayoutDashboard
+                : null);
             const active = currentHref === item.href;
             return (
               <Link
@@ -53,11 +60,18 @@ export default function DashboardShell({
                 href={item.href}
                 className={active ? "is-active" : undefined}
                 aria-current={active ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
               >
-                {Icon ? <span className="dashboard-nav-icon">{typeof Icon === "function" ? <Icon size={20} aria-hidden="true" /> : Icon}</span> : null}
+                {Icon ? (
+                  <span className="dashboard-nav-icon">
+                    {typeof Icon === "function" ? <Icon size={20} aria-hidden="true" /> : Icon}
+                  </span>
+                ) : null}
                 <span className="dashboard-nav-label">{item.label}</span>
                 {item.badge ? (
-                  <span className={`dashboard-nav-badge${item.badge.tone === "red" ? " is-red" : item.badge.tone === "amber" ? " is-amber" : ""}`}>
+                  <span
+                    className={`dashboard-nav-badge${item.badge.tone === "red" ? " is-red" : item.badge.tone === "amber" ? " is-amber" : ""}`}
+                  >
                     {item.badge.value}
                   </span>
                 ) : null}
@@ -77,6 +91,14 @@ export default function DashboardShell({
 
       <div className="dashboard-main">
         <header className="dashboard-topbar">
+          <button
+            type="button"
+            className="dashboard-mobile-menu-toggle"
+            aria-label="Toggle menu"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+          </button>
           <Link className="dashboard-mobile-logo" href="/">
             <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
           </Link>
