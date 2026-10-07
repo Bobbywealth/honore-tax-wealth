@@ -106,9 +106,11 @@ export async function POST(request: Request) {
       phone,
       service,
       message,
+      status: "new",
       ipHash: iph,
       userAgent: (request.headers.get("user-agent") ?? "").slice(0, 300) || null,
       assignedToId: null,
+      requestedAt: new Date(),
       contactedAt: null,
     });
     // Note: name/email/phone are NOT included in the log line — they are PII.
