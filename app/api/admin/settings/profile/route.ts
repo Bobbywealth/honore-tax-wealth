@@ -34,6 +34,11 @@ export async function POST(request: Request) {
   let payload: z.infer<typeof schema>;
   try {
     const raw = await request.json();
+    // Strict mode: require at least one known field. Empty body / all-unknown
+    // objects should be 400, not silently 200.
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw) || Object.keys(raw).length === 0) {
+      return Response.json({ ok: false, error: "validation_failed", detail: "no_fields" }, { status: 400 });
+    }
     payload = schema.parse(raw);
   } catch (error) {
     return Response.json({ ok: false, error: "validation_failed" }, { status: 400 });
