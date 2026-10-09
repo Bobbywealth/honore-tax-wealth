@@ -68,7 +68,7 @@ body{background:#faf9f5;color:#172435}.login-page{background:#0b1a2a;color:#fff}
 .login-simple-header img{width:132px;height:86px;object-fit:contain}
 .login-home{font:600 13px Manrope,sans-serif;color:#53606d;text-decoration:none}
 .login-home:hover,.login-help:hover{text-decoration:underline;text-underline-offset:4px}
-.login-simple-main{flex:1;display:grid;place-items:center;padding:44px 24px 88px;background:none}
+.login-simple-main{flex:1;display:grid;justify-content:center;place-items:center;padding:44px 24px 88px;background:none}
 .login-simple-panel{width:min(100%,440px);margin:0;padding:42px 44px 38px;background:#fff;border:1px solid #dfe2df;border-radius:10px;box-shadow:0 18px 45px #17243512}
 .login-panel-logo{display:block;width:96px;height:96px;margin:0 auto 22px;object-fit:contain}
 .login-eyebrow{display:block;font:800 10px Manrope,sans-serif;letter-spacing:.18em;color:#987442}
