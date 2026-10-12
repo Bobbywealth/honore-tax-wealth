@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   return [
+    ...["personal-taxes","business-taxes","tax-planning","irs-notices"].map(slug=>({url:`${base}/services/${slug}`,lastModified:now,changeFrequency:"monthly" as const,priority:0.8})),
     { url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },

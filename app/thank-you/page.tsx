@@ -5,10 +5,9 @@ export default function ThankYou(){
       <div style={{width:64,height:64,borderRadius:"50%",background:"#2f7a52",color:"#fff",display:"grid",placeItems:"center",margin:"0 auto 22px",font:"800 28px Manrope,sans-serif"}}>✓</div>
       <p style={{font:"800 11px Manrope,sans-serif",letterSpacing:"0.2em",color:"#c7a569",marginBottom:12,margin:0}}>REQUEST RECEIVED</p>
       <h1 style={{font:"500 40px/1.05 Georgia,serif",letterSpacing:"-0.03em",margin:"0 0 14px"}}>Thank you.</h1>
-      <p style={{fontSize:16,lineHeight:1.55,color:"#53606d",margin:"0 0 28px"}}>We received your consultation request and will be in touch within one business day. If you need to reach us sooner, call or email and we&apos;ll respond the same day.</p>
+      <p style={{fontSize:16,lineHeight:1.55,color:"#53606d",margin:"0 0 28px"}}>We received your consultation request. This is not a confirmed appointment. The team will follow up to discuss availability, scope, and any fees before work begins.</p>
       <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
         <a href="/" style={{display:"inline-block",padding:"14px 22px",borderRadius:8,font:"800 12px Manrope,sans-serif",letterSpacing:"0.1em",textDecoration:"none",background:"#0b1a2a",color:"#fff"}}>BACK TO HOME</a>
-        <a href="mailto:hello@honoretaxwealth.com" style={{display:"inline-block",padding:"14px 22px",borderRadius:8,font:"800 12px Manrope,sans-serif",letterSpacing:"0.1em",textDecoration:"none",border:"1px solid #d9c9a3",color:"#0b1a2a"}}>EMAIL US</a>
       </div>
     </main>
   );

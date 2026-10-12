@@ -128,10 +128,17 @@
         feedback.textContent='Thank you. Redirecting…'; feedback.classList.add('success');
         setTimeout(()=>{location.href="/thank-you"},800);
       }catch(error){
-        feedback.textContent=error.message || 'Unable to send right now. Please try again, or call us directly.';
+        feedback.textContent=error.message || 'Unable to send right now. Please try again shortly.';
         feedback.classList.remove('success');
       }finally{ button.disabled=false; }
     });
+  }
+
+  const requestedService=new URLSearchParams(location.search).get('service');
+  if(location.hash==='#consultation'||requestedService){
+    const select=dialog.querySelector('[name=service]');
+    if(select && Array.from(select.options).some(o=>o.value===requestedService)) select.value=requestedService;
+    dialog.showModal();dialog.dispatchEvent(new Event('consultation-open'));
   }
 
   // Hero slideshow — single source of truth

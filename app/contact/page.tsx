@@ -50,11 +50,10 @@ export default function ContactPage() {
         >
           <h2 style={{ ...h2, marginTop: 0 }}>Request a consultation</h2>
           <p style={p}>
-            The consultation form on our home page is the fastest way to reach us. It takes about a
-            minute, and you only need a short description of your situation — no tax documents.
+            The consultation form on our home page is the fastest way to reach us. You only need contact details and a short description of your situation — no tax documents.
           </p>
           <Link
-            href="/#contact"
+            href="/#consultation"
             style={{
               display: "inline-block",
               padding: "14px 24px",
@@ -90,8 +89,7 @@ export default function ContactPage() {
             message.
           </li>
           <li>
-            You&rsquo;ll receive a confirmation email with your reference number once your request is
-            saved.
+            Once your request is saved, the confirmation page explains the next step.
           </li>
         </ul>
 
