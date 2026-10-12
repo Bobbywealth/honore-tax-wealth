@@ -56,6 +56,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
         <link rel="stylesheet" href="/style.css"/>
         <link rel="stylesheet" href="/cleanup.css"/>
         <link rel="stylesheet" href="/dashboard.css"/>
+        <script dangerouslySetInnerHTML={{__html:`if('scrollRestoration' in history){history.scrollRestoration='manual'};window.scrollTo(0,0);`}}/>
       </head>
       <body>
         <link rel="preload" as="image" href="/assets/hero-couple.webp" fetchPriority="high"/>
