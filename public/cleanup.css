@@ -442,3 +442,6 @@ img,svg,video,canvas{max-width:100%;height:auto}
   .tax-panels{grid-template-columns:1fr!important}.experience{padding:54px 0 64px!important}.experience-scene{min-height:260px!important}.experience-scene-caption strong{font-size:28px!important}.experience-steps{padding:4px 18px 24px!important}.experience-steps article{grid-template-columns:30px 1fr!important;gap:12px!important;padding:18px 0!important}.experience-steps h3{font-size:18px!important}.experience-steps p{font-size:14px!important}.honore-owner-grid{grid-template-columns:1fr 1fr!important;gap:12px!important}.honore-owner-card{padding:10px!important}.honore-owner-card img{height:156px!important;object-fit:cover}.footer-grid{grid-template-columns:1fr!important}.mobile-action-bar{left:14px!important;right:14px!important;bottom:12px!important}
 }
 @media(max-width:380px){.hero-slide{height:270px!important}.hero-content{padding-top:245px!important}.hero h1{font-size:36px!important}.hero-bottom-upgraded p{font-size:14px!important}.hero-tax-strip{width:calc(100% - 24px)!important}.experience-scene{min-height:230px!important}.honore-owner-card img{height:138px!important}}
+@media(max-width:1180px){
+  .reveal,.reveal.visible,.reveal-stagger,.reveal-stagger.visible,.reveal-stagger > *,.reveal-stagger.visible > *{opacity:1!important;transform:none!important;transition:none!important}
+}
