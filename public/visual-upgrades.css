@@ -310,6 +310,10 @@ dialog.consultation-dialog{position:fixed!important;inset:0!important;margin:aut
   letter-spacing:-.045em;
   color:var(--honore-ink);
 }
+.services.services-rebuilt,
+.services.services-rebuilt h2,
+.services.services-rebuilt .services-intro>p{color:#f8f7f2}
+.services.services-rebuilt h2 i{color:var(--honore-gold)}
 .hero h1 em,
 .statement h2 i,
 .services h2 i,
