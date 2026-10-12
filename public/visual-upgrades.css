@@ -668,25 +668,27 @@ dialog.consultation-dialog{position:fixed!important;inset:0!important;margin:aut
   color:var(--honore-navy) !important;
 }
 
-/* --- MOBILE MENU TOGGLE: gold ring on white, easy tap target --- */
-header.nav .mobile-menu{
-  background:var(--honore-gold) !important;
-  color:var(--honore-navy) !important;
-  border:1px solid var(--honore-gold) !important;
-  border-radius:50% !important;
-  width:42px !important;
-  height:42px !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  font-size:20px !important;
-  font-weight:800 !important;
-  cursor:pointer;
-  box-shadow:0 4px 12px rgba(184,138,60,.35);
-  transition:all .2s;
-}
-header.nav .mobile-menu:hover{
-  background:var(--honore-gold-bright) !important;
+/* --- MOBILE MENU TOGGLE: hidden on desktop, gold ring on mobile --- */
+@media(max-width:900px){
+  header.nav .mobile-menu{
+    background:var(--honore-gold) !important;
+    color:var(--honore-navy) !important;
+    border:1px solid var(--honore-gold) !important;
+    border-radius:50% !important;
+    width:42px !important;
+    height:42px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    font-size:20px !important;
+    font-weight:800 !important;
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(184,138,60,.35);
+    transition:all .2s;
+  }
+  header.nav .mobile-menu:hover{
+    background:var(--honore-gold-bright) !important;
+  }
 }
 
 /* --- FAQ SUMMARY CHEVRON: subtle gold --- */
