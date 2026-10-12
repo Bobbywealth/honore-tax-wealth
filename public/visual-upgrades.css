@@ -1,5 +1,5 @@
 
-/* Honoré visual system: presentation-only; no account or tax-data behavior. */
+/* Honore visual system: presentation-only; no account or tax-data behavior. */
 :root{--honore-ink:#0b1a2a;--honore-gold:#d9b878;--honore-paper:#faf9f5;--honore-line:#e4e8ed;--honore-radius:18px}
 :where(a,button,input,select,textarea,summary):focus-visible{outline:3px solid #94702e;outline-offset:4px}
 :where(button,a){-webkit-tap-highlight-color:transparent}
@@ -875,7 +875,7 @@ dialog.consultation-dialog{position:fixed!important;inset:0!important;margin:aut
 .honore-team-sub{font:800 10px/1.7 Manrope,sans-serif;letter-spacing:.2em;color:#80623a;margin-top:14px}
 .honore-team-founders,.honore-team-agents{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;justify-content:center;max-width:760px}
 .honore-team-card{margin:0;display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px 18px;border:1px solid #e2d8c1;border-radius:14px;background:#fff;box-shadow:0 8px 24px rgba(14,26,38,.05);text-align:center}
-.honore-team-card img{width:200px;height:200px;object-fit:cover;object-position:center 18%;border-radius:50%;border:3px solid #d8cdb1;display:block;margin:0 auto}
+.honore-team-card img{width:200px;height:200px;object-fit:cover;object-position:center 8%;border-radius:50%;border:3px solid #d8cdb1;display:block;margin:0 auto}
 .honore-team-card strong{display:block;font:800 11px/1.4 Manrope,sans-serif;letter-spacing:.06em;color:#172435}
 .honore-team-card span{display:block;margin-top:6px;font:400 16px Georgia,serif;color:#80623a}
 .honore-team-card figcaption{padding-top:6px;display:flex;flex-direction:column;align-items:center}
