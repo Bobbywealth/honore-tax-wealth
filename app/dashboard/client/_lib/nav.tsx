@@ -7,6 +7,7 @@ export type ClientCounts = {
   unreadMessages: number;
   upcomingAppointments: number;
   activeEngagements: number;
+  pendingSignatures?: number;
 };
 
 /**
@@ -29,6 +30,12 @@ export function clientNav(counts: ClientCounts): PortalNavItem[] {
       label: "Documents",
       icon: "documents",
       badge: counts.openRequests > 0 ? { value: counts.openRequests, tone: "red" as const } : undefined,
+    },
+    {
+      href: "/dashboard/client/forms",
+      label: "Forms to sign",
+      icon: "clipboard",
+      badge: (counts.pendingSignatures ?? 0) > 0 ? { value: counts.pendingSignatures ?? 0, tone: "red" as const } : undefined,
     },
     {
       href: "/dashboard/client/invoices",

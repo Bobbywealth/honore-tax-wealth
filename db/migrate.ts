@@ -457,6 +457,52 @@ const STATEMENTS: string[] = [
    )`,
   `CREATE INDEX IF NOT EXISTS canned_responses_active_idx ON canned_responses (active, sort_order)`,
 
+  /* In-app signing: signable documents + signatures (replaces the
+   * DocuSign send-out for the practice's most common 1040, engagement
+   * letter, and consent workflows). ESIGN Act compliant: consent text
+   * + IP + UA + timestamp captured per signature. */
+  `CREATE TABLE IF NOT EXISTS signable_documents (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+     prepared_by_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+     kind VARCHAR(40) NOT NULL DEFAULT 'custom',
+     title VARCHAR(200) NOT NULL,
+     body TEXT NOT NULL,
+     form_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+     required_signers INTEGER NOT NULL DEFAULT 1,
+     status VARCHAR(20) NOT NULL DEFAULT 'pending',
+     tax_year INTEGER,
+     due_at TIMESTAMPTZ,
+     expires_at TIMESTAMPTZ,
+     cancelled_at TIMESTAMPTZ,
+     cancelled_by_id UUID REFERENCES users(id) ON DELETE SET NULL,
+     signed_at TIMESTAMPTZ,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS signable_documents_client_idx ON signable_documents (client_id)`,
+  `CREATE INDEX IF NOT EXISTS signable_documents_status_idx ON signable_documents (status)`,
+  `CREATE INDEX IF NOT EXISTS signable_documents_kind_idx ON signable_documents (kind)`,
+
+  `CREATE TABLE IF NOT EXISTS signatures (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     document_id UUID NOT NULL REFERENCES signable_documents(id) ON DELETE CASCADE,
+     signer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+     signer_name VARCHAR(160) NOT NULL,
+     signer_email VARCHAR(180),
+     signer_role VARCHAR(60),
+     signature_type VARCHAR(20) NOT NULL,
+     signature_data TEXT NOT NULL,
+     consent_text TEXT NOT NULL,
+     ip_address VARCHAR(64),
+     user_agent VARCHAR(300),
+     signed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     revoked_at TIMESTAMPTZ,
+     revoked_reason TEXT
+   )`,
+  `CREATE INDEX IF NOT EXISTS signatures_document_idx ON signatures (document_id)`,
+  `CREATE INDEX IF NOT EXISTS signatures_signer_idx ON signatures (signer_id)`,
+
   /* Makes a retried submission or payment a no-op instead of a duplicate. */
   `CREATE TABLE IF NOT EXISTS idempotency_keys (
      key VARCHAR(160) PRIMARY KEY,

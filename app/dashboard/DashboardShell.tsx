@@ -14,7 +14,7 @@ export type NavIconKey =
   | "dashboard" | "inbox" | "messages" | "clients" | "returns"
   | "documents" | "tasks" | "calendar" | "leads" | "reports"
   | "team" | "settings" | "overview" | "tax-work"
-  | "invoices" | "appointments" | "client";
+  | "invoices" | "appointments" | "client" | "clipboard";
 
 export type PortalNavItem = {
   href: string;
@@ -60,6 +60,7 @@ const NAV_ICONS: Record<NavIconKey, LucideIcon> = {
   invoices: Receipt,
   appointments: CalendarDays,
   client: UsersIcon,
+  clipboard: ClipboardList,
 };
 
 export default function DashboardShell({

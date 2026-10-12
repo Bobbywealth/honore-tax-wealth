@@ -42,6 +42,7 @@ export function adminNav(counts: Counts): PortalNavItem[] {
     { href: "/dashboard/admin/documents", label: "Documents", icon: "documents" },
     { href: "/dashboard/admin/tasks", label: "Tasks", icon: "tasks" },
     { href: "/dashboard/admin/calendar", label: "Calendar", icon: "calendar" },
+    { href: "/dashboard/admin/forms", label: "Forms", icon: "clipboard" },
     { href: "/dashboard/admin/leads", label: "Leads", icon: "leads" },
     { href: "/dashboard/admin/reports", label: "Reports", icon: "reports" },
     { href: "/dashboard/admin/team", label: "Team", icon: "team" },
@@ -57,6 +58,7 @@ export function agentNav(counts: Counts): PortalNavItem[] {
   return [
     { href: "/dashboard/admin", label: "Dashboard", icon: "dashboard" },
     { href: "/dashboard/admin/clients", label: "Clients", icon: "clients" },
+    { href: "/dashboard/admin/forms", label: "Forms", icon: "clipboard" },
     { href: "/dashboard/admin/returns", label: "Returns", icon: "returns" },
     { href: "/dashboard/admin/documents", label: "Documents", icon: "documents" },
     { href: "/dashboard/admin/tasks", label: "Tasks", icon: "tasks" },

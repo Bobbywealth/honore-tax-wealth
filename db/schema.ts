@@ -756,3 +756,97 @@ export type Appointment = typeof appointments.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type Lead = typeof leads.$inferSelect;
 export type CannedResponse = typeof cannedResponses.$inferSelect;
+
+/* ========================== Signable forms ============================ *
+ * In-app signing flow (replaces DocuSign for the practice's most
+ * common 1040 / engagement-letter / consent workflows).
+ *
+ * Lifecycle:
+ *   signable_documents.status = 'pending'  → client viewable, awaiting signature
+ *                              'signed'   → all required signatures captured
+ *                              'cancelled' → admin voided
+ *
+ * The body is JSONB so the practice can ship new form types (1040,
+ * engagement letter, e-file authorization, disclosure) without
+ * schema changes — the renderer picks a template by `kind` and the
+ * fields live in `formData`.
+ *
+ * The signature itself is captured as base64 PNG (drawn on a
+ * <canvas>) or as text + a typed-signature font snapshot, both stored
+ * in `signatureData`. The audit trail records the consenting user,
+ * IP, and user agent so this meets the ESIGN Act's attribution +
+ * intent + record retention rules.
+ */
+export type SignableKind =
+  | "form_1040"
+  | "engagement_letter"
+  | "efile_authorization"
+  | "disclosure"
+  | "custom";
+
+export type SignableStatus = "pending" | "signed" | "cancelled";
+
+export const signableDocuments = pgTable(
+  "signable_documents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    preparedById: uuid("prepared_by_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    kind: varchar("kind", { length: 40 }).notNull().default("custom"),
+    title: varchar("title", { length: 200 }).notNull(),
+    body: text("body").notNull(),
+    formData: jsonb("form_data").notNull().default(sql`'{}'::jsonb`),
+    requiredSigners: integer("required_signers").notNull().default(1),
+    status: varchar("status", { length: 20 }).notNull().default("pending"),
+    taxYear: integer("tax_year"),
+    dueAt: timestamp("due_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancelledById: uuid("cancelled_by_id").references(() => users.id, { onDelete: "set null" }),
+    signedAt: timestamp("signed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(now),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().default(now),
+  },
+  (t) => ({
+    clientIdx: index("signable_documents_client_idx").on(t.clientId),
+    statusIdx: index("signable_documents_status_idx").on(t.status),
+    kindIdx: index("signable_documents_kind_idx").on(t.kind),
+  }),
+);
+
+/* One row per captured signature. A 1040 might require both
+ * taxpayer + spouse; the admin sets `required_signers` on the
+ * document. Once we have N signatures and N >= requiredSigners
+ * the document flips to 'signed'. */
+export const signatures = pgTable(
+  "signatures",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    documentId: uuid("document_id")
+      .notNull()
+      .references(() => signableDocuments.id, { onDelete: "cascade" }),
+    signerId: uuid("signer_id").references(() => users.id, { onDelete: "set null" }),
+    signerName: varchar("signer_name", { length: 160 }).notNull(),
+    signerEmail: varchar("signer_email", { length: 180 }),
+    signerRole: varchar("signer_role", { length: 60 }),
+    signatureType: varchar("signature_type", { length: 20 }).notNull(),
+    signatureData: text("signature_data").notNull(),
+    consentText: text("consent_text").notNull(),
+    ipAddress: varchar("ip_address", { length: 64 }),
+    userAgent: varchar("user_agent", { length: 300 }),
+    signedAt: timestamp("signed_at", { withTimezone: true }).notNull().default(now),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedReason: text("revoked_reason"),
+  },
+  (t) => ({
+    documentIdx: index("signatures_document_idx").on(t.documentId),
+    signerIdx: index("signatures_signer_idx").on(t.signerId),
+  }),
+);
+
+export type SignableDocument = typeof signableDocuments.$inferSelect;
+export type Signature = typeof signatures.$inferSelect;
