@@ -30,6 +30,7 @@ type ReturnRow = {
   formType: string;
   stage: string;
   externalStatus: string | null;
+  externalRef?: string | null;
   preparedAt: Date | null;
   filedAt: Date | null;
   dueAt: Date | null;
@@ -110,6 +111,7 @@ export default async function ReturnsPage({ searchParams }: { searchParams?: Pro
           formType: returns.formType,
           stage: returns.stage,
           externalStatus: returns.externalStatus,
+          externalRef: returns.externalRef,
           preparedAt: returns.preparedAt,
           filedAt: returns.filedAt,
           dueAt: taxYears.dueDate,
@@ -268,6 +270,12 @@ const navCounts = await loadAdminNavCounts();
                     <div key={t.id} className="adm-board-ticket">
                       <b>{t.clientName}</b>
                       <div className="form">{t.formType}{t.taxYear ? ` · ${t.taxYear}` : ""}</div>
+                      {t.externalStatus === "rejected" ? (
+                        <div className="adm-board-flag adm-board-flag--rejected" role="status">
+                          <span aria-hidden="true">⚠</span>
+                          <span>Rejected by IRS · {t.externalRef ?? "no ref"}</span>
+                        </div>
+                      ) : null}
                       <div className="foot">
                         <span className="amt">{amt}</span>
                         <span className="due" style={{ color: due.tone === "red" ? "#a63b37" : due.tone === "green" ? "#2f8a5b" : "#7a858e" }}>

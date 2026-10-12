@@ -6,7 +6,7 @@ import { loadAdminNavCounts } from "../lib/nav-counts";
 import { navForRole } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
-import { tasks } from "@/db/schema";
+import { tasks, users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
 
@@ -44,7 +44,7 @@ function dueLabel(dueAt: Date | null): { text: string; overdue: boolean; today: 
   return { text: today ? `Today ${time}` : date, overdue, today };
 }
 
-export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ view?: string }> }) {
+export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ view?: string; assignee?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
@@ -53,10 +53,12 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
   const nav = navForRole(me?.role, counts);
   const sp = (await searchParams) ?? {};
   const kanban = sp.view === "kanban";
+  const assigneeFilter = sp.assignee ?? "";
 
   let open: Row[] = [];
   let done: Row[] = [];
   let unavailable = false;
+  let assigneeOptions: Array<{ id: string; name: string }> = [];
 
   try {
     await ensureMigrated();
@@ -72,21 +74,25 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
       createdAt: tasks.createdAt,
     };
 
-    [open, done] = await Promise.all([
-      db
-        .select(selection)
-        .from(tasks)
-        .where(inArray(tasks.status, [...OPEN_STATUSES]))
-        // Overdue and due-today first, then by priority, then by date.
-        .orderBy(asc(tasks.dueAt))
-        .limit(200),
+    const whereExpr = assigneeFilter
+      ? and(inArray(tasks.status, [...OPEN_STATUSES]), eq(tasks.assignedToId, assigneeFilter))
+      : inArray(tasks.status, [...OPEN_STATUSES]);
+
+    const [openRows, doneRows, assigneeRows] = await Promise.all([
+      db.select(selection).from(tasks).where(whereExpr).orderBy(asc(tasks.dueAt)).limit(200),
       db
         .select(selection)
         .from(tasks)
         .where(and(eq(tasks.status, "done"), or(isNull(tasks.completedAt), eq(tasks.completedAt, tasks.completedAt))))
         .orderBy(asc(tasks.dueAt))
         .limit(50),
+      db.select({ id: users.id, name: users.displayName }).from(users).limit(200),
     ]);
+    open = openRows;
+    done = doneRows;
+    assigneeOptions = assigneeRows
+      .filter((u): u is { id: string; name: string } => !!u.id)
+      .map((u) => ({ id: u.id, name: u.name ?? u.id.slice(0, 6) }));
   } catch {
     unavailable = true;
   }
@@ -119,9 +125,17 @@ const navCounts = await loadAdminNavCounts();
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <span className="adm-badge">
-            <Filter size={13} aria-hidden="true" /> All assignees
-          </span>
+          <form method="get" className="adm-tasks-assignee" aria-label="Filter tasks by assignee">
+            <Filter size={13} aria-hidden="true" />
+            <select name="assignee" defaultValue={assigneeFilter} aria-label="Filter by assignee">
+              <option value="">All assignees</option>
+              {assigneeOptions.map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+            {kanban ? <input type="hidden" name="view" value="kanban" /> : null}
+            <button type="submit" className="adm-btn adm-btn-mini">Apply</button>
+          </form>
           <div className="adm-view-toggle" role="group" aria-label="View">
             <Link
               href="/dashboard/admin/tasks?view=list"

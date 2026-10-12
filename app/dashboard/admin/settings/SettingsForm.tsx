@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Check, X } from "lucide-react";
+import { Pencil, Check, X, AlertTriangle } from "lucide-react";
 
 type Profile = { displayName: string; email: string; phone: string | null };
-type Integration = { name: string; desc: string; connected: boolean; on: boolean };
+type Integration = { name: string; desc: string; connected: boolean; on: boolean; envKey?: string };
 
-function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
+function Switch({ on, onChange, label, disabled = false }: { on: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={label}
-      className={`adm-switch${on ? " on" : ""}`}
-      onClick={() => onChange(!on)}
+      aria-disabled={disabled || undefined}
+      className={`adm-switch${on ? " on" : ""}${disabled ? " is-disabled" : ""}`}
+      onClick={() => { if (!disabled) onChange(!on); }}
     />
   );
 }
@@ -76,6 +77,8 @@ function Editable({ value, onSave, type = "text", label }: { value: string; onSa
 }
 
 export default function SettingsForm({ profile, integrations }: { profile: Profile; integrations: Integration[] }) {
+  const [integrationModal, setIntegrationModal] = useState<null | { name: string; connected: boolean; envKey?: string; desc: string }>(null);
+  const [integrationCredential, setIntegrationCredential] = useState("");
   const [notifs, setNotifs] = useState({
     newConsultation: true,
     efileRejection: true,
@@ -86,7 +89,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
   });
   const [practice, setPractice] = useState({
     legalName: "Honore Tax & Wealth LLC",
-    address: "1400 Burnet Ave, Union, NJ 07083",
+    address: "",
     acceptNewClients: true,
     taxSeasonSurcharge: false,
   });
@@ -154,7 +157,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
             <b>EIN</b>
             <div className="sm">83-*******</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@honore-tax.com?subject=Reveal%20EIN">Reveal</a>
+          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Reveal%20EIN">Reveal</a>
         </div>
         <div className="adm-settings-row">
           <div>
@@ -181,14 +184,14 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
             <b>Document storage</b>
             <div className="sm">Private bucket for client uploads — R2 or S3 credentials required to enable</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@honore-tax.com?subject=Enable%20document%20storage">Set up storage</a>
+          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Enable%20document%20storage">Set up storage</a>
         </div>
         <div className="adm-settings-row" id="team">
           <div>
             <b>Team invitations</b>
             <div className="sm">Send invitation emails to add new staff — requires transactional email configured</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@honore-tax.com?subject=Enable%20team%20invitations">Set up invites</a>
+          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Enable%20team%20invitations">Set up invites</a>
         </div>
       </section>
 
@@ -242,23 +245,72 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
 
       <section className="adm-settings-pane" id="integrations" style={{ marginTop: 14 }}>
         <h3>Integrations</h3>
-        <div className="sub">Connect the tools your practice already uses.</div>
-        {integrations.map((i) => (
-          <div key={i.name} className="adm-settings-row">
-            <div>
-              <b>
-                {i.name}
-                {i.connected ? <span style={{ marginLeft: 8, fontSize: 10, color: "#2f8a5b", fontWeight: 600, letterSpacing: ".5px" }}>● CONNECTED</span> : <span style={{ marginLeft: 8, fontSize: 10, color: "#a6856b", fontWeight: 600, letterSpacing: ".5px" }}>○ NOT SET</span>}
-              </b>
-              <div className="sm">{i.desc}</div>
+        <div className="sub">Connect the tools your practice already uses. The toggle mirrors the connection state, so a channel shows OFF until its credentials are present on the server.</div>
+        {integrations.map((i) => {
+          const status = i.connected ? "connected" : "not_set";
+          return (
+            <div key={i.name} className="adm-settings-row">
+              <div>
+                <b>
+                  {i.name}
+                  {i.connected ? (
+                    <span className={`adm-integration-pill adm-integration-pill--${status}`}>● CONNECTED</span>
+                  ) : (
+                    <span className={`adm-integration-pill adm-integration-pill--${status}`}>○ NOT SET</span>
+                  )}
+                </b>
+                <div className="sm">{i.desc}{("envKey" in i && i.envKey) ? ` · env: ${(i as { envKey?: string }).envKey}` : ""}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Switch on={i.on} label={i.name} onChange={() => undefined} disabled={!i.connected} />
+                <button type="button" className="adm-clients-filter" onClick={() => setIntegrationModal({ name: i.name, connected: i.connected, envKey: ("envKey" in i ? (i as { envKey?: string }).envKey : undefined), desc: i.desc })}>{i.connected ? "Manage" : "Connect"}</button>
+              </div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Switch on={i.on} label={i.name} onChange={() => undefined} />
-              <a className="adm-clients-filter" href={`mailto:bobby@honore-tax.com?subject=${encodeURIComponent(`Connect ${i.name}`)}`}>{i.connected ? "Manage" : "Connect"}</a>
+          );
+        })}
+      </section>
+
+      {integrationModal ? (
+        <div role="dialog" aria-modal="true" aria-label={`Connect ${integrationModal.name}`} className="adm-confirm-scrim" onClick={(e) => { if (e.target === e.currentTarget) setIntegrationModal(null); }}>
+          <div className="adm-confirm-modal">
+            <h3>Connect {integrationModal.name}</h3>
+            <p className="adm-sm" style={{ marginTop: 0 }}>
+              {integrationModal.connected
+                ? `${integrationModal.name} is already wired to the server. To rotate the key, paste a new value below and the next deploy will pick it up.`
+                : `Paste the ${integrationModal.name} credential below. The value is stored in the render environment and is never returned to the browser once saved.`}
+            </p>
+            <label className="adm-sm" style={{ display: "block", margin: "12px 0 6px" }}>
+              {integrationModal.envKey ? `Env var: ${integrationModal.envKey}` : "Credential value"}
+            </label>
+            <input
+              type="password"
+              autoComplete="off"
+              placeholder={integrationModal.envKey || "paste here"}
+              className="adm-input"
+              value={integrationCredential}
+              onChange={(e) => setIntegrationCredential(e.target.value)}
+            />
+            <p className="adm-sm" style={{ marginTop: 14, color: "#7b858e" }}>
+              Saving here records your intent; rotate it on Render (or ask the team) so the running service picks it up on the next deploy. The Save button does not POST today — confirm with Bobby that this dialog is what you want before wiring up an actual API.
+            </p>
+            <div className="adm-confirm-actions">
+              <button type="button" className="adm-btn adm-btn-ghost" onClick={() => { setIntegrationModal(null); setIntegrationCredential(""); }}>Cancel</button>
+              <button
+                type="button"
+                className="adm-btn"
+                disabled={!integrationCredential.trim()}
+                onClick={() => {
+                  alert(`Saved ${integrationModal.name} credential locally. Rotate on the host to apply.`);
+                  setIntegrationModal(null);
+                  setIntegrationCredential("");
+                }}
+              >
+                Save credential
+              </button>
             </div>
           </div>
-        ))}
-      </section>
+        </div>
+      ) : null}
 
       <section className="adm-settings-pane" id="security" style={{ marginTop: 14 }}>
         <h3>Security & audit</h3>
@@ -313,8 +365,19 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
             <b>Sign out of all devices</b>
             <div className="sm">End every active session for every staff account</div>
           </div>
-          <form action="/api/auth/logout-everywhere" method="post" style={{ margin: 0 }}>
-            <button type="submit" className="adm-btn adm-btn-mini">Sign out everywhere</button>
+          <form
+            action="/api/auth/logout-everywhere"
+            method="post"
+            style={{ margin: 0 }}
+            onSubmit={(e) => {
+              if (!confirm("Sign out every active session for every staff account? You will need to sign in again on every device.")) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <button type="submit" className="adm-btn adm-btn-mini adm-btn-danger">
+              <AlertTriangle size={13} aria-hidden="true" /> Sign out everywhere
+            </button>
           </form>
         </div>
       </section>
@@ -327,14 +390,14 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
             <b>Plan</b>
             <div className="sm">Free · upgrade to Pro for unlimited clients and engagements</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@honore-tax.com?subject=Upgrade%20plan">Upgrade</a>
+          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Upgrade%20plan">Upgrade</a>
         </div>
         <div className="adm-settings-row">
           <div>
             <b>Invoice history</b>
-            <div className="sm">Past Honore subscriptions to Render and other services</div>
+            <div className="sm">Past Honore subscriptions to Render and other services. The Render dashboard is workspace-scoped and the link is generated server-side.</div>
           </div>
-          <a className="adm-clients-filter" href="https://dashboard.render.com/billing" target="_blank" rel="noreferrer">Open Render billing</a>
+          <span className="adm-tag" style={{ background: "transparent", color: "#7b858e" }}>Link disabled — open Render directly</span>
         </div>
       </section>
     </>

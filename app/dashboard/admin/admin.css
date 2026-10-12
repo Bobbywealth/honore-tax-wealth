@@ -294,6 +294,8 @@
 .adm-board-ticket .foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid #f1ede2}
 .adm-board-ticket .foot .amt{font:500 12px Fraunces,Georgia,serif;color:#9a7a2e}
 .adm-board-ticket .foot .due{font-size:10px;color:#a63b37;font-weight:600;letter-spacing:.3px}
+.adm-board-flag{display:flex;align-items:center;gap:6px;font:700 10px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;margin-top:8px;padding:6px 8px;border-radius:6px}
+.adm-board-flag--rejected{background:#f6dfdd;color:#7a2624;border:1px solid #e5b9b4}
 
 /* === Documents === */
 .adm-docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
@@ -408,6 +410,7 @@
 .adm-switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .adm-switch.on{background:#2f8a5b}
 .adm-switch.on::after{left:18px}
+.adm-switch.is-disabled{opacity:.5;cursor:not-allowed}
 .adm-input{padding:8px 12px;border:1px solid #e4e1d6;border-radius:8px;background:#fff;font:inherit;font-size:12.5px;outline:0;min-width:200px}
 .adm-input:focus{border-color:#d4a755}
 
@@ -794,6 +797,15 @@
 .adm-btn-mini:hover{background:#1a3d52}
 .adm-btn-ghost{background:transparent;color:var(--ink);box-shadow:none;border:1px solid rgba(14,26,38,.12)}
 .adm-btn-ghost:hover{background:rgba(14,26,38,.04)}
+.adm-btn-danger{background:linear-gradient(180deg,#a13a37,#7a2624);color:#fff;border-radius:7px;font-weight:700;border:0;cursor:pointer}
+.adm-btn-danger:hover{background:linear-gradient(180deg,#b64440,#882a28)}
+.adm-integration-pill{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:999px;font:800 9px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.adm-integration-pill--connected{background:#e7f3ec;color:#1a5d3b;border:1px solid #b6dec5}
+.adm-integration-pill--not_set{background:#f1ecde;color:#7a6f4d;border:1px solid #d9cf9a}
+.adm-confirm-scrim{position:fixed;inset:0;background:#0c1b2a99;display:flex;align-items:center;justify-content:center;z-index:120;padding:24px}
+.adm-confirm-modal{background:#fff;border-radius:14px;max-width:480px;width:100%;padding:24px 26px;box-shadow:0 30px 90px #0a1829aa;border:1px solid #d9d3c1}
+.adm-confirm-modal h3{margin:0 0 6px;font:600 22px/1.2 Georgia,serif;color:#0c1a26}
+.adm-confirm-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
 
 /* Task row action form (Mark done / Reopen) */
 .adm-task-action{margin:0}
@@ -833,6 +845,8 @@
 .adm-quick-form select:focus{border-color:#9a7642;box-shadow:0 0 0 3px #9a764226}
 /* View toggle (List / Kanban on /tasks, future elsewhere) */
 .adm-view-toggle{display:inline-flex;border:1px solid #d6dce1;border-radius:7px;overflow:hidden;background:#fff}
+.adm-tasks-assignee{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #d6dce1;border-radius:7px;padding:4px 8px;font:600 12px Manrope,sans-serif;color:#3a4651}
+.adm-tasks-assignee select{appearance:none;background:transparent;border:0;font:600 12px Manrope,sans-serif;color:#0e1a26;padding:2px 4px;outline:0;min-width:140px}
 .adm-view-toggle .adm-view-opt{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;font:700 10px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#5b6a78;border:0;border-right:1px solid #d6dce1;background:transparent;cursor:pointer;text-decoration:none}
 .adm-view-toggle .adm-view-opt:last-child{border-right:0}
 .adm-view-toggle .adm-view-opt:hover{color:#0e1a26}

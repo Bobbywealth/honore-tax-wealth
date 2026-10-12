@@ -2,10 +2,10 @@ import { checkAdminAccess } from "./auth";
 import { Inbox } from "lucide-react";
 import AdminShell from "./AdminShell";
 import { getDb } from "@/db";
-import { consultations } from "@/db/schema";
+import { appointments, consultations, returns, tasks } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
-import { desc } from "drizzle-orm";
+import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { loadUnansweredCount } from "./lib/loadUnansweredCount";
 
 export const dynamic = "force-dynamic";
@@ -27,19 +27,33 @@ function dateStamp() {
   return { day, month, date, ordinal: ordinal(date), week, quarter: `Q${Math.floor(d.getMonth() / 3) + 1}` };
 }
 
-function OctoberCalendar() {
+function MiniCalendarHeader() {
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const now = new Date();
+  return <span>{months[now.getMonth()]} {now.getFullYear()}</span>;
+}
+
+function MiniCalendar() {
   const cells: Array<{ d: number; muted?: boolean; today?: boolean; deadline?: boolean; has?: boolean }> = [];
+  // Today's month/day is computed at request time. We still draw the same 31
+  // calendar layout (Sep 28/29/30 lead + Nov 1 tail) so a stale page can't
+  // hardcode a wrong date. `has` / `deadline` flags are sample-only placeholders.
+  const now = new Date();
+  const todayDay = now.getDate();
   const sept: Array<{ d: number; muted: boolean; has?: boolean }> = [
     { d: 28, muted: true }, { d: 29, muted: true }, { d: 30, muted: true },
   ];
   const oct: Array<{ d: number; today?: boolean; deadline?: boolean; has?: boolean }> = [
-    { d: 1, has: true }, { d: 2, has: true }, { d: 3, has: true }, { d: 4, today: true },
-    { d: 5, has: true }, { d: 6, has: true }, { d: 7 }, { d: 8 }, { d: 9 },
-    { d: 10, has: true }, { d: 11 }, { d: 12 }, { d: 13, has: true }, { d: 14, has: true },
+    { d: 1, has: true }, { d: 2, has: true }, { d: 3, has: true },
+    { d: 4 }, { d: 5 }, { d: 6 }, { d: 7 }, { d: 8 }, { d: 9 },
+    { d: 10, has: true }, { d: 11 }, { d: 12 }, { d: 13, has: true }, { d: 14 },
     { d: 15, deadline: true }, { d: 16 }, { d: 17 }, { d: 18 }, { d: 19 }, { d: 20 },
     { d: 21 }, { d: 22 }, { d: 23 }, { d: 24 }, { d: 25 }, { d: 26 }, { d: 27 },
     { d: 28 }, { d: 29 }, { d: 30 }, { d: 31 },
   ];
+  for (const c of oct) {
+    if (c.d === todayDay) c.today = true;
+  }
   const nov1: Array<{ d: number; muted: boolean }> = [{ d: 1, muted: true }];
   return [...sept, ...oct, ...nov1].map((c, i) => {
     const todayClass = "today" in c && c.today ? " today" : "";
@@ -72,10 +86,14 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
 
   let inquiries: Inquiry[] = [];
   let unavailable = false;
+  let realKpis: { newRequests: number; inPrep: number; waitingOnClient: number; readyForReview: number; filedThisMonth: number } | null = null;
+  let realTodayAppointments: Array<{ title: string; startsAt: Date }> = [];
+  let realPipeline: Record<string, number> = {};
   try {
     if (!preview && process.env.DATABASE_URL) {
       await ensureMigrated();
-      const rows = await getDb()
+      const db = getDb();
+      const rows = await db
         .select({
           id: consultations.id,
           name: consultations.name,
@@ -89,6 +107,42 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
         .orderBy(desc(consultations.id))
         .limit(20);
       inquiries = rows.map((r) => ({ ...r, created_at: r.created_at.toISOString() }));
+
+      const [cCount, prepRows, waitRows, reviewRows, filedRows, apptRows, pipeRows] = await Promise.all([
+        db.select({ c: count() }).from(consultations),
+        db.select({ c: count() }).from(returns).where(sql`${returns.stage} IN ('in_prep','preparing')`),
+        db.select({ c: count() }).from(returns).where(sql`${returns.stage} IN ('docs','documents')`),
+        db.select({ c: count() }).from(returns).where(eq(returns.stage, "review")),
+        db
+          .select({ c: count() })
+          .from(returns)
+          .where(and(gte(returns.filedAt, sql`date_trunc('month', now())`), eq(returns.stage, "filed"))),
+        db
+          .select({ title: appointments.title, startsAt: appointments.startsAt })
+          .from(appointments)
+          .where(and(
+            gte(appointments.startsAt, sql`date_trunc('day', now())`),
+            sql`${appointments.startsAt} < date_trunc('day', now()) + interval '1 day'`,
+          ))
+          .orderBy(appointments.startsAt)
+          .limit(6),
+        db
+          .select({ stage: returns.stage, c: count() })
+          .from(returns)
+          .groupBy(returns.stage),
+      ]);
+
+      realKpis = {
+        newRequests: cCount[0]?.c ?? 0,
+        inPrep: prepRows[0]?.c ?? 0,
+        waitingOnClient: waitRows[0]?.c ?? 0,
+        readyForReview: reviewRows[0]?.c ?? 0,
+        filedThisMonth: filedRows[0]?.c ?? 0,
+      };
+      realTodayAppointments = apptRows.map((r) => ({ title: r.title ?? "Appointment", startsAt: r.startsAt }));
+      for (const row of pipeRows) {
+        realPipeline[row.stage] = row.c;
+      }
     }
   } catch (error) {
     console.error("Admin dashboard could not load inquiries", error);
@@ -125,33 +179,33 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
       <div className="adm-kp">
         <div className="adm-k">
           <div className="l"><Inbox size={11} /> New requests</div>
-          <div className="n">{newInquiries || 3}<em>/wk</em></div>
-          <KpiChart color="#d4a755" dir="up" />
-          <div className="adm-up">▲ 2 vs last week</div>
+          <div className="n">{realKpis ? realKpis.newRequests : 0}</div>
+          <KpiChart color="#d4a755" dir={realKpis && realKpis.newRequests ? "up" : "down"} />
+          <div className="adm-sm" style={{ color: "var(--muted)" }}>{realKpis ? "this week" : "live data needed"}</div>
         </div>
         <div className="adm-k">
           <div className="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M4 7h16" /><path d="M8 11h8M8 14.5h8M8 18h5" /></svg> In preparation</div>
-          <div className="n">18</div>
-          <KpiChart color="#2a5d8f" dir="up" />
-          <div className="adm-up">▲ 4 this week</div>
+          <div className="n">{realKpis ? realKpis.inPrep : 0}</div>
+          <KpiChart color="#2a5d8f" dir={realKpis && realKpis.inPrep ? "up" : "down"} />
+          <div className="adm-sm" style={{ color: "var(--muted)" }}>{realKpis ? "currently in prep" : "no live data"}</div>
         </div>
         <div className="adm-k">
           <div className="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M7 11l3 3 7-7" /></svg> Waiting on client</div>
-          <div className="n">9</div>
-          <KpiChart color="#c0504d" dir="down" />
-          <div className="adm-dn">▲ 3 overdue</div>
+          <div className="n">{realKpis ? realKpis.waitingOnClient : 0}</div>
+          <KpiChart color="#c0504d" dir={realKpis && realKpis.waitingOnClient ? "down" : "down"} />
+          <div className="adm-sm" style={{ color: "var(--muted)" }}>{realKpis ? "documents stage" : "awaiting data"}</div>
         </div>
         <div className="adm-k">
           <div className="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h9l4 4v14H6z" /><path d="M15 3v4h4" /><path d="M9 12h6M9 15h6M9 18h4" /></svg> Ready for review</div>
-          <div className="n">6</div>
-          <KpiChart color="#7a5ca8" dir="up" />
-          <div className="adm-mutetext">avg 1.2 day turnaround</div>
+          <div className="n">{realKpis ? realKpis.readyForReview : 0}</div>
+          <KpiChart color="#7a5ca8" dir={realKpis && realKpis.readyForReview ? "up" : "down"} />
+          <div className="adm-sm" style={{ color: "var(--muted)" }}>{realKpis ? "queued for sign-off" : "no live data"}</div>
         </div>
         <div className="adm-k">
           <div className="l"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M4 7h16" /><path d="M8 11h8M8 14.5h8M8 18h5" /></svg> Filed this month</div>
-          <div className="n">41</div>
-          <KpiChart color="#2f8a5b" dir="up" />
-          <div className="adm-up">▲ 12% MoM</div>
+          <div className="n">{realKpis ? realKpis.filedThisMonth : 0}</div>
+          <KpiChart color="#2f8a5b" dir={realKpis && realKpis.filedThisMonth ? "up" : "down"} />
+          <div className="adm-sm" style={{ color: "var(--muted)" }}>{realKpis ? "this month" : "no live data"}</div>
         </div>
       </div>
 
@@ -159,35 +213,31 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
         <div>
           <div className="adm-card">
             <h3>Returns pipeline <a href="/dashboard/admin/returns">Open board →</a></h3>
-            <div className="adm-kan">
-              <div className="adm-col">
-                <h4><span className="d" style={{ background: "#8a97a3" }} />Intake<span className="ct">7</span></h4>
-                <div className="adm-ticket"><b>Marcus Hale</b><div className="adm-sm">1040 · Individual</div><div className="amt">$485</div></div>
-                <div className="adm-ticket"><b>J. Okafor</b><div className="adm-sm">1065 · S-Corp</div><div className="amt">$1,240</div></div>
+            {Object.keys(realPipeline).length === 0 ? (
+              <div className="adm-empty">
+                <h2>No returns on file</h2>
+                <p>Once a client engagement opens a return, it will appear in this pipeline. Live numbers come from the database; nothing here is sample data.</p>
               </div>
-              <div className="adm-col">
-                <h4><span className="d" style={{ background: "#d4a755" }} />Docs<span className="ct">9</span></h4>
-                <div className="adm-ticket"><b>S. Whitlock</b><div className="adm-sm">1120-S · K-1</div><div className="amt">$920</div></div>
-                <div className="adm-ticket"><b>R. Castillo</b><div className="adm-sm">1040 · Sch C</div><div className="amt">$680</div></div>
+            ) : (
+              <div className="adm-kan">
+                {[
+                  { key: "intake", label: "Intake", color: "#8a97a3" },
+                  { key: "docs", label: "Docs", color: "#d4a755" },
+                  { key: "in_prep", label: "In prep", color: "#2a5d8f" },
+                  { key: "review", label: "Review", color: "#7a5ca8" },
+                  { key: "approval", label: "Approval", color: "#c98a2e" },
+                  { key: "filed", label: "Filed", color: "#2f8a5b" },
+                ].map((col) => {
+                  const c = realPipeline[col.key] ?? 0;
+                  return (
+                    <div className="adm-col" key={col.key}>
+                      <h4><span className="d" style={{ background: col.color }} />{col.label}<span className="ct">{c}</span></h4>
+                      <div className="adm-board-empty">{c === 0 ? "No returns in this stage." : `${c} return${c === 1 ? "" : "s"} in this stage.`}</div>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="adm-col">
-                <h4><span className="d" style={{ background: "#2a5d8f" }} />In prep<span className="ct">18</span></h4>
-                <div className="adm-ticket"><b>Lena Rivera</b><div className="adm-sm">1040 · Sch C</div><div className="amt">$1,450</div></div>
-                <div className="adm-ticket"><b>A. Patel</b><div className="adm-sm">1120-S · Partner</div><div className="amt">$2,180</div></div>
-              </div>
-              <div className="adm-col">
-                <h4><span className="d" style={{ background: "#7a5ca8" }} />Review<span className="ct">6</span></h4>
-                <div className="adm-ticket"><b>D. Park</b><div className="adm-sm">1040X · Amended</div><div className="amt">$1,890</div></div>
-              </div>
-              <div className="adm-col">
-                <h4><span className="d" style={{ background: "#c98a2e" }} />Approval<span className="ct">4</span></h4>
-                <div className="adm-ticket"><b>Sharon Kim</b><div className="adm-sm">1040 · JOINT</div><div className="amt">$720</div></div>
-              </div>
-              <div className="adm-col">
-                <h4><span className="d" style={{ background: "#2f8a5b" }} />Filed<span className="ct">41</span></h4>
-                <div className="adm-ticket"><b>P. Hassan</b><div className="adm-sm">1065 · Partnership</div><div className="amt" style={{ color: "#2f7a52" }}>$3,420</div></div>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="adm-card">
@@ -239,49 +289,33 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
         <div>
           <div className="adm-card">
             <h3>Today <a href="/dashboard/admin/calendar">Calendar →</a></h3>
-            <div className="adm-tl">
-              <div className="adm-tl-i done">
-                <div className="adm-tl-t">9:00</div>
-                <div className="adm-tl-b">
-                  <b>Standup with staff</b>
-                  <div className="adm-sm">Marcus, Sharon, David</div>
-                </div>
+            {realTodayAppointments.length === 0 ? (
+              <div className="adm-empty">
+                <h2>No appointments today</h2>
+                <p>Real appointments booked from the calendar will show here. Empty until a client or staff member schedules one.</p>
               </div>
-              <div className="adm-tl-i now">
-                <div className="adm-tl-t">10:30</div>
-                <div className="adm-tl-b">
-                  <b>Call Marcus Taylor</b>
-                  <div className="adm-sm">Discovery · 30 min</div>
-                  <span className="adm-tag am">Now</span>
-                </div>
+            ) : (
+              <div className="adm-tl">
+                {realTodayAppointments.map((appt, i) => {
+                  const hours = appt.startsAt.getHours();
+                  const minutes = appt.startsAt.getMinutes().toString().padStart(2, "0");
+                  const isPast = appt.startsAt.getTime() < Date.now();
+                  return (
+                    <div key={i} className={`adm-tl-i${isPast ? " done" : " now"}`}>
+                      <div className="adm-tl-t">{hours}:{minutes}</div>
+                      <div className="adm-tl-b">
+                        <b>{appt.title}</b>
+                        <span className="adm-tag am">{isPast ? "Done" : "Upcoming"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="adm-tl-i">
-                <div className="adm-tl-t">13:00</div>
-                <div className="adm-tl-b">
-                  <b>Review Rivera 1040</b>
-                  <div className="adm-sm">Schedule C · needs sign-off</div>
-                  <span className="adm-tag bl">Review</span>
-                </div>
-              </div>
-              <div className="adm-tl-i">
-                <div className="adm-tl-t">15:30</div>
-                <div className="adm-tl-b">
-                  <b>Approve Sharon Kim engagement</b>
-                  <div className="adm-sm">Awaiting countersign</div>
-                </div>
-              </div>
-              <div className="adm-tl-i">
-                <div className="adm-tl-t">17:00</div>
-                <div className="adm-tl-b">
-                  <b>End-of-day triage</b>
-                  <div className="adm-sm">Clear inbox, plan tomorrow</div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="adm-cal">
-            <h3><a href="/dashboard/admin/calendar"><span>October 2026</span><span className="mo">View all →</span></a></h3>
+            <h3><a href="/dashboard/admin/calendar"><MiniCalendarHeader /><span className="mo">View all →</span></a></h3>
             <div className="adm-cal-grid">
               <div className="adm-cal-d">S</div>
               <div className="adm-cal-d">M</div>
@@ -290,7 +324,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
               <div className="adm-cal-d">T</div>
               <div className="adm-cal-d">F</div>
               <div className="adm-cal-d">S</div>
-              <OctoberCalendar />
+              <MiniCalendar />  {/* dynamic today's date; today's cell is computed at request time */}
             </div>
           </div>
 

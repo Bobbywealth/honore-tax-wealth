@@ -24,13 +24,21 @@ const sections = [
   { key: "billing", label: "Billing", icon: CreditCard },
 ];
 
+// on mirrors connected: the marketing page must never show 'ON' next to 'NOT SET'.
+const stripeConnected = !!process.env.STRIPE_SECRET_KEY;
+const twilioConnected = !!process.env.TWILIO_ACCOUNT_SID;
+const emailConnected = !!process.env.SENDGRID_API_KEY || !!process.env.RESEND_API_KEY;
+const docusignConnected = !!process.env.DOCUSIGN_INTEGRATION_KEY;
+const plaidConnected = !!process.env.PLAID_CLIENT_ID;
+const qboConnected = !!process.env.QBO_CLIENT_ID;
+
 const integrations = [
-  { name: "Stripe", desc: "Retainers and engagement fees", connected: !!process.env.STRIPE_SECRET_KEY, on: true },
-  { name: "Twilio", desc: "SMS notifications and intake confirmations", connected: !!process.env.TWILIO_ACCOUNT_SID, on: true },
-  { name: "SendGrid / Resend", desc: "Transactional email", connected: !!process.env.SENDGRID_API_KEY || !!process.env.RESEND_API_KEY, on: true },
-  { name: "DocuSign", desc: "Engagement letters and 8879 e-file auths", connected: false, on: false },
-  { name: "Plaid", desc: "Client bank statements for cash flow analysis", connected: false, on: false },
-  { name: "QuickBooks Online", desc: "Bookkeeping import for 1065/1120-S", connected: false, on: false },
+  { name: "Stripe", desc: "Retainers and engagement fees", connected: stripeConnected, on: stripeConnected, envKey: "STRIPE_SECRET_KEY" },
+  { name: "Twilio", desc: "SMS notifications and intake confirmations", connected: twilioConnected, on: twilioConnected, envKey: "TWILIO_ACCOUNT_SID" },
+  { name: "SendGrid / Resend", desc: "Transactional email", connected: emailConnected, on: emailConnected, envKey: "SENDGRID_API_KEY or RESEND_API_KEY" },
+  { name: "DocuSign", desc: "Engagement letters and 8879 e-file auths", connected: docusignConnected, on: docusignConnected, envKey: "DOCUSIGN_INTEGRATION_KEY" },
+  { name: "Plaid", desc: "Client bank statements for cash flow analysis", connected: plaidConnected, on: plaidConnected, envKey: "PLAID_CLIENT_ID" },
+  { name: "QuickBooks Online", desc: "Bookkeeping import for 1065/1120-S", connected: qboConnected, on: qboConnected, envKey: "QBO_CLIENT_ID" },
 ];
 
 export default async function SettingsPage({ searchParams }: { searchParams?: Promise<{ preview?: string }> }) {
@@ -40,8 +48,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
   // Load the real user profile so the editable rows show actual values.
   let profile: { displayName: string; email: string; phone: string | null } = {
     displayName: "Bobby Wealth",
-    email: "bobby@honore-tax.com",
-    phone: "+1 (973) 555-0100",
+    email: "",
+    phone: "",
   };
   try {
     if (process.env.DATABASE_URL) {
