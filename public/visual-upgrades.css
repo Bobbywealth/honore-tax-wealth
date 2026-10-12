@@ -31,9 +31,11 @@
 .login-simple-form button:hover{background:#d9b878;color:#0b1a2a}
 .login-simple-panel::before{content:none;display:none}
 .dashboard{background:#f4f6f9}
-.dashboard-sidebar{background:#0b1a2a;color:#fff}
+.dashboard-sidebar{background:#0b1a2a;color:#fff;position:sticky;top:0;align-self:start;max-height:100vh;overflow-y:auto}
 .dashboard-sidebar nav a{border-radius:10px;color:#d9e2ec}
 .dashboard-sidebar nav a.is-active{background:#d9b878;color:#0b1a2a}
+.dashboard-sidebar nav a.is-active .dashboard-nav-label,
+.dashboard-sidebar nav a.is-active .dashboard-nav-icon{color:#0b1a2a}
 .dashboard-sidebar nav a:hover{background:#ffffff15}
 .dashboard-sidebar nav a.is-active:hover{background:#e4c995}
 .dashboard-content{max-width:1440px;margin:auto;padding:clamp(20px,3vw,44px)}
