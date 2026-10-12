@@ -1,11 +1,12 @@
 import { User, Building2, Palette, Bell, Mail, FileText, Users, Plug, Lock, CreditCard } from "lucide-react";
-import DashboardShell from "../../DashboardShell";import { adminNav } from "../_lib/nav";
+import DashboardShell from "../../DashboardShell";import { navForRole } from "../_lib/nav";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 import SettingsForm from "./SettingsForm";
 
 export const dynamic = "force-dynamic";
@@ -67,8 +68,9 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
 
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
-  const nav = adminNav(navCounts);
-  return (
+  const counts = await loadAdminNavCounts();
+  const me = await currentUser();
+  const nav = navForRole(me?.role, navCounts);  return (
     <DashboardShell nav={nav} currentHref="/dashboard/admin/settings" audience="Admin" title="Settings" description="Practice, team, branding, integrations, and security.">
       <div className="adm-page-h">
         <div>

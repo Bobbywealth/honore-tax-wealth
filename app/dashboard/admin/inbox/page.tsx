@@ -4,10 +4,11 @@ import DashboardShell from "../../DashboardShell";
 import { checkAdminAccess } from "../auth";
 import { loadUnansweredCount } from "../lib/loadUnansweredCount";
 import { loadAdminNavCounts } from "../lib/nav-counts";
-import { adminNav } from "../_lib/nav";
+import { navForRole } from "../_lib/nav";
 import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,19 @@ export default async function InboxPage({ searchParams }: { searchParams?: Searc
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
-  const nav = adminNav(await loadAdminNavCounts());
+  
+  const _meAdminGate = await currentUser();
+  if (_meAdminGate?.role !== 'admin' && _meAdminGate?.role !== undefined) {
+    return (
+      <main className="adm-restricted">
+        <p>Admins only. This page is not available to agents.</p>
+        <a href="/dashboard/admin">Back to dashboard</a>
+      </main>
+    );
+  }
+const counts = await loadAdminNavCounts();
+  const me = await currentUser();
+  const nav = navForRole(me?.role, counts);
   const unanswered = await loadUnansweredCount();
 
   const params = (await searchParams) ?? {};

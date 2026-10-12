@@ -1,11 +1,12 @@
 import { and, count, desc, eq, gte, inArray, sql, sum } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
-import { adminNav } from "../_lib/nav";
+import { navForRole } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, engagements, invoices, leads, returns, users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,19 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
 
-  const nav = adminNav(await loadAdminNavCounts());
+  
+  const _meAdminGate = await currentUser();
+  if (_meAdminGate?.role !== 'admin' && _meAdminGate?.role !== undefined) {
+    return (
+      <main className="adm-restricted">
+        <p>Admins only. This page is not available to agents.</p>
+        <a href="/dashboard/admin">Back to dashboard</a>
+      </main>
+    );
+  }
+const counts = await loadAdminNavCounts();
+  const me = await currentUser();
+  const nav = navForRole(me?.role, counts);
 
   const sp = (await searchParams) ?? {};
   const period: Period = sp.period === "quarter" || sp.period === "ytd" ? sp.period : "month";

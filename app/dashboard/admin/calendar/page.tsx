@@ -2,11 +2,12 @@ import { ChevronLeft, ChevronRight, Plus, Calendar as CalIcon } from "lucide-rea
 import { and, eq, gte, lt } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
-import { adminNav } from "../_lib/nav";
+import { navForRole } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { appointments, clients } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,9 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
 
-  const nav = adminNav(await loadAdminNavCounts());
+  const counts = await loadAdminNavCounts();
+  const me = await currentUser();
+  const nav = navForRole(me?.role, counts);
 
   const sp = (await searchParams) ?? {};
   const today = new Date();

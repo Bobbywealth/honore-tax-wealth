@@ -85,6 +85,15 @@ export default async function AdminMessagesPage({ searchParams }: { searchParams
   const user = await currentUser();
   if (!user) redirect("/login?next=/dashboard/admin/messages");
   if (user.role === "client") redirect("/dashboard/client/messages");
+  if (user.role !== "admin") {
+    // Non-admin staff don't get access to the inter-staff message board.
+    return (
+      <main className="adm-restricted">
+        <p>Admins only. This page is not available to agents.</p>
+        <a href="/dashboard/admin">Back to dashboard</a>
+      </main>
+    );
+  }
 
   const counts = await loadCounts();
   const nav = buildAdminNav(counts);

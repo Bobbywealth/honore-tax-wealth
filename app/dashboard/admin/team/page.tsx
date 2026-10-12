@@ -2,7 +2,7 @@ import { Mail, UserPlus } from "lucide-react";
 import { asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
-import { adminNav } from "../_lib/nav";
+import { navForRole } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { engagements, users } from "@/db/schema";
@@ -45,10 +45,10 @@ export default async function TeamPage({ searchParams }: { searchParams?: Promis
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
-  const nav = adminNav(await loadAdminNavCounts());
   const sp = (await searchParams) ?? {};
   const me = await currentUser();
   const isAdmin = me?.role === "admin";
+  const nav = navForRole(me?.role, await loadAdminNavCounts());
 
   let rows: Array<{
     id: string;

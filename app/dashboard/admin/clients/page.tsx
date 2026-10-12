@@ -1,5 +1,5 @@
 import { Search, Filter, Upload } from "lucide-react";
-import { and, count, desc, eq, ilike, inArray, isNull, or, sum, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull, or, sql, sum, type SQL } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 import { adminNav } from "../_lib/nav";
@@ -7,6 +7,8 @@ import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, engagements, invoices } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
+import { navForRole } from "../_lib/nav";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +40,9 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
-  const nav = adminNav(await loadAdminNavCounts());
+  const me = await currentUser();
+  const counts: Record<string, number> & { unanswered: number; conversationsUnread: number } = await loadAdminNavCounts() as any;
+  const nav = navForRole(me?.role, counts);
 
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
@@ -72,7 +76,7 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
     billedTotal: string;
   }> = [];
   let totalAll = 0;
-  let counts: Record<string, number> = {};
+  let statusCounts: Record<string, number> = {};
   let unavailable = false;
 
   try {
@@ -81,6 +85,13 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
 
     const base = isNull(clients.archivedAt);
     const conditions: SQL[] = [base];
+    // Non-admin staff (agent / assistant) only see clients whose work
+    // they own — backed by engagements.ownerId. Admins see everything.
+    if (me?.role !== "admin" && me?.id) {
+      conditions.push(
+        sql`exists (select 1 from engagements where engagements.client_id = ${clients.id} and engagements.owner_id = ${me.id} and engagements.archived_at is null)`,
+      );
+    }
     if (query) {
       conditions.push(
         or(
@@ -153,9 +164,9 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
         .select({ n: count() })
         .from(clients)
         .where(and(base, f.key ? eq(clients.status, f.key) : undefined));
-      counts[f.key] = Number(c[0]?.n ?? 0);
+      statusCounts[f.key] = Number(c[0]?.n ?? 0);
     }
-    totalAll = counts[""] ?? 0;
+    totalAll = statusCounts[""] ?? 0;
   } catch {
     unavailable = true;
   }
@@ -231,7 +242,7 @@ const navCounts = await loadAdminNavCounts();
                     href={href}
                     aria-current={active ? "page" : undefined}
                   >
-                    {f.label} · {counts[f.key] ?? 0}
+                    {f.label} · {statusCounts[f.key] ?? 0}
                   </a>
                 );
               })}

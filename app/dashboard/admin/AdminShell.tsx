@@ -1,25 +1,43 @@
 import type { ReactNode } from "react";
 import { BarChart3, Calendar, CheckSquare, FileText, Globe, Home, Inbox, LayoutDashboard, LogOut, MessageSquareText, Settings, UserPlus, Users } from "lucide-react";
+import { currentUser } from "@/lib/auth";
+
 type NavItem = { label: string; href: string; icon: ReactNode; badge?: { value: number; tone?: "default" | "red" } };
 
-const WORK_NAV: NavItem[] = [
+const ADMIN_WORK_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard/admin", icon: <LayoutDashboard size={18} /> },
   { label: "Inbox", href: "/dashboard/admin/inbox", icon: <Inbox size={18} /> },
-  { label: "Messages", href: "/dashboard/admin/messages", icon: <MessageSquareText size={18} />, badge: { value: 0 } },
+  { label: "Messages", href: "/dashboard/admin/messages", icon: <MessageSquareText size={18} /> },
   { label: "Clients", href: "/dashboard/admin/clients", icon: <Users size={18} /> },
   { label: "Returns", href: "/dashboard/admin/returns", icon: <FileText size={18} /> },
   { label: "Documents", href: "/dashboard/admin/documents", icon: <FileText size={18} /> },
   { label: "Tasks", href: "/dashboard/admin/tasks", icon: <CheckSquare size={18} /> },
 ];
 
-const PRACTICE: NavItem[] = [
+const ADMIN_PRACTICE: NavItem[] = [
   { label: "Calendar", href: "/dashboard/admin/calendar", icon: <Calendar size={18} /> },
   { label: "Leads", href: "/dashboard/admin/leads", icon: <UserPlus size={18} /> },
   { label: "Reports", href: "/dashboard/admin/reports", icon: <BarChart3 size={18} /> },
 ];
 
-const ADMIN: NavItem[] = [
+const ADMIN_ADMIN: NavItem[] = [
   { label: "Team", href: "/dashboard/admin/team", icon: <Users size={18} /> },
+  { label: "Settings", href: "/dashboard/admin/settings", icon: <Settings size={18} /> },
+];
+
+const AGENT_WORK_NAV: NavItem[] = [
+  { label: "Dashboard", href: "/dashboard/admin", icon: <LayoutDashboard size={18} /> },
+  { label: "Clients", href: "/dashboard/admin/clients", icon: <Users size={18} /> },
+  { label: "Returns", href: "/dashboard/admin/returns", icon: <FileText size={18} /> },
+  { label: "Documents", href: "/dashboard/admin/documents", icon: <FileText size={18} /> },
+  { label: "Tasks", href: "/dashboard/admin/tasks", icon: <CheckSquare size={18} /> },
+];
+
+const AGENT_PRACTICE: NavItem[] = [
+  { label: "Calendar", href: "/dashboard/admin/calendar", icon: <Calendar size={18} /> },
+];
+
+const AGENT_ADMIN: NavItem[] = [
   { label: "Settings", href: "/dashboard/admin/settings", icon: <Settings size={18} /> },
 ];
 
@@ -47,18 +65,19 @@ type Props = {
   preview: boolean;
   currentHref?: string;
   unanswered?: number;
-  /** Live unread count for the client-message threads sidebar badge. */
   conversationsUnread?: number;
   children: ReactNode;
 };
 
-export default function AdminShell({
+export default async function AdminShell({
   preview,
   currentHref = "/dashboard/admin",
   unanswered = 0,
   conversationsUnread = 0,
   children,
 }: Props) {
+  const user = await currentUser();
+  const isAdmin = user?.role === "admin";
   const badges: Record<string, number> = { inbox: unanswered, messages: conversationsUnread };
 
   return (
@@ -70,9 +89,9 @@ export default function AdminShell({
           </a>
         </div>
 
-        <Group label="Work" items={WORK_NAV} currentHref={currentHref} badges={badges} />
-        <Group label="Practice" items={PRACTICE} currentHref={currentHref} />
-        <Group label="Admin" items={ADMIN} currentHref={currentHref} />
+        <Group label="Work" items={isAdmin ? ADMIN_WORK_NAV : AGENT_WORK_NAV} currentHref={currentHref} badges={badges} />
+        <Group label="Practice" items={isAdmin ? ADMIN_PRACTICE : AGENT_PRACTICE} currentHref={currentHref} />
+        <Group label="Admin" items={isAdmin ? ADMIN_ADMIN : AGENT_ADMIN} currentHref={currentHref} />
 
         <div className="adm-me">
           <div className="adm-me-row">
@@ -119,36 +138,38 @@ export default function AdminShell({
             </svg>
             {unanswered > 0 ? <span className="adm-bell-dot" aria-hidden="true">{unanswered}</span> : null}
           </a>
-          <details className="adm-new">
-            <summary className="adm-btn adm-new-trigger" aria-label="Create new">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              <span>New</span>
-              <svg className="adm-new-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
-            </summary>
-            <div className="adm-new-menu" role="menu">
-              <a href="/dashboard/admin/leads?new=1" role="menuitem">
-                <span className="adm-new-ico" style={{ background: "#d4a755" }}>L</span>
-                <span><b>New lead</b><small>Capture a prospect</small></span>
-              </a>
-              <a href="/dashboard/admin/clients?new=1" role="menuitem">
-                <span className="adm-new-ico" style={{ background: "#2a5d8f" }}>C</span>
-                <span><b>New client</b><small>Onboard from a lead</small></span>
-              </a>
-              <a href="/dashboard/admin/tasks?new=1" role="menuitem">
-                <span className="adm-new-ico" style={{ background: "#7a5ca8" }}>T</span>
-                <span><b>New task</b><small>For me or the team</small></span>
-              </a>
-              <a href="/dashboard/admin/calendar?new=1" role="menuitem">
-                <span className="adm-new-ico" style={{ background: "#2f8a5b" }}>A</span>
-                <span><b>New appointment</b><small>Block time on the calendar</small></span>
-              </a>
-            </div>
-          </details>
+          {isAdmin ? (
+            <details className="adm-new">
+              <summary className="adm-btn adm-new-trigger" aria-label="Create new">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span>New</span>
+                <svg className="adm-new-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+              </summary>
+              <div className="adm-new-menu" role="menu">
+                <a href="/dashboard/admin/leads?new=1" role="menuitem">
+                  <span className="adm-new-ico" style={{ background: "#d4a755" }}>L</span>
+                  <span><b>New lead</b><small>Capture a prospect</small></span>
+                </a>
+                <a href="/dashboard/admin/clients?new=1" role="menuitem">
+                  <span className="adm-new-ico" style={{ background: "#2a5d8f" }}>C</span>
+                  <span><b>New client</b><small>Onboard from a lead</small></span>
+                </a>
+                <a href="/dashboard/admin/tasks?new=1" role="menuitem">
+                  <span className="adm-new-ico" style={{ background: "#7a5ca8" }}>T</span>
+                  <span><b>New task</b><small>For me or the team</small></span>
+                </a>
+                <a href="/dashboard/admin/calendar?new=1" role="menuitem">
+                  <span className="adm-new-ico" style={{ background: "#2f8a5b" }}>A</span>
+                  <span><b>New appointment</b><small>Block time on the calendar</small></span>
+                </a>
+              </div>
+            </details>
+          ) : null}
         </header>
 
-        <details className="adm-mobile-nav"><summary>Navigate your workspace</summary><nav aria-label="Mobile admin navigation">{[...WORK_NAV,...PRACTICE,...ADMIN].map(item=><a key={item.href} href={item.href} aria-current={currentHref===item.href?"page":undefined}>{item.label}</a>)}</nav></details>
+        <details className="adm-mobile-nav"><summary>Navigate your workspace</summary><nav aria-label="Mobile admin navigation">{[...(isAdmin ? ADMIN_WORK_NAV : AGENT_WORK_NAV),...(isAdmin ? ADMIN_PRACTICE : AGENT_PRACTICE),...(isAdmin ? ADMIN_ADMIN : AGENT_ADMIN)].map(item=><a key={item.href} href={item.href} aria-current={currentHref===item.href?"page":undefined}>{item.label}</a>)}</nav></details>
         <div className="adm-c">
           {preview ? (
             <div style={{ marginBottom: 14, padding: "8px 14px", background: "#efe3cb", color: "#7b5c31", borderRadius: 8, font: "800 10px Manrope, sans-serif", letterSpacing: ".12em", textTransform: "uppercase", display: "inline-block" }}>

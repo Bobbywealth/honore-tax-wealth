@@ -2,11 +2,12 @@ import { Search, Plus, Calendar } from "lucide-react";
 import { eq, sql, desc, and, or, like } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
-import { adminNav } from "../_lib/nav";
+import { navForRole } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { returns, engagements, clients, taxYears } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,9 @@ export default async function ReturnsPage({ searchParams }: { searchParams?: Pro
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
 
-  const nav = adminNav(await loadAdminNavCounts());
+  const counts = await loadAdminNavCounts();
+  const me = await currentUser();
+  const nav = navForRole(me?.role, counts);
 
   const sp = (await searchParams) ?? {};
   const statusFilter = (sp.status ?? "all").toLowerCase();

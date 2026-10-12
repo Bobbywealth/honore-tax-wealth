@@ -2,11 +2,12 @@ import { Search, Filter, Upload, FileText } from "lucide-react";
 import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
-import { adminNav } from "../_lib/nav";
+import { navForRole } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { clients, documents, documentRequests } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,9 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
-  const nav = adminNav(await loadAdminNavCounts());
+  const counts = await loadAdminNavCounts();
+  const me = await currentUser();
+  const nav = navForRole(me?.role, counts);
 
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();

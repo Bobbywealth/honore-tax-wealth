@@ -4,6 +4,7 @@ import AdminShell from "./AdminShell";
 import { getDb } from "@/db";
 import { consultations } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 import { desc } from "drizzle-orm";
 import { loadUnansweredCount } from "./lib/loadUnansweredCount";
 
