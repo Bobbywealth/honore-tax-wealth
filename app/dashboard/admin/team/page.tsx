@@ -1,4 +1,4 @@
-import { Mail } from "lucide-react";
+import { Mail, UserPlus } from "lucide-react";
 import { asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
@@ -7,6 +7,7 @@ import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
 import { engagements, users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { currentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -40,11 +41,14 @@ function formatDate(value: Date | null): string {
  * real person to answer. The list now contains only accounts that exist in the
  * users table.
  */
-export default async function TeamPage() {
-  const access = await checkAdminAccess();
+export default async function TeamPage({ searchParams }: { searchParams?: Promise<{ created?: string; temp?: string; error?: string }> }) {
+  const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
   const nav = adminNav(await loadAdminNavCounts());
+  const sp = (await searchParams) ?? {};
+  const me = await currentUser();
+  const isAdmin = me?.role === "admin";
 
   let rows: Array<{
     id: string;
@@ -54,6 +58,7 @@ export default async function TeamPage() {
     emailVerifiedAt: Date | null;
     lastLoginAt: Date | null;
     createdAt: Date;
+    deactivatedAt: Date | null;
     ownedEngagements: number;
   }> = [];
   let unavailable = false;
@@ -71,9 +76,10 @@ export default async function TeamPage() {
         emailVerifiedAt: users.emailVerifiedAt,
         lastLoginAt: users.lastLoginAt,
         createdAt: users.createdAt,
+        deactivatedAt: users.deactivatedAt,
       })
       .from(users)
-      .where(inArray(users.role, ["admin", "staff"]))
+      .where(inArray(users.role, ["admin", "staff", "assistant"]))
       .orderBy(asc(users.displayName));
 
     // Real workload: engagements each account owns. Never invented hours.
@@ -88,7 +94,9 @@ export default async function TeamPage() {
       for (const c of counts) if (c.ownerId) owned.set(c.ownerId, Number(c.n));
     }
 
-    rows = accounts.map((a) => ({ ...a, ownedEngagements: owned.get(a.id) ?? 0 }));
+    rows = accounts
+      .filter((a) => !a.deactivatedAt)
+      .map((a) => ({ ...a, ownedEngagements: owned.get(a.id) ?? 0 }));
   } catch {
     unavailable = true;
   }
@@ -106,10 +114,45 @@ const navCounts = await loadAdminNavCounts();
               : `${rows.length} staff ${rows.length === 1 ? "account" : "accounts"} · ${rows.filter((r) => !r.emailVerifiedAt).length} unverified`}
           </div>
         </div>
-        <span className="adm-badge">
-          <a className="adm-badge adm-badge-link" href="/dashboard/admin/settings#team" title="Open team settings to enable invitations"><Mail size={13} aria-hidden="true" /> Invitations are not enabled</a>
-        </span>
+        {isAdmin ? (
+          <a className="adm-btn" href="#adm-team-add" title="Add a new staff account">+ Add to team</a>
+        ) : (
+          <span className="adm-badge">
+            <a className="adm-badge adm-badge-link" href="/dashboard/admin/settings#team" title="Open team settings to enable invitations"><Mail size={13} aria-hidden="true" /> Invitations are not enabled</a>
+          </span>
+        )}
       </div>
+
+      {isAdmin ? (
+        <form id="adm-team-add" className="adm-team-form" action="/api/admin/team/invite" method="post">
+          <div>
+            <label htmlFor="adm-team-email">Email</label>
+            <input id="adm-team-email" name="email" type="email" required maxLength={180} placeholder="name@honoretaxwealth.com" />
+          </div>
+          <div>
+            <label htmlFor="adm-team-name">Display name</label>
+            <input id="adm-team-name" name="displayName" required minLength={2} maxLength={120} placeholder="Full name" />
+          </div>
+          <div>
+            <label htmlFor="adm-team-role">Role</label>
+            <select id="adm-team-role" name="role" required defaultValue="staff">
+              <option value="staff">Agent (staff)</option>
+              <option value="assistant">Assistant</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div className="adm-team-form-submit">
+            <button type="submit" className="adm-btn"><UserPlus size={14} aria-hidden="true" /> Add to team</button>
+            {sp.error === "email_already_exists" ? (
+              <span className="adm-form-err">An account with that email already exists.</span>
+            ) : sp.error === "validation_failed" ? (
+              <span className="adm-form-err">Email + name + role are required.</span>
+            ) : sp.created ? (
+              <span className="adm-form-msg">Account created. Temp password (share out-of-band): <code>{sp.temp ?? "(see response)"}</code></span>
+            ) : null}
+          </div>
+        </form>
+      ) : null}
 
       {unavailable ? (
         <div className="adm-empty">
@@ -136,42 +179,58 @@ const navCounts = await loadAdminNavCounts();
                 <th scope="col">Email verified</th>
                 <th scope="col">Last sign-in</th>
                 <th scope="col">Engagements owned</th>
+                {isAdmin ? <th scope="col" aria-label="actions"></th> : null}
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td>
-                    <div className="adm-client-cell">
-                      <span className="av">{initials(r.displayName ?? "", r.email)}</span>
-                      <div>
-                        <strong>{r.displayName ?? "Unnamed account"}</strong>
+              {rows.map((r) => {
+                const removable = isAdmin && r.id !== me?.id;
+                const roleLabel = r.role === "staff" ? "Agent" : r.role === "assistant" ? "Assistant" : "Admin";
+                return (
+                  <tr key={r.id}>
+                    <td>
+                      <div className="adm-client-cell">
+                        <span className="av">{initials(r.displayName ?? "", r.email)}</span>
+                        <div>
+                          <strong>{r.displayName ?? "Unnamed account"}</strong>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <a href={`mailto:${r.email}`} className="adm-card-sub">
-                      {r.email}
-                    </a>
-                  </td>
-                  <td>
-                    <span className="adm-badge">{r.role}</span>
-                  </td>
-                  <td>
-                    {r.emailVerifiedAt ? (
-                      <span className="adm-badge">Verified</span>
-                    ) : (
-                      <span className="adm-badge">Not verified</span>
-                    )}
-                  </td>
-                  <td>
-                    <time dateTime={r.lastLoginAt ? new Date(r.lastLoginAt).toISOString() : undefined}>
-                      {formatDate(r.lastLoginAt)}
-                    </time>
-                  </td>
-                  <td>{r.ownedEngagements}</td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <a href={`mailto:${r.email}`} className="adm-card-sub">
+                        {r.email}
+                      </a>
+                    </td>
+                    <td>
+                      <span className="adm-badge">{roleLabel}</span>
+                    </td>
+                    <td>
+                      {r.emailVerifiedAt ? (
+                        <span className="adm-badge">Verified</span>
+                      ) : (
+                        <span className="adm-badge">Not verified</span>
+                      )}
+                    </td>
+                    <td>
+                      <time dateTime={r.lastLoginAt ? new Date(r.lastLoginAt).toISOString() : undefined}>
+                        {formatDate(r.lastLoginAt)}
+                      </time>
+                    </td>
+                    <td>{r.ownedEngagements}</td>
+                    {isAdmin ? (
+                      <td>
+                        {removable ? (
+                          <form action={`/api/admin/team/${r.id}`} method="post">
+                            <button type="submit" className="adm-row-remove" title="Remove this account">Remove</button>
+                          </form>
+                        ) : (
+                          <span className="adm-sm" style={{ color: "#9aa3aa" }}>—</span>
+                        )}
+                      </td>
+                    ) : null}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
