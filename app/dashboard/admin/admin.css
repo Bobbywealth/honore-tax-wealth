@@ -30,7 +30,7 @@
 .adm-me b{color:#fff;font-weight:600;font-size:13px;display:block;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .adm-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#d4a755,#a8853a);color:#0a1828;display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.5px;box-shadow:0 0 0 2px rgba(212,167,85,.18);flex:0 0 40px}
 .adm-sm{color:#6a7785;font-size:10.5px}
-.adm-logout-form{margin:0 0 0 auto;flex:0 0 auto}
+.adm-logout-form{margin:8px 0 0;display:flex;justify-content:flex-end}
 .adm-logout{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:8px;background:rgba(192,80,77,.1);color:var(--red);cursor:pointer;transition:all .15s;border:0;font:700 11px Manrope,sans-serif;letter-spacing:.04em}
 .adm-logout:hover{background:rgba(192,80,77,.22);color:#fff}
 .adm-logout svg{width:14px;height:14px;flex:0 0 14px}

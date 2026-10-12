@@ -81,13 +81,13 @@ export default function AdminShell({
               <b>Bobby Wealth</b>
               <div className="adm-sm">Owner · 28 min</div>
             </div>
-            <form className="adm-logout-form" action="/api/auth/logout" method="post">
-              <button type="submit" className="adm-logout" aria-label="Sign out" title="Sign out">
-                <LogOut size={14} />
-                <span>Sign out</span>
-              </button>
-            </form>
           </div>
+          <form className="adm-logout-form" action="/api/auth/logout" method="post">
+            <button type="submit" className="adm-logout" aria-label="Sign out" title="Sign out">
+              <LogOut size={14} />
+              <span>Sign out</span>
+            </button>
+          </form>
           <div className="adm-foot">
             <a href="/dashboard"><Home size={13} /> Portal home</a>
             <a href="/"><Globe size={13} /> Website</a>
