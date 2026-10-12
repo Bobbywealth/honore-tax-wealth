@@ -129,7 +129,7 @@ header.nav .nav-book{border:1px solid #c9a363;background:#d9b878;color:#0b1a2a;m
 @media(max-width:1024px){
 header.nav.wrap{height:76px;padding-inline:20px;gap:12px}
 header.nav .brand-logo,body.nav-scrolled header.nav .brand-logo{width:100px!important;height:64px!important}
-.nav-mobile-book{display:inline-flex;align-items:center;gap:10px;padding:12px 14px;min-height:44px;border:1px solid #c9a363;border-radius:8px;background:#d9b878;color:#0b1a2a;font-size:12px;font-weight:700}
+.nav-mobile-book{display:inline-flex;align-items:center;gap:10px;padding:12px 14px;min-height:44px;border:1px solid #b88a3c;border-radius:8px;background:linear-gradient(135deg,#d9b878 0%,#b88a3c 100%);color:#0b1a2a;font-size:12px;font-weight:800;box-shadow:0 6px 18px rgba(184,138,60,.35)}
 header.nav nav{position:absolute;top:84px;left:16px;right:16px;gap:8px;padding:16px;background:#fffefafc;border:1px solid #e8e0cf;border-radius:16px;box-shadow:0 24px 60px #0b1a2a24}
 header.nav nav>a{padding:16px!important;min-height:48px}
 header.nav .mobile-menu{flex-shrink:0}
@@ -619,43 +619,67 @@ dialog.consultation-dialog{position:fixed!important;inset:0!important;margin:aut
   color:var(--honore-navy) !important;
 }
 
-/* --- MOBILE ACTION BAR: navy bar with gold CTA --- */
+/* --- MOBILE ACTION BAR: navy bar with bold gold CTA --- */
 .mobile-action-bar{
-  background:var(--honore-navy) !important;
+  background:linear-gradient(180deg,#0a1828 0%,#0e2235 100%) !important;
   border-top:1px solid var(--honore-gold) !important;
   padding:14px 18px !important;
+  box-shadow:0 -6px 18px rgba(14,26,38,.18);
 }
 .mobile-action-bar button{
-  background:var(--honore-gold) !important;
+  background:linear-gradient(135deg,#e8c98f 0%,#b88a3c 100%) !important;
   color:var(--honore-navy) !important;
   border:0 !important;
   border-radius:2px !important;
-  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  font:800 11px/1 Manrope,system-ui,sans-serif !important;
   letter-spacing:.16em !important;
   text-transform:uppercase !important;
   padding:18px 22px !important;
   min-height:54px;
   width:100%;
+  box-shadow:0 6px 20px rgba(184,138,60,.4);
   transition:all .2s;
 }
-.mobile-action-bar button:hover{background:var(--honore-gold-bright) !important}
+.mobile-action-bar button:hover{background:linear-gradient(135deg,#f0dcaa 0%,#9a722f 100%) !important}
 
 /* --- HERO MOBILE CTA (visible on small screens) --- */
 .hero-mobile-cta{
-  background:transparent !important;
-  color:#faf6e9 !important;
-  border:1px solid var(--honore-gold) !important;
+  background:linear-gradient(135deg,#e8c98f 0%,#b88a3c 100%) !important;
+  color:var(--honore-navy) !important;
+  border:1px solid #b88a3c !important;
   border-radius:2px !important;
-  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  font:800 11px/1 Manrope,system-ui,sans-serif !important;
   letter-spacing:.16em !important;
   text-transform:uppercase !important;
   padding:18px 22px !important;
   min-height:54px;
+  box-shadow:0 8px 24px rgba(184,138,60,.45);
   transition:all .25s;
 }
 .hero-mobile-cta:hover{
+  background:linear-gradient(135deg,#f0dcaa 0%,#9a722f 100%) !important;
+  color:var(--honore-navy) !important;
+}
+
+/* --- MOBILE MENU TOGGLE: gold ring on white, easy tap target --- */
+header.nav .mobile-menu{
   background:var(--honore-gold) !important;
   color:var(--honore-navy) !important;
+  border:1px solid var(--honore-gold) !important;
+  border-radius:50% !important;
+  width:42px !important;
+  height:42px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-size:20px !important;
+  font-weight:800 !important;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(184,138,60,.35);
+  transition:all .2s;
+}
+header.nav .mobile-menu:hover{
+  background:var(--honore-gold-bright) !important;
 }
 
 /* --- FAQ SUMMARY CHEVRON: subtle gold --- */
