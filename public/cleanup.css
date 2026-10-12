@@ -445,3 +445,6 @@ img,svg,video,canvas{max-width:100%;height:auto}
 @media(max-width:1180px){
   .reveal,.reveal.visible,.reveal-stagger,.reveal-stagger.visible,.reveal-stagger > *,.reveal-stagger.visible > *{opacity:1!important;transform:none!important;transition:none!important}
 }
+/* Keep slideshow controls inside the viewport after layered responsive overrides. */
+.slide-controls{left:50%!important;right:auto!important;transform:translateX(-50%)!important;width:min(1200px,calc(100% - 64px))!important;max-width:calc(100% - 32px)!important}
+@media(max-width:1180px){.slide-controls{width:min(100% - 40px,980px)!important}}
