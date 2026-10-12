@@ -1,4 +1,4 @@
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Upload } from "lucide-react";
 import { and, count, desc, eq, ilike, inArray, isNull, or, sum, type SQL } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
@@ -34,7 +34,7 @@ function initials(name: string): string {
  * return counts. Revenue is not shown here at all: the schema has no
  * billed-lifetime field, so any number displayed would have been invented.
  */
-export default async function ClientsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string }> }) {
+export default async function ClientsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string; imported?: string; errors?: string; report?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
@@ -43,6 +43,18 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
   const status = params.status ?? "";
+  const importedCount = Number(params.imported ?? 0);
+  const importErrorCount = Number(params.errors ?? 0);
+  let importReport: Array<{ row: number; message: string }> = [];
+  if (params.report) {
+    try {
+      const decoded = Buffer.from(params.report, "base64").toString("utf-8");
+      const parsed = JSON.parse(decoded);
+      if (Array.isArray(parsed)) importReport = parsed.filter((x) => typeof x?.row === "number" && typeof x?.message === "string");
+    } catch {
+      importReport = [];
+    }
+  }
 
   let rows: Array<{
     id: string;
@@ -160,6 +172,32 @@ const navCounts = await loadAdminNavCounts();
           </div>
         </div>
       </div>
+
+      <div className="adm-clients-upload">
+        <div className="ico"><Upload size={18} aria-hidden="true" /></div>
+        <div style={{ minWidth: 0 }}>
+          <div className="t">Import clients from CSV</div>
+          <div className="d">Excel / Google Sheets → export as CSV. Columns: Name (required) · legal_name · email · phone · entity_type · status · tax_id_last4 · address · city · state · zip · notes.</div>
+        </div>
+        <form action="/api/admin/clients/import" method="post" encType="multipart/form-data">
+          <input type="file" name="file" accept=".csv,text/csv" required />
+          <button type="submit" className="adm-btn"><Upload size={14} aria-hidden="true" /> Import</button>
+        </form>
+      </div>
+
+      {importedCount > 0 || importErrorCount > 0 ? (
+        <div className="adm-import-results">
+          <h3>Last import: {importedCount} added · {importErrorCount} skipped / noted</h3>
+          {importReport.length > 0 ? (
+            <ul>
+              {importReport.slice(0, 30).map((r, i) => (
+                <li key={i} className={r.message.includes("skipped") ? "err" : ""}>Row {r.row}: {r.message}</li>
+              ))}
+              {importReport.length > 30 ? <li>… {importReport.length - 30} more (re-run with verbose logs)</li> : null}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
 
       {unavailable ? (
         <div className="adm-empty">
