@@ -67,15 +67,15 @@ export default function Login() {
   return (
     <div className="login-simple">
       <header className="login-simple-header">
-        <a href="/" aria-label="Honoré Tax & Wealth home">
-          <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
+        <a href="/" aria-label="Honore Tax & Wealth home">
+          <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
         </a>
         <a className="login-home" href="/">Back to website</a>
       </header>
 
       <main className="login-simple-main">
         <section className="login-simple-panel" aria-labelledby="login-title">
-          <span className="login-eyebrow">HONORÉ TAX &amp; WEALTH</span>
+          <span className="login-eyebrow">HONORE TAX &amp; WEALTH</span>
           <h1 id="login-title">Welcome back.</h1>
           <p className="login-intro">Access your account.</p>
 

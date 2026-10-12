@@ -319,7 +319,7 @@ export default function ChatLauncher({
                             } else {
                               const sender = m.senderId === currentUserId
                                 ? { id: currentUserId, name: currentUserName }
-                                : { id: m.senderId, name: m.senderName ?? "Honoré Tax & Wealth" };
+                                : { id: m.senderId, name: m.senderName ?? "Honore Tax & Wealth" };
                               out.push({ senderId: sender.id, senderName: sender.name, items: [m], day });
                             }
                           }

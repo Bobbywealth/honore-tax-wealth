@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Contact",
   description:
-    "Start a consultation with Honoré Tax & Wealth. Tell us what you need and we will confirm the right next step.",
+    "Start a consultation with Honore Tax & Wealth. Tell us what you need and we will confirm the right next step.",
   alternates: { canonical: "/contact" },
 };
 
@@ -95,7 +95,7 @@ export default function ContactPage() {
 
         <h2 style={h2}>Prefer to browse first?</h2>
         <p style={p}>
-          <Link href="/about" style={{ color: "#9a7642" }}>About Honoré</Link> ·{" "}
+          <Link href="/about" style={{ color: "#9a7642" }}>About Honore</Link> ·{" "}
           <Link href="/privacy" style={{ color: "#9a7642" }}>Privacy policy</Link> ·{" "}
           <Link href="/terms" style={{ color: "#9a7642" }}>Terms</Link>
         </p>

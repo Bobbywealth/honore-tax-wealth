@@ -132,7 +132,7 @@ describe("mailConfigured / notifyAddress", () => {
 
   it("is configured when both the API key and sender are set", () => {
     process.env.RESEND_API_KEY = "re_test";
-    process.env.EMAIL_FROM = "Honoré <no-reply@example.com>";
+    process.env.EMAIL_FROM = "Honore <no-reply@example.com>";
     expect(mailConfigured()).toBe(true);
   });
 

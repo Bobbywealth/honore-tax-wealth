@@ -85,7 +85,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
     dailyEod: false,
   });
   const [practice, setPractice] = useState({
-    legalName: "Honoré Tax & Wealth LLC",
+    legalName: "Honore Tax & Wealth LLC",
     address: "1400 Burnet Ave, Union, NJ 07083",
     acceptNewClients: true,
     taxSeasonSurcharge: false,
@@ -112,7 +112,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
     <>
       <section className="adm-settings-pane" id="profile">
         <h3>Profile</h3>
-        <div className="sub">How you appear to staff and clients across Honoré.</div>
+        <div className="sub">How you appear to staff and clients across Honore.</div>
         <div className="adm-settings-row">
           <div>
             <b>Display name</b>
@@ -332,7 +332,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
         <div className="adm-settings-row">
           <div>
             <b>Invoice history</b>
-            <div className="sm">Past Honoré subscriptions to Render and other services</div>
+            <div className="sm">Past Honore subscriptions to Render and other services</div>
           </div>
           <a className="adm-clients-filter" href="https://dashboard.render.com/billing" target="_blank" rel="noreferrer">Open Render billing</a>
         </div>

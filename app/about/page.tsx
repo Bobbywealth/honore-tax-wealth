@@ -5,7 +5,7 @@ import Image from "next/image";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Meet the founders behind Honoré Tax & Wealth, and how a tax engagement actually works.",
+    "Meet the founders behind Honore Tax & Wealth, and how a tax engagement actually works.",
   alternates: { canonical: "/about" },
 };
 
@@ -30,15 +30,15 @@ export default function AboutPage() {
           ← Back to home
         </Link>
 
-        <h1 style={h1}>About Honoré.</h1>
+        <h1 style={h1}>About Honore.</h1>
         <p style={{ ...p, fontSize: 17, marginBottom: 8 }}>
-          Honoré Tax &amp; Wealth is a tax company focused on preparation, filing, and planning for
+          Honore Tax &amp; Wealth is a tax company focused on preparation, filing, and planning for
           individuals, families, and business owners.
         </p>
 
         <h2 style={h2}>The founders</h2>
         <p style={p}>
-          Honoré was founded by Mr. Honoré and Mrs. Honoré. They are the personal side of the
+          Honore was founded by Mr. Honore and Mrs. Honore. They are the personal side of the
           practice — a relationship built on care, purpose, and looking ahead together.
         </p>
 
@@ -46,25 +46,25 @@ export default function AboutPage() {
           <figure style={{ margin: 0 }}>
             <Image
               src="/assets/founder-brown.webp"
-              alt="Mr. Honoré"
+              alt="Mr. Honore"
               width={640}
               height={800}
               style={{ width: "100%", height: "auto", borderRadius: 12, display: "block" }}
             />
             <figcaption style={{ ...gold, marginTop: 12 }}>
-              Mr. Honoré — Co-founder
+              Mr. Honore — Co-founder
             </figcaption>
           </figure>
           <figure style={{ margin: 0 }}>
             <Image
               src="/assets/founder-navy.webp"
-              alt="Mrs. Honoré"
+              alt="Mrs. Honore"
               width={640}
               height={800}
               style={{ width: "100%", height: "auto", borderRadius: 12, display: "block" }}
             />
             <figcaption style={{ ...gold, marginTop: 12 }}>
-              Mrs. Honoré — Co-founder
+              Mrs. Honore — Co-founder
             </figcaption>
           </figure>
         </div>

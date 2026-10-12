@@ -202,7 +202,7 @@ export default async function ClientInvoicesPage() {
       <section className="dashboard-section client-checklist">
         <span className="dashboard-eyebrow">PAYMENT</span>
         <h2>Ways to pay</h2>
-        <p className="dashboard-quiet">Honoré Tax & Wealth accepts ACH and credit cards. Card payments incur a small processing fee your preparer will confirm before charging.</p>
+        <p className="dashboard-quiet">Honore Tax & Wealth accepts ACH and credit cards. Card payments incur a small processing fee your preparer will confirm before charging.</p>
         <div className="dashboard-cols">
           <div>
             <h3>ACH (preferred)</h3>

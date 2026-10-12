@@ -196,7 +196,7 @@ export default async function ClientAppointmentsPage() {
       <section className="dashboard-section client-checklist">
         <span className="dashboard-eyebrow">REQUEST</span>
         <h2>Need more time on the calendar?</h2>
-        <p className="dashboard-quiet">Honoré Tax & Wealth books calls Mon–Thu 9am–5pm ET. Send a few times that work and the team will confirm one.</p>
+        <p className="dashboard-quiet">Honore Tax & Wealth books calls Mon–Thu 9am–5pm ET. Send a few times that work and the team will confirm one.</p>
         <Link href="/dashboard/client/messages" className="dashboard-button">Send a message <ArrowUpRight size={16} aria-hidden="true" /></Link>
       </section>
     </DashboardShell>

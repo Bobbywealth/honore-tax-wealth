@@ -1,5 +1,5 @@
 import Link from "next/link";
-export const metadata = {title:"Page not found · Honoré Tax & Wealth",robots:{index:false}};
+export const metadata = {title:"Page not found · Honore Tax & Wealth",robots:{index:false}};
 export default function NotFound(){
   return (
     <main style={{maxWidth:520,margin:"60px auto",textAlign:"center",background:"#fff",border:"1px solid #e8e2d5",borderRadius:16,padding:"48px 36px",boxShadow:"0 18px 45px #0b1a2a10",fontFamily:"Manrope,system-ui,-apple-system,sans-serif",color:"#0b1a2a"}}>

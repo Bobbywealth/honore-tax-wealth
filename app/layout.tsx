@@ -7,13 +7,13 @@ export const viewport:Viewport={
 };
 export const metadata:Metadata={
   metadataBase: new URL("https://honore-tax-wealth.onrender.com"),
-  title:{default:"Honoré Tax & Wealth",template:"%s · Honoré Tax & Wealth"},
+  title:{default:"Honore Tax & Wealth",template:"%s · Honore Tax & Wealth"},
   description:"Tax preparation, filing, and planning with a bigger picture in focus.",
-  applicationName:"Honoré Tax & Wealth",
+  applicationName:"Honore Tax & Wealth",
   keywords:["tax preparation","tax filing","tax planning","IRS notices","small business tax","Bloomfield NJ tax","NJ tax accountant"],
-  authors:[{name:"Honoré Tax & Wealth"}],
-  creator:"Honoré Tax & Wealth",
-  publisher:"Honoré Tax & Wealth",
+  authors:[{name:"Honore Tax & Wealth"}],
+  creator:"Honore Tax & Wealth",
+  publisher:"Honore Tax & Wealth",
   alternates:{canonical:"/"},
   robots:{index:true, follow:true, googleBot:{index:true, follow:true, "max-image-preview":"large", "max-snippet":-1}},
   formatDetection:{telephone:false,address:false,email:false},
@@ -24,13 +24,13 @@ export const metadata:Metadata={
   ], apple:[
     {url:"/apple-touch-icon.png", sizes:"180x180", type:"image/png"},
   ]},
-  openGraph:{title:"Honoré Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",type:"website",siteName:"Honoré Tax & Wealth",images:[{url:"/assets/og/og.jpg",width:1200,height:630,alt:"Honoré Tax & Wealth"}]},
-  twitter:{card:"summary_large_image",title:"Honoré Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",images:["/assets/og/og.jpg"]},
+  openGraph:{title:"Honore Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",type:"website",siteName:"Honore Tax & Wealth",images:[{url:"/assets/og/og.jpg",width:1200,height:630,alt:"Honore Tax & Wealth"}]},
+  twitter:{card:"summary_large_image",title:"Honore Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",images:["/assets/og/og.jpg"]},
 };
 const jsonLd = {
   "@context":"https://schema.org",
   "@type":"ProfessionalService",
-  "name":"Honoré Tax & Wealth",
+  "name":"Honore Tax & Wealth",
   "description":"Tax preparation, filing, and planning for individuals, families, and business owners.",
   "url":"https://honore-tax-wealth.onrender.com/",
   "image":"https://honore-tax-wealth.onrender.com/assets/og/og.jpg",

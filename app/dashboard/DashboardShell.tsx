@@ -81,7 +81,7 @@ export default function DashboardShell({
       <CommandPalette />
       <aside className={`dashboard-sidebar${menuOpen ? " is-open" : ""}`}>
         <Link className="dashboard-logo" href="/">
-          <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
+          <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
         </Link>
         <div className="dashboard-side-label">{audience} portal</div>
         <nav aria-label="Dashboard navigation">
@@ -138,7 +138,7 @@ export default function DashboardShell({
             {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
           <Link className="dashboard-mobile-logo" href="/">
-            <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
+            <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
           </Link>
           <span>{audience} dashboard</span>
           {userLabel ? <span className="dashboard-user">{userLabel}</span> : null}
@@ -146,7 +146,7 @@ export default function DashboardShell({
         <div className="dashboard-content">
           <div className="dashboard-heading">
             <div>
-              <span className="dashboard-eyebrow">HONORÉ / {audience.toUpperCase()}</span>
+              <span className="dashboard-eyebrow">HONORE / {audience.toUpperCase()}</span>
               <h1>{title}</h1>
               <p>{description}</p>
             </div>

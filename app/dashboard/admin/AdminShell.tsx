@@ -65,8 +65,8 @@ export default function AdminShell({
     <div className="adm-root">
       <aside className="adm-sb">
         <div className="adm-brand">
-          <a href="/" className="adm-brand-plate" aria-label="Honoré Tax & Wealth home">
-            <img src="/assets/honore-logo-cropped.png" alt="Honoré Tax & Wealth" />
+          <a href="/" className="adm-brand-plate" aria-label="Honore Tax & Wealth home">
+            <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
           </a>
         </div>
 
@@ -98,7 +98,7 @@ export default function AdminShell({
       <main className="adm-main">
         <header className="adm-top">
           <div className="adm-crumb">
-            <span>Honoré</span>
+            <span>Honore</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
             <b>Admin</b>
           </div>

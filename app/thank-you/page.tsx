@@ -1,4 +1,4 @@
-export const metadata = {title:"Thank you · Honoré Tax & Wealth",description:"We received your consultation request.",robots:{index:false}};
+export const metadata = {title:"Thank you · Honore Tax & Wealth",description:"We received your consultation request.",robots:{index:false}};
 export default function ThankYou(){
   return (
     <main style={{maxWidth:560,margin:"60px auto",textAlign:"center",background:"#fff",border:"1px solid #e8e2d5",borderRadius:16,padding:"56px 40px",boxShadow:"0 18px 45px #0b1a2a10",fontFamily:"Manrope,system-ui,-apple-system,sans-serif",color:"#0b1a2a"}}>
