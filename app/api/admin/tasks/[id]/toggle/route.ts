@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  * Accepts POST with no body so a native form button on each task row works.
  */
 export async function POST(request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const user = await requireRole("admin", "staff");
+  const user = await requireRole("admin", "staff", "assistant");
   if (!user) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }

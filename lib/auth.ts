@@ -176,6 +176,7 @@ export async function currentUser(): Promise<SessionUser | null> {
     .select({
       revokedAt: sessions.revokedAt,
       sessionsValidFrom: users.sessionsValidFrom,
+      deactivatedAt: users.deactivatedAt,
       id: users.id,
       email: users.email,
       role: users.role,
@@ -188,6 +189,10 @@ export async function currentUser(): Promise<SessionUser | null> {
 
   const row = rows[0];
   if (!row || row.revokedAt) return null;
+  // A deactivated user cannot open new sessions even if a stale token
+  // remains in a browser — the team "remove" action flips this flag and
+  // bumps session watermark in one transaction.
+  if (row.deactivatedAt) return null;
 
   // A session created before the user's last password change is not valid.
   const created = await getDb()
@@ -215,7 +220,7 @@ export async function requireRole(...roles: Role[]): Promise<SessionUser | null>
 
 export async function isStaff(): Promise<boolean> {
   const user = await currentUser();
-  return user?.role === "staff" || user?.role === "admin";
+  return user?.role === "staff" || user?.role === "assistant" || user?.role === "admin";
 }
 
 /* ----------------------- Account lockout -------------------------- */

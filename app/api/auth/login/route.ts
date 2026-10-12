@@ -101,11 +101,19 @@ export async function POST(request: Request) {
 
     const email = normalizeEmail(parsed.email);
     const rows = await getDb()
-      .select({ id: users.id, passwordHash: users.passwordHash, role: users.role })
+      .select({ id: users.id, passwordHash: users.passwordHash, role: users.role, deactivatedAt: users.deactivatedAt })
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
     const account = rows[0];
+
+    // Deactivated accounts must be rejected even with the correct password —
+    // a soft "remove" sets the password hash to a known dummy, but the
+    // deactivatedAt check makes that intent explicit.
+    if (account?.deactivatedAt) {
+      logEvent("auth.login.deactivated", { userId: account.id });
+      return Response.json({ ok: false, error: "account_deactivated" }, { status: 403 });
+    }
 
     // Account-level lockout, persisted so it survives a cold start and
     // applies across instances.

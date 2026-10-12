@@ -29,7 +29,7 @@ function logEvent(event: string, fields: Record<string, unknown>) {
  * client page can use either a native form submit or a fetch().
  */
 export async function POST(request: Request) {
-  const user = await requireRole("admin", "staff");
+  const user = await requireRole("admin", "staff", "assistant");
   if (!user) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }

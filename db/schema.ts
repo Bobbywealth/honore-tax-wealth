@@ -32,7 +32,7 @@ const now = sql`now()`;
 
 /* ============================ Identity ============================ */
 
-export type Role = "client" | "staff" | "admin";
+export type Role = "client" | "staff" | "assistant" | "admin";
 
 export const users = pgTable(
   "users",
@@ -51,6 +51,7 @@ export const users = pgTable(
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     failedLoginCount: integer("failed_login_count").notNull().default(0),
     lockedUntil: timestamp("locked_until", { withTimezone: true }),
+    deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(now),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().default(now),
   },
