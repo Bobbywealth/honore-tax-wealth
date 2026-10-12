@@ -7,6 +7,10 @@ describe('focused marketing services',()=>{
   expect(home.indexOf('id="agents"')).toBeLessThan(home.indexOf('id="people"'));
   expect(home).toContain('CONNECT WITH OUR TEAM');
   expect(home).toContain('honore-owner-card');
+  expect(home).toContain('aria-labelledby="founders-title"');
+  expect(home.match(/Meet the founders/g)).toHaveLength(2);
+  expect(home.match(/<span>Founder<\/span>/g)).toHaveLength(2);
+  expect(home).not.toContain('Meet the owners');
   expect(home).not.toContain('portrait-grid');
   expect(home).not.toContain('sharon@');
   expect(home).not.toContain('Senior Preparer');
