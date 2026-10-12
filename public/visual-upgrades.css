@@ -714,7 +714,7 @@ dialog.consultation-dialog{position:fixed!important;inset:0!important;margin:aut
 .hero-kicker{color:var(--honore-gold) !important}
 .hero-kicker .line{background:var(--honore-gold) !important}
 .section-top .label,
-[class*="label"]:not(.hero-kicker){color:var(--honore-gold) !important}
+[class*="label"]:not(.hero-kicker):not(.dashboard-nav-label){color:var(--honore-gold) !important}
 .services .label{color:var(--honore-gold) !important}
 
 /* === Hero z-index + slide controls fix === */
