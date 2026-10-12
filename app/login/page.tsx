@@ -147,7 +147,7 @@ export default function Login() {
             information through the public consultation form.
           </p>
           <a className="login-help" href="/forgot-password">Forgot your password?</a>
-          <a className="login-help" href="/#contact">Need help? Contact our team</a>
+          <a className="login-help" href="/contact">Need help? Contact our team</a>
         </section>
       </main>
     </div>

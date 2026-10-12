@@ -23,6 +23,6 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: "https://honore-tax-wealth.onrender.com/sitemap.xml",
+    sitemap: "https://ihonoretaxandwealth.com/sitemap.xml",
   };
 }

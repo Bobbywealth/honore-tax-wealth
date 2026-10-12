@@ -38,7 +38,7 @@ export default function AboutPage() {
 
         <h2 style={h2}>The founders</h2>
         <p style={p}>
-          Honore was founded by Mr. Honore and Mrs. Honore. They are the personal side of the
+          Honore was founded by John Joseph and Sade Joseph. They are the personal side of the
           practice — a relationship built on care, purpose, and looking ahead together.
         </p>
 
@@ -46,25 +46,25 @@ export default function AboutPage() {
           <figure style={{ margin: 0 }}>
             <Image
               src="/assets/founder-brown.webp"
-              alt="Mr. Honore"
+              alt="John Joseph, Honore founder in a brown suit"
               width={640}
               height={800}
               style={{ width: "100%", height: "auto", borderRadius: 12, display: "block" }}
             />
             <figcaption style={{ ...gold, marginTop: 12 }}>
-              Mr. Honore — Co-founder
+              John Joseph — Co-founder
             </figcaption>
           </figure>
           <figure style={{ margin: 0 }}>
             <Image
               src="/assets/founder-navy.webp"
-              alt="Mrs. Honore"
+              alt="Sade Joseph, Honore founder in a navy suit"
               width={640}
               height={800}
               style={{ width: "100%", height: "auto", borderRadius: 12, display: "block" }}
             />
             <figcaption style={{ ...gold, marginTop: 12 }}>
-              Mrs. Honore — Co-founder
+              Sade Joseph — Co-founder
             </figcaption>
           </figure>
         </div>

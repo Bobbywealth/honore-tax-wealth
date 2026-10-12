@@ -65,7 +65,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="13. Contact">
-          <p>Questions about these terms can be sent to <a href="mailto:office@honore-tax.com" style={{ color: "#9a7642" }}>office@honore-tax.com</a>.</p>
+          <p>Questions about these terms can be sent through the consultation request form on the home page, or via the contact page once a direct email address is published. We respond to every request.</p>
         </Section>
       </div>
     </main>

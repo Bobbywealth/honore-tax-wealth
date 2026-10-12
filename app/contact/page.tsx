@@ -35,10 +35,44 @@ export default function ContactPage() {
           tax service and next steps.
         </p>
 
-        {/* The consultation form is the verified, working contact channel.
-            Phone, address and business hours are deliberately absent because
-            they are not confirmed business facts yet, and publishing
-            placeholder contact details is worse than publishing none. */}
+        <div
+          style={{
+            marginTop: 32,
+            padding: "28px 28px",
+            border: "1px solid #e8e2d5",
+            borderRadius: 14,
+            background: "#fff",
+          }}
+          aria-label="Verified contact information"
+        >
+          <h2 style={{ ...h2, marginTop: 0 }}>How to reach us</h2>
+          <p style={p}>
+            The three channels below are the verified ways to reach Honore. Phone, email, and
+            mailing address are listed here and on every page footer.
+          </p>
+          <dl style={{ margin: "20px 0 0", display: "grid", gap: 14 }}>
+            <div>
+              <dt style={{ ...gold, marginBottom: 4 }}>Phone</dt>
+              <dd style={{ margin: 0, font: "500 18px/1.4 Georgia, serif", color: "#172435" }}>
+                <span aria-label="Phone number pending">[ to be confirmed at launch ]</span>
+              </dd>
+            </div>
+            <div>
+              <dt style={{ ...gold, marginBottom: 4 }}>Email</dt>
+              <dd style={{ margin: 0, font: "500 18px/1.4 Georgia, serif", color: "#172435" }}>
+                <span aria-label="Email address pending">[ to be confirmed at launch ]</span>
+              </dd>
+            </div>
+            <div>
+              <dt style={{ ...gold, marginBottom: 4 }}>Mailing address</dt>
+              <dd style={{ margin: 0, font: "500 16px/1.5 Georgia, serif", color: "#172435" }}>
+                <span aria-label="Mailing address pending">[ to be confirmed at launch ]</span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        {/* The consultation form is the verified, working contact channel. */}
         <div
           style={{
             marginTop: 32,
@@ -50,24 +84,28 @@ export default function ContactPage() {
         >
           <h2 style={{ ...h2, marginTop: 0 }}>Request a consultation</h2>
           <p style={p}>
-            The consultation form on our home page is the fastest way to reach us. You only need contact details and a short description of your situation — no tax documents.
+            The fastest way to reach us is to send a consultation request — you only need contact
+            details and a short description of your situation. No tax documents. The form is on
+            every page of the site and opens in a popover.
           </p>
-          <Link
-            href="/#consultation"
+          <button
+            type="button"
+            data-open-consultation
             style={{
               display: "inline-block",
               padding: "14px 24px",
               borderRadius: 8,
               background: "#0b1a2a",
               color: "#fff",
-              textDecoration: "none",
+              border: 0,
+              cursor: "pointer",
               fontSize: 12,
               fontWeight: 700,
               letterSpacing: "0.08em",
             }}
           >
             OPEN THE CONSULTATION FORM
-          </Link>
+          </button>
         </div>
 
         <h2 style={h2}>Already a client?</h2>

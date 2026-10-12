@@ -9,7 +9,7 @@ import type { MetadataRoute } from "next";
  * useful to a crawler.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://honore-tax-wealth.onrender.com";
+  const base = "https://ihonoretaxandwealth.com";
   const now = new Date();
 
   return [

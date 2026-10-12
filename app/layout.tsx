@@ -6,7 +6,7 @@ export const viewport:Viewport={
   colorScheme:"light",
 };
 export const metadata:Metadata={
-  metadataBase: new URL("https://honore-tax-wealth.onrender.com"),
+  metadataBase: new URL("https://ihonoretaxandwealth.com"),
   title:{default:"Honore Tax & Wealth",template:"%s · Honore Tax & Wealth"},
   description:"Tax preparation, filing, and planning with a bigger picture in focus.",
   applicationName:"Honore Tax & Wealth",
@@ -32,9 +32,9 @@ const jsonLd = {
   "@type":"ProfessionalService",
   "name":"Honore Tax & Wealth",
   "description":"Tax preparation, filing, and planning for individuals, families, and business owners.",
-  "url":"https://honore-tax-wealth.onrender.com/",
-  "image":"https://honore-tax-wealth.onrender.com/assets/og/og.jpg",
-  "logo":"https://honore-tax-wealth.onrender.com/assets/honore-logo-cropped-sm.png",
+  "url":"https://ihonoretaxandwealth.com/",
+  "image":"https://ihonoretaxandwealth.com/assets/og/og.jpg",
+  "logo":"https://ihonoretaxandwealth.com/assets/honore-logo-cropped-sm.png",
   // No `telephone` property. This previously advertised "+1-555-000-0000",
   // a reserved fictional number, in structured data on every page. Google
   // treats fabricated contact details in JSON-LD as a spam signal and it

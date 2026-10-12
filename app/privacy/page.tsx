@@ -65,8 +65,8 @@ export default function PrivacyPage() {
         <Section title="11. Contact">
           <p>
             Honore Tax & Wealth<br />
-            1400 Burnet Ave, Union, NJ 07083<br />
-            <a href="mailto:office@honore-tax.com" style={{ color: "#9a7642" }}>office@honore-tax.com</a>
+            <span aria-label="Mailing address pending">[ mailing address to be confirmed at launch ]</span><br />
+            <span aria-label="Email address pending">[ email address to be confirmed at launch ]</span>
           </p>
         </Section>
 
