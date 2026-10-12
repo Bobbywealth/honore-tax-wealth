@@ -56,7 +56,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
         <link rel="stylesheet" href="/style.css"/>
         <link rel="stylesheet" href="/cleanup.css"/>
         <link rel="stylesheet" href="/dashboard.css"/>
-        <script dangerouslySetInnerHTML={{__html:`if('scrollRestoration' in history){history.scrollRestoration='manual'};window.scrollTo(0,0);`}}/>
+        <script dangerouslySetInnerHTML={{__html:`(function(){if('scrollRestoration' in history){history.scrollRestoration='manual'}function top(){try{window.scrollTo(0,0)}catch(e){}}top();window.addEventListener('pageshow',function(e){if(e.persisted){top()}});})();`}}/>
       </head>
       <body>
         <link rel="preload" as="image" href="/assets/hero-couple.webp" fetchPriority="high"/>
