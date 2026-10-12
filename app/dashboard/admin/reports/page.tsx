@@ -1,10 +1,10 @@
-import { and, count, desc, eq, gte, sql, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, sql, sum } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
 import { getDb } from "@/db";
-import { clients, engagements, invoices, leads, returns } from "@/db/schema";
+import { clients, engagements, invoices, leads, returns, users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +46,7 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
   let byFormType: Array<{ form: string; amt: number; count: number }> = [];
   let topClients: Array<{ id: string; name: string; initials: string; type: string; returns: number; life: number }> = [];
   let leadSources: Array<{ source: string; count: number }> = [];
+  let topAgent: { id: string; displayName: string; email: string; initials: string; engagements: number; returns: number; revenue: number } | null = null;
   let unavailable = false;
 
   try {
@@ -152,6 +153,44 @@ export default async function ReportsPage({ searchParams }: { searchParams?: Pro
         .from(leads)
         .groupBy(leads.source);
       leadSources = ls.map((r) => ({ source: r.source, count: Number(r.c) }));
+
+      // Top agent: rank admin/staff by composite score
+      //   engagements * 3 + returns_filed * 5 + (revenue / 1000)
+      // Same shape balances consistency (engagements) against filed returns
+      // and revenue, so the same person doesn't win on one giant invoice
+      // while ignoring everything else. Bob wanted a single "top agent"
+      // panel; composite keeps the panel honest on a small dataset.
+      const agentRows = await getDb()
+        .select({
+          id: users.id,
+          displayName: users.displayName,
+          email: users.email,
+          eng: sql<number>`count(distinct ${engagements.id})::int`,
+          ret: sql<number>`count(distinct ${returns.id})::int`,
+          rev: sql<string>`coalesce(sum(${invoices.total})::numeric, 0)`,
+        })
+        .from(users)
+        .leftJoin(engagements, eq(engagements.ownerId, users.id))
+        .leftJoin(returns, eq(returns.engagementId, engagements.id))
+        .leftJoin(invoices, and(eq(invoices.clientId, engagements.clientId), eq(invoices.status, "paid")))
+        .where(inArray(users.role, ["admin", "staff", "assistant"]))
+        .groupBy(users.id, users.displayName, users.email)
+        .orderBy(desc(sql`(count(distinct ${engagements.id})::int) * 3 + (count(distinct ${returns.id})::int) * 5 + (coalesce(sum(${invoices.total}), 0)::numeric / 1000.0)`))
+        .limit(1);
+      const a = agentRows[0];
+      if (a) {
+        const displayName = a.displayName ?? a.email;
+        const initials = displayName.split(/\s+/).map((w) => w[0]?.toUpperCase() ?? "").join("").slice(0, 2) || "?";
+        topAgent = {
+          id: a.id,
+          displayName,
+          email: a.email,
+          initials,
+          engagements: Number(a.eng ?? 0),
+          returns: Number(a.ret ?? 0),
+          revenue: Number(a.rev ?? 0),
+        };
+      }
     }
   } catch {
     unavailable = true;
@@ -234,6 +273,26 @@ const navCounts = await loadAdminNavCounts();
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="adm-rp-chart">
+        <h3>Top agent this period <small style={{ fontWeight: 600, color: "#7a858e", letterSpacing: 0, textTransform: "none", marginLeft: 8 }}>composite of engagements · returns filed · lifetime revenue</small></h3>
+        {topAgent ? (
+          <div className="adm-rp-topagent">
+            <div className="av">{topAgent.initials}</div>
+            <div>
+              <div className="meta"><span className="crown">★</span>Top agent</div>
+              <h4 className="name">{topAgent.displayName}</h4>
+              <div className="nums">
+                <div><b>{topAgent.engagements}</b><span>Engagements</span></div>
+                <div><b>{topAgent.returns}</b><span>Returns filed</span></div>
+                <div><b>{fmtUSDPlain(topAgent.revenue)}</b><span>Lifetime revenue</span></div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <p className="adm-sm" style={{ marginTop: 8 }}>No agent activity yet — once engagements or returns are logged, the top contributor lands here.</p>
+        )}
       </div>
 
       <div className="adm-rp-chart">

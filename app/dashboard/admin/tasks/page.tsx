@@ -1,4 +1,5 @@
-import { CheckSquare, Filter } from "lucide-react";
+import { CheckSquare, Filter, LayoutList, KanbanSquare } from "lucide-react";
+import Link from "next/link";
 import { asc, eq, inArray, isNull, or, and } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
@@ -47,6 +48,8 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
   if (!access.allowed) return access.restricted;
 
   const nav = adminNav(await loadAdminNavCounts());
+  const sp = (await searchParams) ?? {};
+  const kanban = sp.view === "kanban";
 
   let open: Row[] = [];
   let done: Row[] = [];
@@ -112,15 +115,84 @@ const navCounts = await loadAdminNavCounts();
               : `${open.length} open · ${overdueCount} overdue`}
           </div>
         </div>
-        <span className="adm-badge">
-          <Filter size={13} aria-hidden="true" /> All assignees
-        </span>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span className="adm-badge">
+            <Filter size={13} aria-hidden="true" /> All assignees
+          </span>
+          <div className="adm-view-toggle" role="group" aria-label="View">
+            <Link
+              href="/dashboard/admin/tasks?view=list"
+              className={`adm-view-opt${kanban ? "" : " is-active"}`}
+              aria-pressed={!kanban}
+              title="List view"
+            >
+              <LayoutList size={13} aria-hidden="true" /> List
+            </Link>
+            <Link
+              href="/dashboard/admin/tasks?view=kanban"
+              className={`adm-view-opt${kanban ? " is-active" : ""}`}
+              aria-pressed={kanban}
+              title="Kanban view"
+            >
+              <KanbanSquare size={13} aria-hidden="true" /> Kanban
+            </Link>
+          </div>
+        </div>
       </div>
 
       {unavailable ? (
         <div className="adm-empty">
           <p>We could not load tasks. Nothing has been lost — try again shortly.</p>
         </div>
+      ) : kanban ? (
+        (() => {
+          const buckets: Record<string, Row[]> = {
+            blocked: [],
+            open: [],
+            in_progress: [],
+            done: done.slice(0, 25),
+          };
+          for (const t of open) {
+            const k = t.status in buckets ? t.status : "open";
+            buckets[k].push(t);
+          }
+          return (
+            <div className="adm-tasks-cols">
+              {[
+                { key: "blocked", label: "Blocked" },
+                { key: "open", label: "Open" },
+                { key: "in_progress", label: "In progress" },
+                { key: "done", label: "Done" },
+              ].map((col) => (
+                <div key={col.key} className="adm-tasks-col">
+                  <h3>
+                    {col.label}
+                    <span className="ct">{buckets[col.key].length}</span>
+                  </h3>
+                  {buckets[col.key].length === 0 ? (
+                    <div className="adm-empty" style={{ padding: 14 }}>
+                      <p style={{ fontSize: 11, color: "#7a858e" }}>Nothing in this lane.</p>
+                    </div>
+                  ) : (
+                    buckets[col.key].map((t) => {
+                      const due = dueLabel(t.dueAt);
+                      return (
+                        <div key={t.id} className="adm-task" role="button" tabIndex={0}>
+                          <span className="chk" aria-hidden="true" />
+                          <div className="adm-task-body">
+                            <b>{t.title}</b>
+                            {t.description ? <div className="sm">{t.description}</div> : null}
+                            <div className={`due ${due.overdue ? "overdue" : due.today ? "today" : ""}`}>{due.text} · {t.priority}</div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()
       ) : (
         <>
           <section className="adm-section">

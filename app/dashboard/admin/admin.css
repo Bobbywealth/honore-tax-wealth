@@ -831,3 +831,57 @@
 /* Quick-form select */
 .adm-quick-form select{width:100%;height:42px;border:1px solid #d6dce1;border-radius:7px;background:#fff;color:var(--ink);padding:0 12px;font:14px 'DM Sans',sans-serif;outline:0}
 .adm-quick-form select:focus{border-color:#9a7642;box-shadow:0 0 0 3px #9a764226}
+/* View toggle (List / Kanban on /tasks, future elsewhere) */
+.adm-view-toggle{display:inline-flex;border:1px solid #d6dce1;border-radius:7px;overflow:hidden;background:#fff}
+.adm-view-toggle .adm-view-opt{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;font:700 10px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#5b6a78;border:0;border-right:1px solid #d6dce1;background:transparent;cursor:pointer;text-decoration:none}
+.adm-view-toggle .adm-view-opt:last-child{border-right:0}
+.adm-view-toggle .adm-view-opt:hover{color:#0e1a26}
+.adm-view-toggle .adm-view-opt.is-active{background:#0a1828;color:#fff}
+
+/* Kanban (admin/dashboard home + /tasks kanban view) */
+.adm-tasks-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+.adm-tasks-col{background:transparent;min-width:0}
+.adm-tasks-col h3{font-family:Fraunces,Georgia,serif;font-size:15px;font-weight:500;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.adm-tasks-col h3 .ct{font-size:11px;background:#f1ede2;color:#5b6a78;padding:2px 8px;border-radius:10px;font-weight:600;letter-spacing:.3px}
+.adm-tasks-col .adm-task{margin-bottom:8px;border-radius:10px;border:1px solid rgba(14,26,38,.06);background:#fff}
+.adm-tasks-col .adm-task b{font-size:12.5px;font-weight:600}
+@media(max-width:900px){.adm-tasks-cols{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.adm-tasks-cols{grid-template-columns:1fr}}
+
+/* Reports — top agent panel */
+.adm-rp-topagent{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;padding:16px;background:linear-gradient(135deg,#fff 0%,#faf3df 100%);border:1px solid #dabc88;border-radius:14px;box-shadow:0 6px 22px rgba(154,122,46,.08)}
+.adm-rp-topagent .av{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font:700 18px Fraunces,Georgia,serif;background:#0a1828;color:#dabc88;box-shadow:0 0 0 3px #dabc8855}
+.adm-rp-topagent .name{font-family:Fraunces,Georgia,serif;font-size:22px;letter-spacing:-.5px;color:#0a1828;margin:0}
+.adm-rp-topagent .meta{font:600 11px Manrope,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#9a7a2e;margin-top:4px}
+.adm-rp-topagent .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}
+.adm-rp-topagent .nums div b{display:block;font:700 18px Manrope,sans-serif;color:#0a1828}
+.adm-rp-topagent .nums div span{font:600 10px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#5b6a78}
+.adm-rp-topagent .crown{color:#dabc88;margin-right:6px;vertical-align:-2px}
+
+/* Team — add/remove controls */
+.adm-team-form{background:#fff;border:1px solid rgba(14,26,38,.08);border-radius:12px;padding:16px;margin-bottom:18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:end}
+.adm-team-form label{display:block;font:600 10px Manrope,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#5b6a78;margin-bottom:4px}
+.adm-team-form input,.adm-team-form select{height:42px;border:1px solid #d6dce1;border-radius:7px;background:#fff;color:var(--ink);padding:0 12px;font:14px 'DM Sans',sans-serif;outline:0;width:100%}
+.adm-team-form input:focus,.adm-team-form select:focus{border-color:#9a7642;box-shadow:0 0 0 3px #9a764226}
+.adm-team-form .adm-team-form-submit{grid-column:1 / -1;justify-self:start;display:flex;gap:8px;align-items:center}
+.adm-team-form .adm-form-msg{font:600 11px Manrope,sans-serif;letter-spacing:.04em;color:#2f8a5b}
+.adm-team-form .adm-form-err{font:600 11px Manrope,sans-serif;letter-spacing:.04em;color:#a63b37}
+.adm-team-table .adm-row-remove{background:transparent;border:1px solid #d6dce1;color:#a63b37;border-radius:7px;padding:6px 10px;font:700 10px Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.adm-team-table .adm-row-remove:hover{background:#a63b37;color:#fff;border-color:#a63b37}
+@media(max-width:900px){.adm-team-form{grid-template-columns:repeat(2,1fr)}}
+
+/* Clients upload widget */
+.adm-clients-upload{background:#fff;border:1px dashed #dabc88;border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.adm-clients-upload .ico{width:38px;height:38px;border-radius:10px;background:#faf3df;display:grid;place-items:center;color:#9a7a2e;flex:0 0 38px}
+.adm-clients-upload .t{font:700 13px Manrope,sans-serif;color:#0a1828}
+.adm-clients-upload .d{font:12px DM Sans;color:#5b6a78;margin-top:2px}
+.adm-clients-upload form{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.adm-clients-upload input[type=file]{font:12px DM Sans;color:#5b6a78}
+.adm-clients-upload .adm-btn-ghost{background:#f1ede2;color:#0e1a26;box-shadow:none;border:1px solid #d6dce1}
+.adm-import-results{margin-top:14px;background:#fff;border:1px solid rgba(14,26,38,.08);border-radius:12px;padding:14px}
+.adm-import-results h3{margin:0 0 8px;font:700 13px Manrope,sans-serif;letter-spacing:.04em;color:#0a1828}
+.adm-import-results ul{margin:0;padding-left:18px;font:12px DM Sans;color:#5b6a78}
+.adm-import-results li.ok{color:#2f8a5b}
+.adm-import-results li.err{color:#a63b37}
+</appendText>
+</invoke>
