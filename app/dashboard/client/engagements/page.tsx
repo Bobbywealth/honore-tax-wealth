@@ -356,7 +356,7 @@ export default async function ClientEngagementsPage() {
           <li>
             <span>01</span>
             <div><strong>Tell us what you need</strong><p>Request a consultation for individual filing, business taxes, or planning.</p></div>
-            <Link href="/#contact" aria-label="Request a consultation"><ArrowUpRight size={20} /></Link>
+            <button type="button" className="dashboard-button" data-open-consultation aria-label="Request a consultation">Request a consultation <ArrowUpRight size={16} aria-hidden="true" /></button>
           </li>
           <li>
             <span>02</span>

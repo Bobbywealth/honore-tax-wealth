@@ -142,7 +142,20 @@ export default function DashboardShell({
             <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
           </Link>
           <span>{audience} dashboard</span>
-          {userLabel ? <span className="dashboard-user">{userLabel}</span> : null}
+          {userLabel ? (
+            <details className="dashboard-account" aria-label="Account menu">
+              <summary>
+                <span>{userLabel}</span>
+              </summary>
+              <div className="dashboard-account-menu" role="menu">
+                <a href="/dashboard/profile" role="menuitem">Profile</a>
+                <a href="/account/change-password" role="menuitem">Change password</a>
+                <form action="/api/auth/logout" method="post">
+                  <button type="submit" className="danger" role="menuitem">Sign out</button>
+                </form>
+              </div>
+            </details>
+          ) : null}
         </header>
         <div className="dashboard-content">
           <div className="dashboard-heading">
