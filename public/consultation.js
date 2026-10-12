@@ -216,6 +216,18 @@
     observer.observe(hero);
   }
 
+  // Floating consultation pill — tuck it above the footer tagline once the
+  // footer enters the viewport so the 'PLAN. PREPARE. MOVE FORWARD.' line
+  // isn't ever clipped by the pill.
+  const pill=document.querySelector('.honore-floating-cta');
+  const footer=document.querySelector('.honore-footer');
+  if(pill && footer && 'IntersectionObserver' in window){
+    const footerObserver=new IntersectionObserver(entries=>{
+      pill.classList.toggle('is-above-footer', entries[0].isIntersecting && entries[0].intersectionRatio > 0.05);
+    },{threshold:[0,0.05,0.2]});
+    footerObserver.observe(footer);
+  }
+
   // Nav scroll state
   addEventListener('scroll',()=>{document.body.classList.toggle('nav-scrolled',scrollY>10)},{passive:true});
 
