@@ -76,24 +76,61 @@
         if(serviceSelect) serviceSelect.value=card.dataset.value;
       });
     });
-    // Stepper
+    // Stepper — 5 individual steps: name, email, phone, service, notes
     const steps=dialog.querySelectorAll('.form-step');
     const panels=form.querySelectorAll('.form-panel');
     const goStep=(n)=>{
-      steps.forEach(s=>{const on=Number(s.dataset.step)===n; s.classList.toggle('active',on); s.setAttribute('aria-selected',String(on));});
+      steps.forEach(s=>{const stepNum=Number(s.dataset.step);const on=stepNum===n;const past=stepNum<n;s.classList.toggle('active',on);s.classList.toggle('done',past);s.setAttribute('aria-selected',String(on));});
       panels.forEach(p=>p.classList.toggle('hidden',Number(p.dataset.panel)!==n));
       const summary=document.getElementById('selected-service-summary');if(summary)summary.textContent='Selected service: '+(serviceSelect?.value||'Not selected');
-      form.querySelector('[data-panel="'+n+'"] input, [data-panel="'+n+'"] textarea')?.focus({preventScroll:true});dialog.scrollTop=0;
+      const active=form.querySelector('[data-panel="'+n+'"]');
+      const field=active?.querySelector('input, select, textarea');
+      if(field){field.focus({preventScroll:true});}
+      dialog.scrollTop=0;
+    };
+    // Per-step validation: validate the single field in the current panel before advancing
+    const validateCurrentStep=()=>{
+      const active=form.querySelector('.form-panel:not(.hidden)');
+      if(!active) return true;
+      const field=active.querySelector('input, select, textarea');
+      if(!field) return true;
+      if(!field.checkValidity()){field.reportValidity();return false;}
+      return true;
     };
     form.querySelectorAll('[data-next]').forEach(b=>b.addEventListener('click',()=>{
-      // Validate step 1 fields before moving on
-      const step1=form.querySelector('[data-panel="1"]');
-      const fields=step1?step1.querySelectorAll('input, select'):[];
-      let ok=true; fields.forEach(f=>{if(!f.checkValidity()){f.reportValidity();ok=false;}});
-      if(ok) goStep(Number(b.dataset.next));
+      if(!validateCurrentStep()) return;
+      // For step 4, the next target is step 5 (notes) regardless of button data-next
+      const currentPanel=form.querySelector('.form-panel:not(.hidden)');
+      const next=Number(b.dataset.next)||Number(currentPanel?.dataset.panel)+1;
+      goStep(next);
     }));
-    form.querySelectorAll('[data-prev]').forEach(b=>b.addEventListener('click',()=>goStep(Number(b.dataset.prev))));
-    steps.forEach(s=>s.addEventListener('click',()=>{if(Number(s.dataset.step)===1)goStep(1);else form.querySelector('[data-next]')?.click();}));
+    form.querySelectorAll('[data-prev]').forEach(b=>b.addEventListener('click',()=>{
+      const currentPanel=form.querySelector('.form-panel:not(.hidden)');
+      const prev=Number(b.dataset.prev)||Math.max(1,Number(currentPanel?.dataset.panel)-1);
+      goStep(prev);
+    }));
+    // Enter key advances to the next step (if current field is valid)
+    form.addEventListener('keydown',(e)=>{
+      if(e.key!=='Enter') return;
+      const tag=(e.target?.tagName||'').toLowerCase();
+      if(tag==='textarea') return; // allow newlines in notes
+      e.preventDefault();
+      const active=form.querySelector('.form-panel:not(.hidden)');
+      if(!active) return;
+      const panelNum=Number(active.dataset.panel);
+      if(panelNum<5){
+        if(!validateCurrentStep()) return;
+        goStep(panelNum+1);
+      } else {
+        // Step 5 (notes) — submit the form
+        form.requestSubmit();
+      }
+    });
+    // Click on a completed step jumps back to it
+    steps.forEach(s=>s.addEventListener('click',()=>{
+      const stepNum=Number(s.dataset.step);
+      if(s.classList.contains('done') || s.classList.contains('active')) goStep(stepNum);
+    }));
     dialog.addEventListener('consultation-open',()=>{goStep(1);feedback.textContent='';});
     // Floating-label sync (works for placeholder-based)
     form.querySelectorAll('.float-field input, .float-field select, .float-field textarea').forEach(el=>{
