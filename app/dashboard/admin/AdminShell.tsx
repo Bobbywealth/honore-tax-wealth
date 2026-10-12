@@ -75,18 +75,18 @@ export default function AdminShell({
         <Group label="Admin" items={ADMIN} currentHref={currentHref} />
 
         <div className="adm-me">
-          <form className="adm-logout-form" action="/api/auth/logout" method="post">
-            <button type="submit" className="adm-logout" aria-label="Sign out" title="Sign out">
-              <LogOut size={14} />
-              <span>Sign out</span>
-            </button>
-          </form>
           <div className="adm-me-row">
             <div className="adm-av">BW</div>
-            <div>
+            <div className="adm-me-info">
               <b>Bobby Wealth</b>
               <div className="adm-sm">Owner · 28 min</div>
             </div>
+            <form className="adm-logout-form" action="/api/auth/logout" method="post">
+              <button type="submit" className="adm-logout" aria-label="Sign out" title="Sign out">
+                <LogOut size={14} />
+                <span>Sign out</span>
+              </button>
+            </form>
           </div>
           <div className="adm-foot">
             <a href="/dashboard"><Home size={13} /> Portal home</a>
