@@ -671,3 +671,13 @@ dialog.consultation-dialog{position:fixed!important;inset:0!important;margin:aut
 .tax-panels{flex-direction:row;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
 @media(max-width:1100px){.tax-panels{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:700px){.tax-panels{grid-template-columns:1fr}}
+
+/* === Hero text contrast patch (dark on dark) === */
+.hero h1{color:#faf6e9 !important;text-shadow:0 2px 24px rgba(7,24,40,.45)}
+.hero h1 em{color:var(--honore-gold) !important;font-style:italic !important}
+.hero-bottom-upgraded p{color:#e8edf3 !important}
+.hero-kicker{color:var(--honore-gold) !important}
+.hero-kicker .line{background:var(--honore-gold) !important}
+.section-top .label,
+[class*="label"]:not(.hero-kicker){color:var(--honore-gold) !important}
+.services .label{color:var(--honore-gold) !important}
