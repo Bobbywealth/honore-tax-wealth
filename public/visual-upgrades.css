@@ -290,3 +290,384 @@ dialog.consultation-dialog{position:fixed!important;inset:0!important;margin:aut
 .honore-agents{padding-block:64px 34px}.honore-agents-panel{margin-top:24px;display:grid;grid-template-columns:1.1fr 1fr;gap:60px;padding:44px;background:#0b1a2a;border:1px solid #31404f;border-radius:16px;color:#f8f7f2}.honore-team-eyebrow{font:700 10px/1.7 Manrope,sans-serif;letter-spacing:.12em;color:#d9b878}.honore-agents h2{font:400 clamp(34px,3.6vw,52px)/1.12 Georgia,serif;letter-spacing:-.035em;margin:18px 0}.honore-agents h2 i{color:#d9b878}.honore-agents-copy>p{font-size:16px;line-height:1.75;color:#ced7df;max-width:500px}.honore-team-cta{display:flex;align-items:center;justify-content:space-between;gap:28px;min-height:50px;margin-top:24px;padding:15px 20px;border:1px solid #d9b878;border-radius:6px;background:#d9b878;color:#0b1a2a;font:800 11px Manrope,sans-serif;letter-spacing:.06em;cursor:pointer}.honore-team-cta:hover{background:#e6cda0}.honore-team-cta:focus-visible{outline:3px solid white;outline-offset:4px}.honore-agent-support{align-self:center}.honore-agent-support>div{display:flex;gap:18px;padding:22px 0;border-bottom:1px solid #ffffff24}.honore-agent-support>div:first-child{padding-top:0}.honore-agent-support>div:last-child{border-bottom:0;padding-bottom:0}.honore-agent-support>div>span{color:#d9b878;font:700 11px Manrope,sans-serif;padding-top:5px}.honore-agent-support h3{font:400 24px/1.25 Georgia,serif;margin:0 0 8px}.honore-agent-support p{font-size:14px;line-height:1.7;color:#ced7df;margin:0}.people.honore-owners{display:grid;grid-template-columns:.9fr 1.4fr;align-items:center;gap:44px;padding-block:34px 64px!important}.honore-owners h2{font:400 clamp(28px,3vw,38px)/1.2 Georgia,serif!important;letter-spacing:-.025em!important;margin:14px 0}.honore-owners-intro p{font-size:15px;line-height:1.7;color:#53606d;max-width:340px}.honore-owner-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.honore-owner-card{margin:0;display:flex;align-items:center;gap:16px;padding:14px;border:1px solid #e0d8c8;border-radius:12px;background:#fff;min-width:0}.honore-owner-card img{width:110px;height:144px;flex:0 0 110px;object-fit:cover;object-position:center top;border-radius:7px}.honore-owner-card figcaption{min-width:0}.honore-owner-card strong{display:block;font:800 11px/1.5 Manrope,sans-serif;letter-spacing:.06em;color:#172435}.honore-owner-card figcaption span{display:block;margin-top:6px;font:400 18px Georgia,serif;color:#80623a}
 @media(max-width:1100px){.people.honore-owners{grid-template-columns:1fr;gap:24px}.honore-owner-grid{max-width:740px}.honore-owners-intro p{max-width:600px}}
 @media(max-width:700px){.honore-agents{padding-block:44px 22px}.honore-agents-panel{grid-template-columns:1fr;gap:30px;padding:26px 22px;border-radius:12px}.honore-agents h2{font-size:34px}.honore-team-cta{width:100%;gap:12px}.honore-agent-support h3{font-size:22px}.people.honore-owners{padding-block:22px 44px!important;gap:20px}.honore-owner-grid{gap:12px}.honore-owner-card{display:block;padding:12px}.honore-owner-card img{width:100%;height:156px;object-fit:cover}.honore-owner-card figcaption{padding-top:12px}.honore-owner-card strong{font-size:10px}.honore-owner-card figcaption span{font-size:16px}}
+
+/* === Visual refresh: premium navy + warm-gold accent system (replaces washed tan) === */
+:root{--honore-navy:#0a1828;--honore-navy-2:#0e2235;--honore-navy-3:#152a3f;--honore-ink:#172435;--honore-paper:#faf9f5;--honore-gold:#d9b878;--honore-gold-bright:#e8c98f;--honore-gold-soft:#f0dcaa;--honore-line:rgba(217,184,120,.32);--honore-line-bright:rgba(217,184,120,.55);--honore-cream:#fbf7ec}
+
+/* --- Display & body typography: tighter, brighter, more confident --- */
+.hero h1,
+.statement h2,
+.services h2,
+.people h2,
+.prepare h2,
+.faq h2,
+.final-cta h2,
+.honore-agents h2,
+.honore-owners h2,
+.experience h2{
+  font-family:Georgia,"Times New Roman",serif;
+  font-weight:500;
+  letter-spacing:-.045em;
+  color:var(--honore-ink);
+}
+.hero h1 em,
+.statement h2 i,
+.services h2 i,
+.people h2 i,
+.prepare h2 i,
+.faq h2 i,
+.final-cta h2 i,
+.honore-agents h2 i,
+.honore-owners h2 i,
+.experience h2 i{font-style:italic;color:var(--honore-gold);font-weight:500}
+.label,
+.hero-kicker,
+.services-overline,
+.experience-eyebrow,
+.honore-team-eyebrow,
+.form-head>.label{
+  font:700 10px/1.6 Manrope,system-ui,sans-serif;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.label{color:var(--honore-gold)}
+.hero-kicker{color:var(--honore-gold)}
+
+/* --- PRIMARY BUTTON: rich navy with gold hairline + gold gradient hover --- */
+.hero-primary,
+.primary-btn,
+.cta-links .primary-btn,
+.form-submit,
+.form-next{
+  display:inline-flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  min-height:54px;
+  padding:0 22px;
+  border:1px solid var(--honore-gold);
+  border-radius:2px;
+  background:linear-gradient(180deg,var(--honore-navy-2) 0%,var(--honore-navy) 100%);
+  color:#faf6e9;
+  font:700 11px/1 Manrope,system-ui,sans-serif;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  text-decoration:none;
+  cursor:pointer;
+  position:relative;
+  transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s,background .25s,color .25s;
+  box-shadow:0 1px 0 0 var(--honore-gold) inset, 0 6px 18px -8px rgba(10,24,40,.55);
+}
+.hero-primary::after,
+.primary-btn::after,
+.cta-links .primary-btn::after,
+.form-submit::after,
+.form-next::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:-3px;height:2px;
+  background:var(--honore-gold);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .35s cubic-bezier(.22,1,.36,1);
+}
+.hero-primary:hover,
+.primary-btn:hover,
+.cta-links .primary-btn:hover,
+.form-submit:hover,
+.form-next:hover{
+  background:linear-gradient(180deg,var(--honore-gold-bright) 0%,var(--honore-gold) 100%);
+  color:var(--honore-navy);
+  transform:translateY(-2px);
+  box-shadow:0 1px 0 0 var(--honore-gold-bright) inset, 0 12px 28px -10px rgba(217,184,120,.55);
+}
+.hero-primary:hover::after,
+.primary-btn:hover::after,
+.cta-links .primary-btn:hover::after,
+.form-submit:hover::after,
+.form-next:hover::after{transform:scaleX(1)}
+
+/* --- SECONDARY / GHOST BUTTON: thin gold border, transparent fill --- */
+.hero-secondary,
+.secondary-btn,
+.nav-book,
+.cta-links .secondary-btn,
+.footer-cta,
+.login-simple-form button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  min-height:54px;
+  padding:0 22px;
+  border:1px solid var(--honore-line-bright);
+  border-radius:2px;
+  background:transparent;
+  color:#faf6e9;
+  font:700 11px/1 Manrope,system-ui,sans-serif;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  text-decoration:none;
+  cursor:pointer;
+  transition:all .25s cubic-bezier(.22,1,.36,1);
+}
+.hero-secondary:hover,
+.secondary-btn:hover,
+.nav-book:hover,
+.cta-links .secondary-btn:hover,
+.footer-cta:hover,
+.login-simple-form button:hover{
+  background:var(--honore-gold);
+  border-color:var(--honore-gold);
+  color:var(--honore-navy);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px -8px rgba(217,184,120,.6);
+}
+
+/* --- HERO TAX STRIP CARDS: gold top-edge accent, navy fill, no tan --- */
+.hero-tax-strip{
+  background:transparent !important;
+  border:0 !important;
+  gap:14px !important;
+  padding:0 !important;
+}
+.hero-tax-strip button{
+  position:relative;
+  background:rgba(11,26,42,.78) !important;
+  color:#faf6e9 !important;
+  border:1px solid var(--honore-line) !important;
+  border-top:2px solid var(--honore-gold) !important;
+  border-radius:4px !important;
+  padding:18px 20px !important;
+  min-height:96px !important;
+  transition:all .3s cubic-bezier(.22,1,.36,1) !important;
+  backdrop-filter:blur(6px);
+}
+.hero-tax-strip button::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(217,184,120,0) 0%,rgba(217,184,120,.12) 100%);
+  opacity:0;
+  transition:opacity .3s;
+  pointer-events:none;
+  border-radius:4px;
+}
+.hero-tax-strip button:hover{
+  background:var(--honore-navy-2) !important;
+  border-color:var(--honore-gold) !important;
+  transform:translateY(-3px);
+  box-shadow:0 14px 32px -12px rgba(217,184,120,.45);
+}
+.hero-tax-strip button:hover::before{opacity:1}
+.hero-tax-strip strong{
+  font:700 11px/1.5 Manrope,sans-serif !important;
+  letter-spacing:.18em !important;
+  color:var(--honore-gold) !important;
+  text-transform:uppercase !important;
+}
+.hero-tax-strip span{
+  color:#e2e6ec !important;
+  font-size:13px !important;
+  line-height:1.4 !important;
+  margin-top:10px !important;
+}
+
+/* --- FOOTER CTA: remove tan override, use ghost style --- */
+.footer-cta{
+  background:transparent !important;
+  color:var(--honore-navy) !important;
+  border:1px solid var(--honore-navy) !important;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+  border-radius:2px !important;
+  padding:16px 22px !important;
+  min-height:54px;
+  transition:all .25s;
+}
+.footer-cta:hover{
+  background:var(--honore-navy) !important;
+  color:var(--honore-gold) !important;
+  border-color:var(--honore-navy) !important;
+}
+
+/* --- TAX PANEL SERVICE CARDS: editorial, no tan fills --- */
+.tax-panel,
+.tax-panel:nth-child(2),
+.tax-panel:nth-child(3),
+.tax-panel:nth-child(4){
+  background:#fff !important;
+  color:var(--honore-ink) !important;
+  border:1px solid #e8e2d0 !important;
+  border-top:2px solid var(--honore-gold) !important;
+  border-radius:4px !important;
+  padding:30px 28px !important;
+  box-shadow:0 1px 0 var(--honore-line);
+  transition:all .3s;
+}
+.tax-panel:hover{
+  transform:translateY(-3px);
+  box-shadow:0 18px 40px -16px rgba(10,24,40,.18);
+  border-color:var(--honore-gold) !important;
+}
+.tax-panel button,
+.service-detail-link,
+.tax-panel .service-detail-link,
+.tax-panels button{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:14px !important;
+  margin-top:auto;
+  padding:12px 0 !important;
+  background:transparent !important;
+  border:0 !important;
+  border-bottom:1px solid var(--honore-gold) !important;
+  border-radius:0 !important;
+  color:var(--honore-navy) !important;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+  min-height:auto !important;
+  height:auto !important;
+  transition:gap .25s, color .25s;
+}
+.tax-panel button:hover,
+.service-detail-link:hover{
+  gap:22px !important;
+  color:var(--honore-gold) !important;
+}
+
+/* --- UNDER-LINK (SEE HOW WE HELP) — premium underline reveal --- */
+.under-link{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  padding:8px 0;
+  position:relative;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+  color:var(--honore-navy) !important;
+  text-decoration:none !important;
+}
+.under-link::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:1px;
+  background:var(--honore-gold);
+  transform:scaleX(.35);
+  transform-origin:left;
+  transition:transform .3s;
+}
+.under-link:hover::after{transform:scaleX(1)}
+
+/* --- AGENTS PANEL CTA: gold border, navy text, premium --- */
+.honore-team-cta{
+  background:transparent !important;
+  border:1px solid var(--honore-gold) !important;
+  color:var(--honore-gold) !important;
+  border-radius:2px !important;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+  padding:16px 22px !important;
+  min-height:54px;
+  transition:all .25s;
+}
+.honore-team-cta:hover{
+  background:var(--honore-gold) !important;
+  color:var(--honore-navy) !important;
+}
+
+/* --- EXPERIENCE BUTTONS: clean ghost --- */
+.experience-steps button,
+.experience button,
+[data-open-consultation].experience{
+  background:transparent !important;
+  color:var(--honore-navy) !important;
+  border:1px solid var(--honore-navy) !important;
+  border-radius:2px !important;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+  padding:18px 22px !important;
+  transition:all .25s;
+}
+.experience-steps button:hover,
+.experience button:hover{
+  background:var(--honore-navy) !important;
+  color:var(--honore-gold) !important;
+}
+
+/* --- HEADER NAV BOOK BUTTON: gold ghost, premium --- */
+.nav-book{
+  background:transparent !important;
+  color:var(--honore-ink) !important;
+  border:1px solid var(--honore-gold) !important;
+  border-radius:2px !important;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+  padding:14px 18px !important;
+  min-height:48px;
+  transition:all .25s;
+}
+.nav-book:hover{
+  background:var(--honore-gold) !important;
+  color:var(--honore-navy) !important;
+}
+
+/* --- MOBILE ACTION BAR: navy bar with gold CTA --- */
+.mobile-action-bar{
+  background:var(--honore-navy) !important;
+  border-top:1px solid var(--honore-gold) !important;
+  padding:14px 18px !important;
+}
+.mobile-action-bar button{
+  background:var(--honore-gold) !important;
+  color:var(--honore-navy) !important;
+  border:0 !important;
+  border-radius:2px !important;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+  padding:18px 22px !important;
+  min-height:54px;
+  width:100%;
+  transition:all .2s;
+}
+.mobile-action-bar button:hover{background:var(--honore-gold-bright) !important}
+
+/* --- HERO MOBILE CTA (visible on small screens) --- */
+.hero-mobile-cta{
+  background:transparent !important;
+  color:#faf6e9 !important;
+  border:1px solid var(--honore-gold) !important;
+  border-radius:2px !important;
+  font:700 11px/1 Manrope,system-ui,sans-serif !important;
+  letter-spacing:.16em !important;
+  text-transform:uppercase !important;
+  padding:18px 22px !important;
+  min-height:54px;
+  transition:all .25s;
+}
+.hero-mobile-cta:hover{
+  background:var(--honore-gold) !important;
+  color:var(--honore-navy) !important;
+}
+
+/* --- FAQ SUMMARY CHEVRON: subtle gold --- */
+.faq-list summary{transition:color .2s}
+.faq-list summary:hover{color:var(--honore-gold)}
+.faq-list details[open] summary{color:var(--honore-gold)}
+
+/* --- GOLD ACCENT: hairline divider on selected sections --- */
+.tax-panels,
+.hero-cta-row,
+.services-intro,
+.cta-links{display:flex}
+.tax-panels{flex-direction:row;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:1100px){.tax-panels{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.tax-panels{grid-template-columns:1fr}}
