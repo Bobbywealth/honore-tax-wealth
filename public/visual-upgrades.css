@@ -748,3 +748,40 @@ header.nav .mobile-menu:hover{
   .hero-tax-strip strong{font-size:12px!important}
   .hero-tax-strip span{font-size:13px!important}
 }
+
+/* --- IN-PAGE CTA BANNERS: actionable surfaces between sections --- */
+.honore-cta-banner{padding:48px 0}
+.honore-cta-banner .honore-cta-banner-card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;padding:48px 36px;background:linear-gradient(135deg,#fbf8f0 0%,#f6f1e7 100%);border:1px solid #d9b87866;border-radius:22px;box-shadow:0 12px 36px rgba(14,26,38,.08);max-width:1100px;margin:0 auto}
+.honore-cta-banner .label{color:#80623a;font-size:11px;letter-spacing:.16em}
+.honore-cta-banner h2{font:400 clamp(28px,3.4vw,44px)/1.12 Georgia,serif;letter-spacing:-.035em;color:#0b1a2a;margin:0;max-width:760px}
+.honore-cta-banner h2 i{color:#b88a3c;font-style:italic}
+.honore-cta-banner p{font-size:16px;line-height:1.65;color:#3b4a5b;max-width:620px;margin:0}
+.honore-cta-banner-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px;margin-top:6px}
+.honore-cta-banner-primary{display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:54px;padding:16px 28px;border:1px solid #b88a3c;border-radius:6px;background:linear-gradient(135deg,#e8c98f 0%,#b88a3c 100%);color:#0b1a2a;font:800 12px/1 Manrope,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 26px rgba(184,138,60,.45);transition:transform .2s}
+.honore-cta-banner-primary:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(184,138,60,.55)}
+.honore-cta-banner-link{display:inline-flex;align-items:center;gap:8px;padding:14px 20px;color:#0b1a2a;font:700 11px/1 Manrope,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid #b88a3c}
+.honore-cta-banner-link:hover{color:#b88a3c}
+
+.honore-cta-banner-dark .honore-cta-banner-card{background:linear-gradient(135deg,#0e2235 0%,#0a1828 100%);border:1px solid #d9b87855;box-shadow:0 12px 36px rgba(0,0,0,.35)}
+.honore-cta-banner-dark .label{color:#d9b878}
+.honore-cta-banner-dark h2{color:#f8f7f2}
+.honore-cta-banner-dark p{color:#cdd5dd}
+.honore-cta-banner-dark .honore-cta-banner-link{color:#f8f7f2;border-bottom-color:#d9b878}
+.honore-cta-banner-dark .honore-cta-banner-link:hover{color:#d9b878}
+
+/* --- PERSISTENT FLOATING CTA: bottom-right on every viewport --- */
+.honore-floating-cta{position:fixed;right:20px;bottom:20px;z-index:75;display:inline-flex;align-items:center;gap:10px;padding:14px 22px;min-height:52px;border:1px solid #b88a3c;border-radius:999px;background:linear-gradient(135deg,#e8c98f 0%,#b88a3c 100%);color:#0b1a2a;font:800 12px/1 Manrope,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 12px 32px rgba(184,138,60,.5),0 4px 12px rgba(0,0,0,.25);transition:transform .2s,box-shadow .2s}
+.honore-floating-cta:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(184,138,60,.6),0 6px 16px rgba(0,0,0,.3)}
+.honore-floating-cta-dot{width:10px;height:10px;border-radius:50%;background:#0b1a2a;display:inline-block;box-shadow:0 0 0 4px rgba(10,24,40,.18);animation:honore-floating-pulse 2.2s ease-in-out infinite}
+@keyframes honore-floating-pulse{0%,100%{box-shadow:0 0 0 4px rgba(10,24,40,.18)}50%{box-shadow:0 0 0 8px rgba(10,24,40,0)}}
+
+@media(max-width:700px){
+  .honore-floating-cta{right:14px;bottom:calc(76px + env(safe-area-inset-bottom));padding:12px 18px;min-height:46px;font-size:11px;letter-spacing:.1em}
+  .honore-cta-banner{padding:32px 0}
+  .honore-cta-banner .honore-cta-banner-card{padding:32px 22px;border-radius:18px}
+  .honore-cta-banner h2{font-size:24px}
+  .honore-cta-banner p{font-size:15px}
+  .honore-cta-banner-actions{flex-direction:column;gap:10px;width:100%}
+  .honore-cta-banner-primary{width:100%;min-height:50px}
+  .honore-cta-banner-link{padding:10px 16px}
+}
