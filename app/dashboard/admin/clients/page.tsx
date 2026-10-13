@@ -1,4 +1,4 @@
-import { Search, Filter, Upload } from "lucide-react";
+import { Search, Filter, Upload, Plus } from "lucide-react";
 import { and, count, desc, eq, ilike, inArray, isNull, or, sql, sum, type SQL } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
@@ -37,7 +37,7 @@ function initials(name: string): string {
  * return counts. Revenue is not shown here at all: the schema has no
  * billed-lifetime field, so any number displayed would have been invented.
  */
-export default async function ClientsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string; imported?: string; errors?: string; report?: string }> }) {
+export default async function ClientsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string; imported?: string; errors?: string; report?: string; new?: string; created?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
@@ -48,6 +48,8 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
   const status = params.status ?? "";
+  const showForm = params.new === "1";
+  const justCreated = params.created === "1";
   const importedCount = Number(params.imported ?? 0);
   const importErrorCount = Number(params.errors ?? 0);
   let importReport: Array<{ row: number; message: string }> = [];
@@ -196,7 +198,38 @@ const navCounts = await loadAdminNavCounts();
             {unavailable ? "Unavailable" : `${rows.length} shown · ${totalAll} total`}
           </div>
         </div>
+        <a className="adm-btn" href="?new=1" title="Add a client manually">
+          <Plus size={13} /> Add client
+        </a>
       </div>
+
+      {justCreated ? (
+        <div className="adm-import-results">
+          <h3>Client added.</h3>
+        </div>
+      ) : null}
+
+      {showForm ? (
+        <form className="adm-quick-form" action="/api/admin/clients" method="post">
+          <div className="adm-quick-form-row">
+            <label>Display name<input name="displayName" required minLength={2} maxLength={120} autoComplete="off" placeholder="e.g. Jordan Rivera" /></label>
+            <label>Email<input name="email" type="email" maxLength={180} autoComplete="email" placeholder="Optional" /></label>
+          </div>
+          <div className="adm-quick-form-row">
+            <label>Phone<input name="phone" type="tel" maxLength={30} autoComplete="tel" placeholder="Optional" /></label>
+            <label>Status
+              <select name="status" defaultValue="prospect">
+                <option value="prospect">Prospect</option>
+                <option value="active">Active</option>
+              </select>
+            </label>
+          </div>
+          <div className="adm-quick-form-actions">
+            <button type="submit" className="adm-btn">Add client</button>
+            <a className="adm-btn adm-btn-ghost" href="/dashboard/admin/clients">Cancel</a>
+          </div>
+        </form>
+      ) : null}
 
       <div className="adm-clients-upload">
         <div className="ico"><Upload size={18} aria-hidden="true" /></div>

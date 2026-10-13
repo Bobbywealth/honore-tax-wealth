@@ -276,6 +276,7 @@ const navCounts = await loadAdminNavCounts();
                 list.map((t) => {
                   const due = dueLabel(t.dueAt);
                   const amt = t.amount ? `$${t.amount.toLocaleString("en-US")}` : "—";
+                  const currentKey = STAGES.find((st) => st.dbValue.includes(t.stage))?.key ?? "intake";
                   return (
                     <div key={t.id} className="adm-board-ticket">
                       <b>{t.clientName}</b>
@@ -292,6 +293,30 @@ const navCounts = await loadAdminNavCounts();
                           {t.filedAt ? "✓ Filed" : due.text}
                         </span>
                       </div>
+                      <form
+                        action={`/api/admin/returns/${t.id}/stage`}
+                        method="post"
+                        style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}
+                      >
+                        <select
+                          name="stage"
+                          defaultValue=""
+                          className="adm-clients-filter"
+                          style={{ flex: 1, minWidth: 0, fontSize: 12 }}
+                          required
+                          aria-label={`Move ${t.clientName} ${t.formType} to stage`}
+                        >
+                          <option value="" disabled>Move to…</option>
+                          {STAGES.filter((st) => st.key !== currentKey).map((st) => (
+                            <option key={st.key} value={st.key}>
+                              {st.label}
+                            </option>
+                          ))}
+                        </select>
+                        <button type="submit" className="adm-btn adm-btn-ghost" style={{ padding: "4px 10px", fontSize: 12 }}>
+                          Move
+                        </button>
+                      </form>
                     </div>
                   );
                 })
