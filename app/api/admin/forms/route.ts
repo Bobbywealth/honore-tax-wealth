@@ -12,17 +12,27 @@ export const dynamic = "force-dynamic";
 
 const KINDS = Object.keys(TEMPLATES) as SignableKind[];
 
+/** HTML forms submit every value as a string; treat "" as absent so optional numeric fields validate. */
+const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
+
 const schema = z.object({
   clientId: z.string().uuid(),
   kind: z.enum(KINDS as [SignableKind, ...SignableKind[]]),
   title: z.string().trim().min(2).max(200),
   formData: z.record(z.string(), z.string()).default({}),
-  taxYear: z.number().int().min(2000).max(2100).optional(),
+  taxYear: z.preprocess(emptyToUndefined, z.coerce.number().int().min(2000).max(2100).optional()),
   dueAt: z.string().datetime().optional(),
   expiresAt: z.string().datetime().optional(),
-  requiredSigners: z.number().int().min(1).max(4).default(1),
+  requiredSigners: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).max(4).default(1)),
   bodyOverride: z.string().trim().max(20000).optional(),
 });
+
+/** Parse a year out of a template formData value (e.g. formData.tax_year). */
+function parseTaxYear(value: unknown): number | undefined {
+  if (typeof value !== "string" || value.trim() === "") return undefined;
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 2000 && n <= 2100 ? n : undefined;
+}
 
 function logEvent(event: string, fields: Record<string, unknown>) {
   console.log(JSON.stringify({ ts: new Date().toISOString(), event, ...fields }));
@@ -51,7 +61,22 @@ export async function POST(request: Request) {
     const raw = contentType.includes("application/json")
       ? await request.json()
       : Object.fromEntries((await request.formData()).entries());
-    payload = schema.parse(raw);
+    const flat = raw as Record<string, unknown>;
+    // The admin form posts pre-fill fields as dotted formData.KEY names;
+    // nest them into the formData object the schema expects.
+    const nested: Record<string, string> = {};
+    for (const key of Object.keys(flat)) {
+      if (!key.startsWith("formData.")) continue;
+      const v = flat[key];
+      delete flat[key];
+      if (typeof v === "string" && v !== "") nested[key.slice("formData.".length)] = v;
+    }
+    const existing = flat.formData;
+    flat.formData = {
+      ...(typeof existing === "object" && existing !== null ? (existing as Record<string, string>) : {}),
+      ...nested,
+    };
+    payload = schema.parse(flat);
   } catch (error) {
     logEvent("forms.create.validation_failed", { actor: actor.id, err: (error as Error).message });
     return Response.json({ ok: false, error: "validation_failed" }, { status: 400 });
@@ -75,6 +100,9 @@ export async function POST(request: Request) {
 
     // Build body from template (allow admin override for body)
     const body = payload.bodyOverride ?? template.bodyTemplate(payload.formData, client.displayName);
+    // Single tax-year field lives on the template (e.g. formData.tax_year);
+    // fall back to it for the document's taxYear column when no explicit value was sent.
+    const taxYear = payload.taxYear ?? parseTaxYear(payload.formData.tax_year);
 
     const [row] = await db
       .insert(signableDocuments)
@@ -86,7 +114,7 @@ export async function POST(request: Request) {
         body,
         formData: payload.formData,
         requiredSigners: payload.requiredSigners,
-        taxYear: payload.taxYear ?? null,
+        taxYear: taxYear ?? null,
         dueAt: payload.dueAt ? new Date(payload.dueAt) : null,
         expiresAt: payload.expiresAt ? new Date(payload.expiresAt) : null,
         status: "pending",
