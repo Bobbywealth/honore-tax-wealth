@@ -673,3 +673,34 @@ a.timeline-label:hover{text-decoration:underline;color:#9a7642}
 @media(max-width:700px){
   .chat-popup-header-actions button{width:36px;height:36px}
 }
+
+/* Client appointment request dialog (single-panel, portal only) */
+.appt-req-overlay{position:fixed;inset:0;z-index:80;background:rgba(11,26,42,.55);display:grid;place-items:center;padding:20px;animation:chat-pop .18s ease}
+.appt-req-dialog{width:min(560px,100%);max-height:calc(100vh - 60px);overflow:auto;background:#fff;border-radius:16px;border:1px solid var(--honore-line,#e4e8ed);box-shadow:0 24px 60px rgba(14,26,38,.35);padding:24px}
+.appt-req-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+.appt-req-head h2{font:600 24px Manrope,sans-serif;letter-spacing:0;color:#0b1a2a;margin:8px 0 6px}
+.appt-req-head p{font-size:14px;color:#51606d;margin:0;line-height:1.5}
+.appt-req-close{flex:none;width:36px;height:36px;border-radius:50%;border:1px solid var(--honore-line,#e4e8ed);background:#fff;color:#0b1a2a;display:grid;place-items:center;cursor:pointer}
+.appt-req-close:hover{background:#f1ede2}
+.appt-req-form{display:grid;gap:14px}
+.appt-req-form label{display:grid;gap:5px;font:600 11px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#60717e}
+.appt-req-form input,.appt-req-form select,.appt-req-form textarea{width:100%;height:44px;border:1px solid #d6dce1;border-radius:7px;background:#fff;color:#172a39;padding:0 12px;font:14px 'DM Sans',sans-serif;outline:0;text-transform:none;letter-spacing:0}
+.appt-req-form textarea{height:auto;min-height:80px;padding:10px 12px;resize:vertical}
+.appt-req-form input:focus,.appt-req-form select:focus,.appt-req-form textarea:focus{border-color:#9a7642;box-shadow:0 0 0 3px #9a764226}
+.appt-req-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.appt-req-meeting{border:0;padding:0;margin:0}
+.appt-req-meeting legend{font:600 11px Manrope,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#60717e;margin-bottom:8px;padding:0}
+.appt-req-pills{display:flex;gap:8px;flex-wrap:wrap}
+.appt-req-pill{position:relative;display:inline-flex;cursor:pointer}
+.appt-req-pill input{position:absolute;opacity:0;pointer-events:none}
+.appt-req-pill span{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #d6dce1;background:#fff;font:700 13px Manrope,sans-serif;color:#51606d}
+.appt-req-pill.is-active span{background:linear-gradient(135deg,#0b1a2a 0%,#143a5a 100%);color:#fff;border-color:#0b1a2a}
+.appt-req-form .form-feedback{font:600 13px Manrope,sans-serif;color:#c25a3e;margin:0}
+.appt-req-success{display:grid;gap:10px;justify-items:start}
+.appt-req-success strong{font:600 18px Manrope,sans-serif;color:#0b1a2a}
+.appt-req-success p{margin:0;font-size:14px;color:#51606d;line-height:1.5}
+@media(max-width:700px){
+  .appt-req-dialog{padding:20px 18px}
+  .appt-req-grid-2{grid-template-columns:1fr}
+  .appt-req-form input,.appt-req-form select,.appt-req-form textarea{font-size:16px}
+}
