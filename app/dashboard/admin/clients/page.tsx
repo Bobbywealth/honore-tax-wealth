@@ -294,7 +294,11 @@ const navCounts = await loadAdminNavCounts();
                         <div className="adm-client-cell">
                           <span className="av">{initials(r.displayName)}</span>
                           <div>
-                            <strong>{r.displayName}</strong>
+                            <strong>
+                              <a href={`/dashboard/admin/clients/${r.id}`} className="adm-row-link">
+                                {r.displayName}
+                              </a>
+                            </strong>
                             {r.email ? (
                               <a href={`mailto:${r.email}`} className="adm-card-sub">
                                 {r.email}

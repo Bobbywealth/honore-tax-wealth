@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function ChangePasswordForm({
   userLabel,
@@ -69,39 +70,38 @@ export default function ChangePasswordForm({
       </p>
       <form onSubmit={onSubmit} className="adm-quick-form" aria-label="Change password">
         <div className="adm-quick-form-row">
-          <label htmlFor="current">Current password</label>
-          <input
+          <PasswordInput
             id="current"
-            type="password"
-            autoComplete="current-password"
+            label="Current password"
             value={current}
-            onChange={(e) => setCurrent(e.target.value)}
+            onChange={setCurrent}
+            autoComplete="current-password"
             required
-            minLength={1}
+            disabled={busy}
           />
         </div>
         <div className="adm-quick-form-row">
-          <label htmlFor="next">New password</label>
-          <input
+          <PasswordInput
             id="next"
-            type="password"
-            autoComplete="new-password"
+            label="New password"
             value={next}
-            onChange={(e) => setNext(e.target.value)}
+            onChange={setNext}
+            autoComplete="new-password"
             required
             minLength={12}
+            disabled={busy}
           />
         </div>
         <div className="adm-quick-form-row">
-          <label htmlFor="confirm">Re-type new password</label>
-          <input
+          <PasswordInput
             id="confirm"
-            type="password"
-            autoComplete="new-password"
+            label="Re-type new password"
             value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
+            onChange={setConfirm}
+            autoComplete="new-password"
             required
             minLength={12}
+            disabled={busy}
           />
         </div>
         {feedback ? (
