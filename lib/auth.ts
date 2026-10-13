@@ -374,7 +374,24 @@ async function ensureBootstrapUser(
           requestedRole: role,
         }),
       );
+      return;
     }
+    // Self-heal: if env password is set, keep the stored hash in sync so a rotated
+    // ADMIN_PASSWORD / CLIENT_PASSWORD env var actually takes effect on the next
+    // login attempt instead of leaving the row stuck on an old hash.
+    const newHash = await hashPassword(password);
+    await getDb()
+      .update(users)
+      .set({ passwordHash: newHash, updatedAt: new Date() })
+      .where(eq(users.id, existing[0].id));
+    console.log(
+      JSON.stringify({
+        ts: new Date().toISOString(),
+        event: "auth.bootstrap_password_resynced",
+        role,
+        email: normalizedEmail,
+      }),
+    );
     return;
   }
 
