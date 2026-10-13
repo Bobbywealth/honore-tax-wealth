@@ -925,3 +925,24 @@
 .adm-import-results ul{margin:0;padding-left:18px;font:12px DM Sans;color:#5b6a78}
 .adm-import-results li.ok{color:#2f8a5b}
 .adm-import-results li.err{color:#a63b37}
+
+/* ---- Full mobile audit 2026-10-13 ---------------------------------------
+   Multi-column layouts that had no small-screen handling. */
+
+/* Admin inbox: 3-column master/detail grid -> stack on mobile. The list
+   becomes a capped scroll region so the thread stays reachable below. */
+@media(max-width:720px){
+  .adm-inbox{grid-template-columns:1fr;min-height:0}
+  .adm-inbox-list{max-height:36vh;border-right:0;border-bottom:1px solid #efece3}
+  .adm-inbox-detail{min-width:0}
+}
+
+/* Returns kanban: 6 columns -> stack vertically on mobile. */
+@media(max-width:720px){
+  .adm-board{grid-template-columns:1fr;min-height:0}
+  .adm-board .adm-col{min-height:0}
+}
+
+/* Reports KPI grid: 4 columns -> 2 then 1. */
+@media(max-width:900px){.adm-rp-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.adm-rp-grid{grid-template-columns:1fr}}

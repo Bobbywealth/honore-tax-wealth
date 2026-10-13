@@ -411,7 +411,7 @@
   .dashboard-logo{padding:16px 18px 8px;display:block}
 .dashboard-logo img{max-width:140px;height:auto;display:block;filter:brightness(1.6) contrast(1.1)}
   .dashboard-sidebar-bottom{padding:14px;border-top:1px solid rgba(255,255,255,.08)}
-  .dashboard-mobile-menu-toggle{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--honore-line,#e4e8ed);background:#fff;color:#0b1a2a;cursor:pointer;margin-right:10px}
+  .dashboard-mobile-menu-toggle{display:grid;place-items:center;width:44px;height:44px;border-radius:10px;border:1px solid var(--honore-line,#e4e8ed);background:#fff;color:#0b1a2a;cursor:pointer;margin-right:10px}
   .dashboard-main{margin-left:0 !important;min-height:100vh}
   .dashboard-content{padding:18px 16px 30px !important}
   .dashboard-topbar{padding:14px 16px;display:flex;align-items:center;gap:8px;position:sticky;top:0;background:#fff;z-index:20;border-bottom:1px solid var(--honore-line,#e4e8ed)}
@@ -660,4 +660,16 @@ a.timeline-label:hover{text-decoration:underline;color:#9a7642}
   .chat-popup-body{grid-template-columns:1fr}
   .chat-popup-rail-search{display:none}
   .chat-popup-rail{max-height:30%}
+}
+
+/* ---- Full mobile audit 2026-10-13 ---------------------------------------
+   iOS Safari auto-zooms on focus for inputs with font-size <16px. Bump all
+   dashboard text inputs to 16px at mobile widths. */
+@media(max-width:700px){
+  .dashboard input[type="text"],.dashboard input[type="email"],.dashboard input[type="password"],.dashboard input[type="tel"],.dashboard input[type="number"],.dashboard input[type="search"],.dashboard input[type="url"],.dashboard input[type="date"],.dashboard select,.dashboard textarea{font-size:16px !important}
+}
+
+/* Chat popup header actions: 28px is a small touch target; bump on mobile. */
+@media(max-width:700px){
+  .chat-popup-header-actions button{width:36px;height:36px}
 }
