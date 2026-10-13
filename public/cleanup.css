@@ -496,3 +496,29 @@ img,svg,video,canvas{max-width:100%;height:auto}
 
 /* ====== (former) Hero CTA buttons as cards — removed along with the markup. Kept as no-op in case anything still references these classes. ====== */
 
+/* ====== Header refinement (leap, not iterate) ====== */
+.nav.wrap{position:relative;width:100%;min-height:86px;padding:0 18px;background:#faf9f5;z-index:30;border-bottom:1px solid #eadfc8;box-shadow:0 1px 0 rgba(199,165,105,.18)}
+.nav .brand{align-items:center;display:flex;gap:14px}
+.nav .brand-logo{width:128px;height:84px;filter:drop-shadow(0 2px 6px rgba(11,26,42,.08));transition:transform .25s ease, filter .25s ease}
+.nav .brand:hover .brand-logo{transform:translateY(-1px);filter:drop-shadow(0 4px 12px rgba(11,26,42,.16))}
+.nav nav{gap:30px;align-items:center}
+.nav nav>a{position:relative;padding:10px 4px;color:#3b4a56;font-weight:600;letter-spacing:.01em;transition:color .2s}
+.nav nav>a::after{content:'';position:absolute;left:50%;right:50%;bottom:4px;height:2px;background:#c7a569;transition:left .25s ease,right .25s ease}
+.nav nav>a:hover{color:#0b1a2a}
+.nav nav>a:hover::after{left:0;right:0}
+.nav nav>a.active{color:#0b1a2a;font-weight:700}
+.nav nav>a.active::after{left:0;right:0}
+.nav nav>a.active::before{content:'';position:absolute;top:0;left:50%;width:5px;height:5px;border-radius:50%;background:#c7a569;transform:translateX(-50%)}
+.nav-login{display:inline-flex!important;align-items:center;gap:6px;border:1px solid #d9c9a3;border-radius:10px;padding:10px 14px;background:#fff;font-weight:600;letter-spacing:.01em;transition:background .2s,border-color .2s,color .2s,transform .2s}
+.nav-login:hover{background:#d9b878;border-color:#d9b878;color:#0b1a2a;text-decoration:none;transform:translateY(-1px)}
+.nav-login > span{margin-left:0!important;font-size:12px;opacity:.7;transition:transform .2s,opacity .2s}
+.nav-login:hover > span{transform:translate(1px,-1px);opacity:1}
+.nav-book{display:inline-flex;align-items:center;gap:8px;border:1px solid #c7a569;background:linear-gradient(180deg,#dabc88,#c7a569);color:#0b1a2a;border-radius:10px;padding:12px 18px;min-height:46px;font:800 11px/1 Manrope,sans-serif;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 4px 14px rgba(199,165,105,.28),inset 0 1px 0 rgba(255,255,255,.18);transition:transform .2s,box-shadow .2s,filter .2s}
+.nav-book:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(199,165,105,.42),inset 0 1px 0 rgba(255,255,255,.25);filter:brightness(1.04)}
+.nav-book > span{font-size:14px;margin-left:4px;color:inherit;opacity:.85;transition:transform .2s}
+.nav-book:hover > span{transform:translate(2px,-2px)}
+@media(max-width:1180px){
+  .nav .brand-logo{width:118px;height:77px}
+  .nav nav{gap:22px}
+}
+
