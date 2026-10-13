@@ -74,6 +74,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
     createdAt: Date;
     clientName: string;
   }> = [];
+  let outstandingRequests: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    dueAt: Date | null;
+    createdAt: Date;
+    clientName: string;
+  }> = [];
   let outstanding = 0;
   let unavailable = false;
   let clientOptions: Array<{ id: string; name: string }> = [];
@@ -117,11 +125,28 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
       .orderBy(desc(documents.createdAt))
       .limit(200);
 
-    const reqs = await db
-      .select({ id: documentRequests.id })
+    const reqConditions = [isNull(documentRequests.fulfilledAt)];
+    // Non-admin agents only see requests for clients assigned to them —
+    // same scoping as the documents list above.
+    if (me?.id && me.role !== "admin") {
+      const scoped = await scopedClientIdsFor({ id: me.id, role: me.role });
+      if (scoped !== null) reqConditions.push(inArray(documentRequests.clientId, scoped));
+    }
+    outstandingRequests = await db
+      .select({
+        id: documentRequests.id,
+        title: documentRequests.title,
+        description: documentRequests.description,
+        dueAt: documentRequests.dueAt,
+        createdAt: documentRequests.createdAt,
+        clientName: clients.displayName,
+      })
       .from(documentRequests)
-      .where(isNull(documentRequests.fulfilledAt));
-    outstanding = reqs.length;
+      .innerJoin(clients, eq(clients.id, documentRequests.clientId))
+      .where(and(...reqConditions))
+      .orderBy(desc(documentRequests.createdAt))
+      .limit(100);
+    outstanding = outstandingRequests.length;
 
     if (showForm) {
       const cliRows = await db
@@ -188,6 +213,48 @@ const navCounts = await loadAdminNavCounts();
             <a className="adm-btn adm-btn-ghost" href="/dashboard/admin/documents">Cancel</a>
           </div>
         </form>
+      ) : null}
+
+      {!unavailable && outstandingRequests.length > 0 ? (
+        <section className="adm-card" style={{ marginTop: 14 }}>
+          <h3>Outstanding requests · {outstandingRequests.length}</h3>
+          <div className="adm-table-wrap">
+            <table className="adm-table">
+              <caption className="sr-only">Document requests waiting on clients</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Request</th>
+                  <th scope="col">Client</th>
+                  <th scope="col">Due</th>
+                  <th scope="col">Asked</th>
+                </tr>
+              </thead>
+              <tbody>
+                {outstandingRequests.map((r) => (
+                  <tr key={r.id}>
+                    <td>
+                      <strong>{r.title}</strong>
+                      {r.description ? (
+                        <span className="adm-card-meta">{r.description}</span>
+                      ) : null}
+                    </td>
+                    <td>{r.clientName}</td>
+                    <td>
+                      {r.dueAt ? (
+                        <time dateTime={new Date(r.dueAt).toISOString()}>{formatDate(r.dueAt)}</time>
+                      ) : (
+                        <span className="adm-card-meta">No due date</span>
+                      )}
+                    </td>
+                    <td>
+                      <time dateTime={new Date(r.createdAt).toISOString()}>{formatDate(r.createdAt)}</time>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       ) : null}
 
       {unavailable ? (

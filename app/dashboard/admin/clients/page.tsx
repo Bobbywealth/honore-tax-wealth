@@ -1,6 +1,7 @@
 import { Search, Filter, Upload, Plus } from "lucide-react";
 import { and, count, desc, eq, ilike, inArray, isNull, or, sql, sum, type SQL } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
+import NewClientForm from "./new-client-form";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 import { adminNav } from "../_lib/nav";
 import { checkAdminAccess } from "../auth";
@@ -209,27 +210,7 @@ const navCounts = await loadAdminNavCounts();
         </div>
       ) : null}
 
-      {showForm ? (
-        <form className="adm-quick-form" action="/api/admin/clients" method="post">
-          <div className="adm-quick-form-row">
-            <label>Display name<input name="displayName" required minLength={2} maxLength={120} autoComplete="off" placeholder="e.g. Jordan Rivera" /></label>
-            <label>Email<input name="email" type="email" maxLength={180} autoComplete="email" placeholder="Optional" /></label>
-          </div>
-          <div className="adm-quick-form-row">
-            <label>Phone<input name="phone" type="tel" maxLength={30} autoComplete="tel" placeholder="Optional" /></label>
-            <label>Status
-              <select name="status" defaultValue="prospect">
-                <option value="prospect">Prospect</option>
-                <option value="active">Active</option>
-              </select>
-            </label>
-          </div>
-          <div className="adm-quick-form-actions">
-            <button type="submit" className="adm-btn">Add client</button>
-            <a className="adm-btn adm-btn-ghost" href="/dashboard/admin/clients">Cancel</a>
-          </div>
-        </form>
-      ) : null}
+      {showForm ? <NewClientForm /> : null}
 
       <div className="adm-clients-upload">
         <div className="ico"><Upload size={18} aria-hidden="true" /></div>

@@ -67,7 +67,7 @@ function rangeForMonth(year: number, month0: number) {
   };
 }
 
-export default async function CalendarPage({ searchParams }: { searchParams?: Promise<{ preview?: string; y?: string; m?: string; new?: string }> }) {
+export default async function CalendarPage({ searchParams }: { searchParams?: Promise<{ preview?: string; y?: string; m?: string; new?: string; confirmed?: string; cancelled?: string; error?: string }> }) {
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
 
@@ -80,6 +80,9 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
   const year = sp.y ? parseInt(sp.y, 10) : today.getUTCFullYear();
   const month0 = sp.m ? parseInt(sp.m, 10) - 1 : today.getUTCMonth();
   const showForm = sp.new === "1";
+  const justConfirmed = sp.confirmed === "1";
+  const justCancelled = sp.cancelled === "1";
+  const actionError = sp.error ?? "";
   const { prev, next } = prevNext(year, month0);
   const grid = buildGrid(year, month0);
   const { start, end } = rangeForMonth(year, month0);
@@ -186,6 +189,24 @@ const navCounts = await loadAdminNavCounts();
           <Plus size={13} /> New event
         </a>
       </div>
+
+      {justConfirmed ? (
+        <div className="adm-import-results">
+          <h3>Appointment confirmed.</h3>
+        </div>
+      ) : null}
+
+      {justCancelled ? (
+        <div className="adm-import-results">
+          <h3>Appointment declined.</h3>
+        </div>
+      ) : null}
+
+      {actionError ? (
+        <div className="adm-import-results">
+          <h3>Could not update the appointment ({actionError}). Nothing was changed — try again.</h3>
+        </div>
+      ) : null}
 
       {showForm ? (
         <form className="adm-quick-form" action="/api/admin/appointments" method="post">
