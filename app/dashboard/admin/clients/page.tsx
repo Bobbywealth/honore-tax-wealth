@@ -9,6 +9,7 @@ import { clients, engagements, invoices } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
 import { navForRole } from "../_lib/nav";
+import { scopedClientIdsFor } from "../_lib/scoping";
 
 export const dynamic = "force-dynamic";
 
@@ -85,12 +86,16 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
 
     const base = isNull(clients.archivedAt);
     const conditions: SQL[] = [base];
-    // Non-admin staff (agent / assistant) only see clients whose work
-    // they own — backed by engagements.ownerId. Admins see everything.
-    if (me?.role !== "admin" && me?.id) {
-      conditions.push(
-        sql`exists (select 1 from engagements where engagements.client_id = ${clients.id} and engagements.owner_id = ${me.id} and engagements.archived_at is null)`,
-      );
+    // Non-admin staff (agent / assistant) only see clients explicitly
+    // assigned to them — via clients.owner_id or via any non-archived
+    // engagement's owner_id. Admins see everything. The helper queries
+    // both assignments in two indexed lookups instead of an EXISTS
+    // scan per row, and the resulting array is reused for status chips
+    // below so they count exactly the rows visible on the page.
+    let scopedClientIds: string[] | null = null;
+    if (me?.id) {
+      scopedClientIds = await scopedClientIdsFor({ id: me.id, role: me.role });
+      if (scopedClientIds !== null) conditions.push(inArray(clients.id, scopedClientIds));
     }
     if (query) {
       conditions.push(
@@ -160,10 +165,19 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
     }
 
     for (const f of STATUS_FILTERS) {
+      // Status filter chips count only the rows the user can actually
+      // see. Reuse the scoping computed above so a non-admin never sees
+      // chip counts that exceed the rows they're allowed to view.
       const c = await db
         .select({ n: count() })
         .from(clients)
-        .where(and(base, f.key ? eq(clients.status, f.key) : undefined));
+        .where(
+          and(
+            base,
+            f.key ? eq(clients.status, f.key) : undefined,
+            ...(scopedClientIds !== null ? [inArray(clients.id, scopedClientIds)] : []),
+          ),
+        );
       statusCounts[f.key] = Number(c[0]?.n ?? 0);
     }
     totalAll = statusCounts[""] ?? 0;

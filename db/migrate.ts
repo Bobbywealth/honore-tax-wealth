@@ -148,6 +148,13 @@ const STATEMENTS: string[] = [
    )`,
   `CREATE INDEX IF NOT EXISTS clients_status_idx ON clients (status)`,
   `CREATE INDEX IF NOT EXISTS clients_email_idx ON clients (email)`,
+  // Primary agent column for row-level scoping. Backfilled for existing
+  // deployments so the scoped-clientIds helper can rely on the column.
+  // Partial index keeps the agent-assignment list cheap regardless of
+  // practice size.
+  `ALTER TABLE clients ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES users(id) ON DELETE SET NULL`,
+  `CREATE INDEX IF NOT EXISTS clients_owner_id_idx
+     ON clients (owner_id) WHERE owner_id IS NOT NULL`,
 
   /* Who may see which client. Never authorize by matching email strings. */
   `CREATE TABLE IF NOT EXISTS client_access (

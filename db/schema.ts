@@ -225,6 +225,12 @@ export const clients = pgTable(
     timezone: varchar("timezone", { length: 60 }).notNull().default("America/New_York"),
     notes: text("notes"),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
+    // Primary agent. Row-level scoping lets non-admin staff and assistants
+    // see only the clients they're explicitly assigned to. An engagement's
+    // owner_id is a parallel assignment — a client is visible to an agent
+    // if EITHER the client.owner_id OR any non-archived engagement's
+    // owner_id is the agent.
+    ownerId: uuid("owner_id").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(now),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().default(now),
   },

@@ -53,7 +53,16 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
   const nav = navForRole(me?.role, counts);
   const sp = (await searchParams) ?? {};
   const kanban = sp.view === "kanban";
-  const assigneeFilter = sp.assignee ?? "";
+  // Non-admin agents only see their own tasks. The URL can override to
+  // "all" with ?assignee= (admin-only affordance), but the default — and
+  // anything not explicitly named — is "just me".
+  const rawAssigneeFilter = sp.assignee ?? "";
+  const assigneeFilter =
+    me?.id && me.role !== "admin"
+      ? rawAssigneeFilter === "" || rawAssigneeFilter === "all"
+        ? me.id
+        : rawAssigneeFilter
+      : rawAssigneeFilter;
 
   let open: Row[] = [];
   let done: Row[] = [];

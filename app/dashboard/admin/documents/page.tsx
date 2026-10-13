@@ -1,5 +1,5 @@
 import { Search, Filter, Upload, FileText } from "lucide-react";
-import { and, asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 import { navForRole } from "../_lib/nav";
@@ -8,6 +8,7 @@ import { getDb } from "@/db";
 import { clients, documents, documentRequests } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
+import { scopedClientIdsFor } from "../_lib/scoping";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,13 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
     const db = getDb();
 
     const conditions = [isNull(documents.deletedAt)];
+    // Non-admin agents only see documents for clients assigned to them.
+    // Same helper Clients/Returns pages use — one source of truth for
+    // "is this client visible to this user".
+    if (me?.id && me.role !== "admin") {
+      const scoped = await scopedClientIdsFor({ id: me.id, role: me.role });
+      if (scoped !== null) conditions.push(inArray(documents.clientId, scoped));
+    }
     if (query) {
       conditions.push(
         or(

@@ -1,5 +1,5 @@
 import { Search, Plus, Calendar } from "lucide-react";
-import { eq, sql, desc, and, or, like } from "drizzle-orm";
+import { eq, sql, desc, and, or, like, inArray } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 import { navForRole } from "../_lib/nav";
@@ -8,6 +8,7 @@ import { getDb } from "@/db";
 import { returns, engagements, clients, taxYears } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
+import { scopedClientIdsFor } from "../_lib/scoping";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +91,14 @@ export default async function ReturnsPage({ searchParams }: { searchParams?: Pro
     if (process.env.DATABASE_URL) {
       await ensureMigrated();
       const whereParts = [] as any[];
+      // Non-admin agents only see returns whose underlying client is
+      // assigned to them — via clients.owner_id or engagements.owner_id.
+      // Same helper Clients page uses, so an agent never sees a return
+      // record for a client they aren't responsible for.
+      if (me?.id && me.role !== "admin") {
+        const scoped = await scopedClientIdsFor({ id: me.id, role: me.role });
+        if (scoped !== null) whereParts.push(inArray(engagements.clientId, scoped));
+      }
       if (query) {
         const likeQ = `%${query}%`;
         whereParts.push(or(like(clients.displayName, likeQ), like(engagements.name, likeQ), like(returns.formType, likeQ)));

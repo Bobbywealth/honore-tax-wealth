@@ -17,9 +17,10 @@ import {
   messages,
   returns,
   taxYears,
+  users,
 } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
-import { CalendarDays, ClipboardList, FileText, MessageSquareText, Receipt } from "lucide-react";
+import { CalendarDays, ClipboardList, FileText, MessageSquareText, Receipt, UserRoundCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ type TimelineEvent = {
   href?: string;
 };
 
-export default async function AdminClientDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams?: Promise<{ focus?: string }> }) {
+export default async function AdminClientDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams?: Promise<{ focus?: string; assigned?: string }> }) {
   const user = await currentUser();
   if (!user) redirect("/login?next=/dashboard/admin/clients");
   if (user.role === "client") redirect("/dashboard/client");
@@ -70,6 +71,7 @@ export default async function AdminClientDetailPage({ params, searchParams }: { 
     entityType: string;
     status: string;
     createdAt: Date;
+    ownerId: string | null;
   } | null = null;
   let engagementsRows: Array<{ id: string; name: string; serviceType: string; status: string; progressPercent: number; updatedAt: Date }> = [];
   let taxYearsRows: Array<{ id: string; year: number; filingStatus: string; dueDate: Date | null }> = [];
@@ -81,6 +83,11 @@ export default async function AdminClientDetailPage({ params, searchParams }: { 
   let conversationCount = 0;
   let messageCount = 0;
   let lifetimeSpent = 0;
+  // Assignment UI. The list of assignable agents is admin-only — staff/assistant
+  // never see this control, so the dropdown is empty for them and the form is
+  // suppressed in the render below via `isAdmin`.
+  let agentOptions: Array<{ id: string; displayName: string | null; email: string; role: string }> = [];
+  let currentOwner: { id: string; displayName: string | null; email: string; role: string } | null = null;
   let unavailable = false;
 
   try {
@@ -98,12 +105,42 @@ export default async function AdminClientDetailPage({ params, searchParams }: { 
           entityType: clients.entityType,
           status: clients.status,
           createdAt: clients.createdAt,
+          ownerId: clients.ownerId,
         })
         .from(clients)
         .where(eq(clients.id, id))
         .limit(1);
       if (clientRows.length === 0) notFound();
       client = clientRows[0];
+
+      // Assignable agents: every non-client, non-deactivated user. Admins
+      // pick from the full staff pool; "Unassigned" is the empty value
+      // for temporarily or permanently de-assigning the client.
+      agentOptions = await db
+        .select({
+          id: users.id,
+          displayName: users.displayName,
+          email: users.email,
+          role: users.role,
+        })
+        .from(users)
+        .where(and(sql`${users.deactivatedAt} IS NULL`, sql`${users.role} <> 'client'`))
+        .orderBy(users.displayName, users.email)
+        .limit(200);
+
+      if (client.ownerId) {
+        const ownerRows = await db
+          .select({
+            id: users.id,
+            displayName: users.displayName,
+            email: users.email,
+            role: users.role,
+          })
+          .from(users)
+          .where(eq(users.id, client.ownerId))
+          .limit(1);
+        currentOwner = ownerRows[0] ?? null;
+      }
 
       const egIdsRows = await db
         .select({ id: engagements.id })
@@ -387,6 +424,53 @@ export default async function AdminClientDetailPage({ params, searchParams }: { 
             {client.phone ? <div><dt>Phone</dt><dd><a href={`tel:${client.phone}`}>{client.phone}</a></dd></div> : null}
             <div><dt>Client since</dt><dd>{dateOnly(client.createdAt)}</dd></div>
           </dl>
+
+          {/* ASSIGNMENT: admin-only. Bobby asked for the ability to pin a
+            client to a specific agent; the assignment cascades onto every
+            non-archived engagement for the client so the row-level scoping
+            helper (engagements.owner_id) stays in sync. The form is hidden
+            for any non-admin viewer — they can see WHO handles this client
+            (the read-only assignment row below) but cannot change it. */}
+          {user.role === "admin" ? (
+            <section style={{ marginTop: 18, padding: "14px 16px", border: "1px solid rgba(184,138,60,.35)", borderRadius: 10, background: "rgba(184,138,60,.06)" }} aria-label="Assign to agent">
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, font: "800 12px Manrope", letterSpacing: ".06em", textTransform: "uppercase", color: "#5b6c78" }}>
+                <UserRoundCheck size={14} aria-hidden="true" /> Primary agent
+              </h3>
+              {sp.assigned !== undefined ? (
+                <p className="dashboard-quiet" style={{ margin: "8px 0 0", fontSize: 12, lineHeight: 1.5, color: "#2f8a5b" }}>
+                  {sp.assigned === ""
+                    ? "Unassigned. This client is currently without a primary agent."
+                    : `Saved. ${currentOwner?.displayName || currentOwner?.email || "Agent"} is now the primary agent.`}
+                </p>
+              ) : null}
+              <form action={`/api/admin/clients/${client.id}/assign`} method="post" style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
+                <select name="ownerId" defaultValue={client.ownerId ?? ""} aria-label="Primary agent" style={{ padding: "8px 10px", borderRadius: 6, border: "1px solid rgba(184,138,60,.55)", background: "#fff", color: "#0e1a26", font: "600 13px Manrope" }}>
+                  <option value="">— Unassigned —</option>
+                  {agentOptions.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.displayName || a.email} · {a.role}
+                    </option>
+                  ))}
+                </select>
+                <button type="submit" className="dashboard-button" style={{ background: "#0e1a26", color: "#fff" }}>
+                  Save assignment
+                </button>
+                <p className="dashboard-quiet" style={{ margin: 0, fontSize: 11, lineHeight: 1.4, color: "#5b6c78" }}>
+                  Saves the primary agent and cascades the owner onto every active engagement so the agent's Clients, Returns, Documents, Tasks, and Calendar only show this client's records.
+                </p>
+              </form>
+            </section>
+          ) : currentOwner ? (
+            <section style={{ marginTop: 18, padding: "10px 14px", border: "1px solid rgba(11,26,42,.12)", borderRadius: 10, background: "rgba(11,26,42,.03)" }} aria-label="Assigned agent">
+              <h3 style={{ margin: 0, display: "flex", alignItems: "center", gap: 8, font: "800 11px Manrope", letterSpacing: ".06em", textTransform: "uppercase", color: "#5b6c78" }}>
+                <UserRoundCheck size={13} aria-hidden="true" /> Your assignment
+              </h3>
+              <p style={{ margin: "6px 0 0", fontSize: 13, color: "#0e1a26" }}>
+                {currentOwner.displayName || currentOwner.email}{" "}
+                <span style={{ color: "#5b6c78", fontWeight: 600 }}>· {currentOwner.role}</span>
+              </p>
+            </section>
+          ) : null}
 
           <h3 style={{ marginTop: 22, font: "700 12px Manrope", letterSpacing: ".06em", textTransform: "uppercase", color: "#5b6c78" }}>Quick links</h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>

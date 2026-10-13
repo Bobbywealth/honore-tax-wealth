@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalIcon } from "lucide-react";
-import { and, eq, gte, lt } from "drizzle-orm";
+import { and, eq, gte, inArray, lt, or } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 import { navForRole } from "../_lib/nav";
@@ -8,6 +8,7 @@ import { getDb } from "@/db";
 import { appointments, clients } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
+import { scopedClientIdsFor } from "../_lib/scoping";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +90,20 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
   try {
     if (process.env.DATABASE_URL) {
       await ensureMigrated();
+      // Non-admin agents see only their own calendar — appointments
+      // they're staffing, or that touch one of their assigned clients.
+      // The staff-id leg covers appointments they personally handle
+      // (no client picker needed). The client-id leg covers booked
+      // appointments on a client they're assigned via clients.owner_id
+      // or an engagement's owner_id — same scoping helper everywhere.
+      const apptScope: ReturnType<typeof and> | undefined =
+        me?.id && me.role !== "admin"
+          ? await scopedClientIdsFor({ id: me.id, role: me.role }).then((scoped) =>
+              scoped === null
+                ? undefined
+                : or(eq(appointments.staffId, me.id), inArray(appointments.clientId, scoped)),
+            )
+          : undefined;
       const rows = await getDb()
         .select({
           id: appointments.id,
@@ -99,16 +114,34 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
           status: appointments.status,
         })
         .from(appointments)
-        .where(and(gte(appointments.startsAt, start), lt(appointments.startsAt, end)))
+        .where(
+          and(
+            gte(appointments.startsAt, start),
+            lt(appointments.startsAt, end),
+            apptScope,
+          ),
+        )
         .orderBy(appointments.startsAt);
       appts = rows;
     }
 
     if (showForm) {
+      // The new-appointment form's client picker must only list the
+      // clients this user can actually book an appointment against —
+      // never the full practice roster.
       const cliRows = await getDb()
         .select({ id: clients.id, name: clients.displayName })
         .from(clients)
-        .where(eq(clients.status, "active"))
+        .where(
+          and(
+            eq(clients.status, "active"),
+            me?.id && me.role !== "admin"
+              ? await scopedClientIdsFor({ id: me.id, role: me.role }).then((scoped) =>
+                  scoped === null ? undefined : inArray(clients.id, scoped),
+                )
+              : undefined,
+          ),
+        )
         .orderBy(clients.displayName)
         .limit(200);
       clientList = cliRows;
