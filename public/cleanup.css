@@ -727,3 +727,10 @@ body .login-simple .login-simple-form button[type="submit"]:focus-visible{
 .login-simple-form .password-field .password-toggle{width:32px;height:32px;min-height:0;margin:0;background:transparent;border:0;border-radius:8px;box-shadow:none;padding:0;font-weight:400;letter-spacing:normal;text-transform:none;color:#8a96a3}
 .login-simple-form .password-field .password-toggle:hover:not(:disabled){background:rgba(14,26,38,.06);color:#0e1a26;transform:translateY(-50%);box-shadow:none}
 .login-simple-form .password-field .password-toggle:disabled{background:transparent;color:#8a96a3;opacity:.4}
+
+/* Mobile service cards (2026-10-13): compact single column, hide reason bullets, clear sticky CTA */
+@media(max-width:700px){
+  .tax-panels{grid-template-columns:1fr!important}
+  .tax-panel .panel-detail{display:none!important}
+  .services{padding-bottom:120px}
+}
