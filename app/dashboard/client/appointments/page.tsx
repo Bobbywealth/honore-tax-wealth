@@ -133,8 +133,8 @@ export default async function ClientAppointmentsPage() {
       ) : (
         <section className="dashboard-empty">
           <h2>No upcoming appointments</h2>
-          <p>Request a consultation and the team will confirm a time with you.</p>
-          <button type="button" className="dashboard-button" data-open-consultation>Request a consultation <ArrowUpRight size={16} aria-hidden="true" /></button>
+          <p>Request an appointment and the team will confirm a time with you.</p>
+          <button type="button" className="dashboard-button" data-open-appointment-request>Request an appointment <ArrowUpRight size={16} aria-hidden="true" /></button>
         </section>
       )}
 
