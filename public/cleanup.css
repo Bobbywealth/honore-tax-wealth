@@ -638,6 +638,22 @@ img,svg,video,canvas{max-width:100%;height:auto}
   .experience-scene img{object-position:75% center!important}
 }
 
+/* ====== Mobile CTA — force visible on mobile (overrides visual-upgrades `display:none !important`) ====== */
+.hero .hero-mobile-cta{display:none!important}
+@media(max-width:900px){
+  .hero .hero-mobile-cta{
+    display:flex!important;align-items:center;justify-content:space-between;
+    width:100%;min-height:54px;margin:24px 0 0;padding:0 20px;
+    border:0;background:linear-gradient(135deg,#dabc88,#a87d43);
+    color:#0e1927;
+    font:800 12px/1 Manrope,sans-serif;letter-spacing:.12em;text-transform:uppercase;
+    border-radius:10px;
+    box-shadow:0 6px 18px rgba(168,125,67,.3);
+  }
+  .hero .hero-mobile-cta > span{font-size:16px;margin-left:8px;color:inherit;opacity:.85}
+  .hero .hero-mobile-cta:hover{filter:brightness(1.05)}
+}
+
 /* ====== Final CTA — center the content ====== */
 .final-cta .cta-inner{text-align:center!important}
 .final-cta .cta-inner > .label{display:inline-block!important}
