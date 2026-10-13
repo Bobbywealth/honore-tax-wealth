@@ -9,6 +9,7 @@ import { getDb } from "@/db";
 import { engagements, taxYears, returns, documents, documentRequests, appointments, invoices, conversations } from "@/db/schema";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { ensureMigrated } from "@/db/migrate";
+import { formatServiceType } from "../../_lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -220,7 +221,7 @@ export default async function ClientEngagementsPage() {
             <section key={e.id} className="dashboard-section dashboard-engagement">
               <div className="dashboard-engagement-head">
                 <div>
-                  <span className="dashboard-eyebrow"><ClipboardList size={14} aria-hidden="true" /> {e.serviceType}</span>
+<span className="dashboard-eyebrow"><ClipboardList size={14} aria-hidden="true" /> {formatServiceType(e.serviceType)}</span>
                   <h2>{e.name}</h2>
                 </div>
                 <span className={`dashboard-eng-tag is-${e.status}`}>{ENGAGEMENT_STATUS[e.status] ?? e.status}</span>

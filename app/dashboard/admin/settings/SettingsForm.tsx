@@ -157,7 +157,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
             <b>EIN</b>
             <div className="sm">83-*******</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Reveal%20EIN">Reveal</a>
+          <span className="adm-clients-filter is-disabled" aria-disabled="true">Configure in production</span>
         </div>
         <div className="adm-settings-row">
           <div>
@@ -184,14 +184,14 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
             <b>Document storage</b>
             <div className="sm">Private bucket for client uploads — R2 or S3 credentials required to enable</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Enable%20document%20storage">Set up storage</a>
+          <span className="adm-clients-filter is-disabled" aria-disabled="true">Configure in production</span>
         </div>
         <div className="adm-settings-row" id="team">
           <div>
             <b>Team invitations</b>
             <div className="sm">Send invitation emails to add new staff — requires transactional email configured</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Enable%20team%20invitations">Set up invites</a>
+          <span className="adm-clients-filter is-disabled" aria-disabled="true">Configure in production</span>
         </div>
       </section>
 
@@ -390,12 +390,12 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
             <b>Plan</b>
             <div className="sm">Free · upgrade to Pro for unlimited clients and engagements</div>
           </div>
-          <a className="adm-clients-filter" href="mailto:bobby@wolfpaqmarketing.com?subject=Upgrade%20plan">Upgrade</a>
+          <span className="adm-clients-filter is-disabled" aria-disabled="true">Configure in production</span>
         </div>
         <div className="adm-settings-row">
           <div>
             <b>Invoice history</b>
-            <div className="sm">Past Honore subscriptions to Render and other services. The Render dashboard is workspace-scoped and the link is generated server-side.</div>
+            <div className="sm">Subscription details and billing history live in the admin Console. Ask in #honore-admin for an invite.</div>
           </div>
           <span className="adm-tag" style={{ background: "transparent", color: "#7b858e" }}>Link disabled — open Render directly</span>
         </div>

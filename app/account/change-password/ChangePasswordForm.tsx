@@ -1,111 +1,128 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import PasswordInput from "@/components/PasswordInput";
 
-/**
- * Form for signed-in users to change their own password.
- * Posts JSON { currentPassword, newPassword } to /api/auth/change-password.
- */
-export default function ChangePasswordForm() {
+export default function ChangePasswordForm({
+  userLabel,
+  role,
+}: {
+  userLabel: string;
+  role: string;
+}) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
-  const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
-  async function submit(e: React.FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError("");
+    setFeedback(null);
+    if (next.length < 12) {
+      setFeedback({ kind: "err", text: "New password must be at least 12 characters." });
+      return;
+    }
     if (next !== confirm) {
-      setError("New passwords don't match.");
+      setFeedback({ kind: "err", text: "Passwords do not match. Re-type the new password." });
       return;
     }
     setBusy(true);
     try {
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({ currentPassword: current, newPassword: next }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) {
-        setError(
-          data.error === "invalid_current"
-            ? "Your current password is incorrect."
-            : data.error === "weak_password"
-              ? `That password is too weak${data.hint ? `: ${data.hint}` : "."}`
-              : "Couldn't change your password. Please try again.",
-        );
-        return;
+      if (res.ok && data.ok) {
+        setFeedback({
+          kind: "ok",
+          text: "Password updated. Other devices were signed out.",
+        });
+        setCurrent("");
+        setNext("");
+        setConfirm("");
+      } else {
+        setFeedback({
+          kind: "err",
+          text:
+            data.message ||
+            (data.error === "invalid_credentials"
+              ? "Your current password is incorrect."
+              : data.error === "weak_password"
+                ? "That password is too weak. Use at least 12 characters with a mix of letters, numbers, and symbols."
+                : "Could not change your password. Try again."),
+        });
       }
-      setDone(true);
-      setCurrent("");
-      setNext("");
-      setConfirm("");
     } catch {
-      setError("Couldn't change your password. Please try again.");
+      setFeedback({ kind: "err", text: "Network error. Try again." });
     } finally {
       setBusy(false);
     }
   }
 
-  if (done) {
-    return (
-      <div className="login-simple-form" role="status">
-        <p style={{ color: "#1a6e2e", fontWeight: 600 }}>
-          Password changed. Your other signed-in devices were signed out as a precaution.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <form className="login-simple-form" onSubmit={submit} noValidate={false}>
-      <PasswordInput
-        id="change-current"
-        label="Current password"
-        value={current}
-        onChange={setCurrent}
-        autoComplete="current-password"
-        required
-        disabled={busy}
-      />
-      <PasswordInput
-        id="change-new"
-        label="New password"
-        value={next}
-        onChange={setNext}
-        autoComplete="new-password"
-        required
-        minLength={12}
-        disabled={busy}
-      />
-      <PasswordInput
-        id="change-confirm"
-        label="Confirm new password"
-        value={confirm}
-        onChange={setConfirm}
-        autoComplete="new-password"
-        required
-        minLength={12}
-        disabled={busy}
-      />
-      {error ? (
-        <p role="alert" style={{ color: "#b42323", fontSize: 13 }}>
-          {error}
-        </p>
-      ) : null}
-      <button type="submit" disabled={busy}>
-        {busy ? "Changing…" : "Change password"}
-      </button>
-      <p className="login-simple-sub">
-        Forgotten your current password?{" "}
-        <a href="/forgot-password" style={{ color: "#d9b878" }}>
-          Reset it by email
-        </a>
+    <section style={{ maxWidth: 480 }}>
+      <p className="dashboard-quiet" style={{ marginTop: 0 }}>
+        Signed in as <strong>{userLabel}</strong> ({role}).
       </p>
-    </form>
+      <form onSubmit={onSubmit} className="adm-quick-form" aria-label="Change password">
+        <div className="adm-quick-form-row">
+          <PasswordInput
+            id="current"
+            label="Current password"
+            value={current}
+            onChange={setCurrent}
+            autoComplete="current-password"
+            required
+            disabled={busy}
+          />
+        </div>
+        <div className="adm-quick-form-row">
+          <PasswordInput
+            id="next"
+            label="New password"
+            value={next}
+            onChange={setNext}
+            autoComplete="new-password"
+            required
+            minLength={12}
+            disabled={busy}
+          />
+        </div>
+        <div className="adm-quick-form-row">
+          <PasswordInput
+            id="confirm"
+            label="Re-type new password"
+            value={confirm}
+            onChange={setConfirm}
+            autoComplete="new-password"
+            required
+            minLength={12}
+            disabled={busy}
+          />
+        </div>
+        {feedback ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className={`form-feedback${feedback.kind === "ok" ? " is-ok" : " is-err"}`}
+            style={{ margin: 0 }}
+          >
+            {feedback.text}
+          </p>
+        ) : null}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <button type="submit" className="adm-btn" disabled={busy} aria-busy={busy}>
+            {busy ? "Updating…" : "Update password"}
+          </button>
+          <Link href="/dashboard/profile" className="dashboard-button dashboard-button-secondary" style={{ marginLeft: 0 }}>
+            Back to profile
+          </Link>
+        </div>
+      </form>
+    </section>
   );
 }

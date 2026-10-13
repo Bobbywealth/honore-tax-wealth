@@ -8,7 +8,6 @@ import {
   UserPlus as UserPlusIcon, BarChart3, Contact, Settings, Menu, X, type LucideIcon,
 } from "lucide-react";
 import CommandPalette from "./admin/_components/CommandPalette";
-import ConsultationDialog from "@/components/ConsultationDialog";
 
 
 export type NavIconKey =
@@ -74,6 +73,15 @@ export default function DashboardShell({
   currentHref,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   return (
     <div className="dashboard">
@@ -165,14 +173,27 @@ export default function DashboardShell({
               <h1>{title}</h1>
               <p>{description}</p>
             </div>
+            {/* Only intake path. The same handler the marketing CTAs use is
+              wired into the same #consultation-dialog that's now mounted globally. */}
+            <button type="button" className="dashboard-request-cta" data-open-consultation>
+              Request a consultation <span aria-hidden="true">↗</span>
+            </button>
           </div>
           {children}
         </div>
       </div>
-      {/* Consultation request dialog for the [data-open-consultation] buttons
-          used across the portals. Rendered here so public/consultation.js can
-          find #consultation-dialog on dashboard pages. */}
-      <ConsultationDialog />
+      {/* Persistent floating pill mirrors the marketing site's
+        `.honore-floating-cta`. Hidden when the dialog is open via
+        consultation.js. */}
+      <button
+        type="button"
+        className="dashboard-floating-cta"
+        data-open-consultation
+        aria-label="Request a consultation"
+      >
+        <span className="dashboard-floating-cta-dot" aria-hidden="true" />
+        Request a consultation <span aria-hidden="true">↗</span>
+      </button>
     </div>
   );
 }

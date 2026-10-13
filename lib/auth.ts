@@ -150,6 +150,10 @@ export type SessionUser = {
   email: string;
   role: Role;
   displayName: string | null;
+  // Phone is loaded on demand by pages that need it (settings profile, etc.).
+  // The auth layer doesn't fetch it on every request by default because most
+  // pages only need identity + role.
+  phone?: string | null;
 };
 
 /**
