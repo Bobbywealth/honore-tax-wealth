@@ -1,4 +1,6 @@
-import type { Metadata, Viewport } from "next";import "./globals.css";
+import type { Metadata, Viewport } from "next";
+import "./globals.css";
+import ConsultationDialog from "./_components/ConsultationDialog";
 export const viewport:Viewport={
   width:"device-width",
   initialScale:1,
@@ -63,6 +65,7 @@ export default function RootLayout({children}:{children:React.ReactNode}){
         <link rel="preload" as="image" href="/assets/hero-consultation-approved-1600.webp" fetchPriority="low"/>
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}}/>
         {children}
+        <ConsultationDialog />
         <link rel="stylesheet" href="/visual-upgrades.css" />
         <script src="/consultation.js" defer />
         <script src="/cookie-banner.js" defer />

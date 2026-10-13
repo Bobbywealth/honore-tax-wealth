@@ -272,17 +272,6 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
             </div>
           </div>
 
-          {dismissed ? null : (
-          <div className="adm-ai">
-            <div className="lbl">✦ Practice AI</div>
-            <h4>4 unfiled 2023 returns past the 30-day prep window.</h4>
-            <p>Assign Marcus Hale to J. Okafor, draft K-1 request letters today, and surface extensions for the 2 at-risk for Oct 15.</p>
-            <div className="ctas">
-              <a href="/dashboard/admin/tasks">Plan my day →</a>
-              <a href="/dashboard/admin?dismiss=ai">Dismiss</a>
-            </div>
-          </div>
-          )}
 
         </div>
 
@@ -328,50 +317,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams?: 
             </div>
           </div>
 
-          <div className="adm-card">
-            <h3>Practice pulse</h3>
-            <div className="adm-pulse-grid">
-              <div>
-                <div className="l">Utilization</div>
-                <div className="n">78<em>%</em></div>
-                <div className="adm-up">▲ 6% MoM</div>
-              </div>
-              <div>
-                <div className="l">Revenue MTD</div>
-                <div className="n">$84.2<em>k</em></div>
-                <div className="adm-up">▲ 18% MoM</div>
-              </div>
-            </div>
-            <svg className="adm-pulse-chart" viewBox="0 0 320 50" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="adm-pulse-grad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" stopColor="#d4a755" stopOpacity=".4" />
-                  <stop offset="1" stopColor="#d4a755" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d="M0,38 L25,34 L50,30 L75,32 L100,24 L125,26 L150,18 L175,20 L200,14 L225,16 L250,10 L275,12 L300,6 L320,4 L320,50 L0,50 Z" fill="url(#adm-pulse-grad)" />
-              <path d="M0,38 L25,34 L50,30 L75,32 L100,24 L125,26 L150,18 L175,20 L200,14 L225,16 L250,10 L275,12 L300,6 L320,4" fill="none" stroke="#d4a755" strokeWidth="1.8" />
-            </svg>
-            <div className="adm-pulse-cap">12-WEEK FILING TREND</div>
-          </div>
 
-          <div className="adm-card">
-            <h3>Recent uploads</h3>
-            <div className="adm-uploads">
-              <div className="adm-up-row">
-                <div className="adm-up-icon pdf">PDF</div>
-                <div className="f1"><b>Rivera_W2_2025.pdf</b><div className="f">2 min ago · 1.2 MB</div></div>
-              </div>
-              <div className="adm-up-row">
-                <div className="adm-up-icon">W9</div>
-                <div className="f1"><b>Okafor_1099-MISC.pdf</b><div className="f">14 min ago · 845 KB</div></div>
-              </div>
-              <div className="adm-up-row">
-                <div className="adm-up-icon img">JPG</div>
-                <div className="f1"><b>Patel_receipts.jpg</b><div className="f">1 hr ago · 3.4 MB</div></div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </AdminShell>

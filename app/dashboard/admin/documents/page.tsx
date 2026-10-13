@@ -150,7 +150,7 @@ const navCounts = await loadAdminNavCounts();
           <p>
             {query
               ? "Nothing matches that search."
-              : "Nothing has been uploaded yet. Private document storage still needs a bucket and credentials, so there is no upload path here — clients are told to wait for a secure method from their preparer."}
+              : "Nothing has been uploaded yet. Document upload is wired through the client portal — once a client sends a document through their secure upload link, it appears here."}
           </p>
           {query ? (
             <a className="adm-btn" href="/dashboard/admin/documents">

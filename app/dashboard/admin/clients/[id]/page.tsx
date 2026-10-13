@@ -21,6 +21,7 @@ import {
 } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { CalendarDays, ClipboardList, FileText, MessageSquareText, Receipt, UserRoundCheck } from "lucide-react";
+import { formatServiceType } from "../../../_lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -301,7 +302,7 @@ export default async function AdminClientDetailPage({ params, searchParams }: { 
           id: `eng-${e.id}`, at: e.updatedAt, kind: "engagement",
           tone: e.status === "on_hold" ? "warn" : "info",
           label: `Engagement: ${e.name}`,
-          detail: `${e.serviceType} · ${e.progressPercent}% complete`,
+          detail: `${formatServiceType(e.serviceType)} · ${e.progressPercent}% complete`,
           href: `/dashboard/admin/returns?focus=${e.id}`,
         });
       }

@@ -19,6 +19,7 @@ const STAGES: { key: string; label: string; color: string; dbValue: string[] }[]
   { key: "review", label: "Review", color: "#7a5ca8", dbValue: ["review"] },
   { key: "approval", label: "Approval", color: "#c98a2e", dbValue: ["approval", "ready"] },
   { key: "filed", label: "Filed", color: "#2f8a5b", dbValue: ["filed"] },
+  { key: "rejected", label: "Rejected (at-risk)", color: "#a63b37", dbValue: ["rejected"] },
 ];
 
 const FORM_OPTIONS = [

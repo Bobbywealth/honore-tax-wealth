@@ -1,4 +1,5 @@
 import { User, Building2, Palette, Bell, Mail, FileText, Users, Plug, Lock, CreditCard } from "lucide-react";
+import { eq } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";import { navForRole } from "../_lib/nav";
 import { loadAdminNavCounts } from "../lib/nav-counts";
 
@@ -33,51 +34,54 @@ const plaidConnected = !!process.env.PLAID_CLIENT_ID;
 const qboConnected = !!process.env.QBO_CLIENT_ID;
 
 const integrations = [
-  { name: "Stripe", desc: "Retainers and engagement fees", connected: stripeConnected, on: stripeConnected, envKey: "STRIPE_SECRET_KEY" },
-  { name: "Twilio", desc: "SMS notifications and intake confirmations", connected: twilioConnected, on: twilioConnected, envKey: "TWILIO_ACCOUNT_SID" },
-  { name: "SendGrid / Resend", desc: "Transactional email", connected: emailConnected, on: emailConnected, envKey: "SENDGRID_API_KEY or RESEND_API_KEY" },
-  { name: "DocuSign", desc: "Engagement letters and 8879 e-file auths", connected: docusignConnected, on: docusignConnected, envKey: "DOCUSIGN_INTEGRATION_KEY" },
-  { name: "Plaid", desc: "Client bank statements for cash flow analysis", connected: plaidConnected, on: plaidConnected, envKey: "PLAID_CLIENT_ID" },
-  { name: "QuickBooks Online", desc: "Bookkeeping import for 1065/1120-S", connected: qboConnected, on: qboConnected, envKey: "QBO_CLIENT_ID" },
+  { name: "Stripe", desc: "Retainers and engagement fees", connected: stripeConnected, on: stripeConnected },
+  { name: "Twilio", desc: "SMS notifications and intake confirmations", connected: twilioConnected, on: twilioConnected },
+  { name: "SendGrid / Resend", desc: "Transactional email", connected: emailConnected, on: emailConnected },
+  { name: "DocuSign", desc: "Engagement letters and 8879 e-file auths", connected: docusignConnected, on: docusignConnected },
+  { name: "Plaid", desc: "Client bank statements for cash flow analysis", connected: plaidConnected, on: plaidConnected },
+  { name: "QuickBooks Online", desc: "Bookkeeping import for 1065/1120-S", connected: qboConnected, on: qboConnected },
 ];
 
 export default async function SettingsPage({ searchParams }: { searchParams?: Promise<{ preview?: string }> }) {
   const access = await checkAdminAccess(searchParams);
   if (!access.allowed) return access.restricted;
 
-  // Load the real user profile so the editable rows show actual values.
+  // Load the *session* user's profile, not the first row in the users
+  // table. The previous LIMIT-1 lookup would surface any other account
+  // when the seeded "Demo client" row was first alphabetically by email,
+  // and editing it could overwrite the wrong account. Profile is keyed
+  // off the live session so the editable form always reflects who's
+  // signed in.
+  const me = await currentUser();
   let profile: { displayName: string; email: string; phone: string | null } = {
-    displayName: "Bobby Wealth",
-    email: "",
-    phone: "",
+    displayName: me?.displayName ?? "",
+    email: me?.email ?? "",
+    phone: me?.phone ?? null,
   };
   try {
-    if (process.env.DATABASE_URL) {
+    if (me?.id && process.env.DATABASE_URL) {
       await ensureMigrated();
-      // LIMIT 1 since this single-tenant app has one site owner row;
-      // the access.user is available from the auth helper but passing
-      // the id through every page is unnecessary noise.
       const rows = await getDb()
         .select({ displayName: users.displayName, email: users.email, phone: users.phone })
         .from(users)
+        .where(eq(users.id, me.id))
         .limit(1);
-      // We have a single-row site-owner; if present, use it.
       if (rows[0]) {
         profile = {
-          displayName: rows[0].displayName ?? profile.displayName,
-          email: rows[0].email ?? profile.email,
-          phone: rows[0].phone ?? profile.phone,
+          displayName: rows[0].displayName ?? "",
+          email: rows[0].email ?? "",
+          phone: rows[0].phone ?? null,
         };
       }
     }
   } catch {
-    // keep the default profile values
+    // Keep the session-derived defaults; we never fabricate values.
   }
 
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   const counts = await loadAdminNavCounts();
-  const me = await currentUser();
+// duplicate me — first declaration above is used
   const nav = navForRole(me?.role, navCounts);  return (
     <DashboardShell nav={nav} currentHref="/dashboard/admin/settings" audience="Admin" title="Settings" description="Practice, team, branding, integrations, and security.">
       <div className="adm-page-h">

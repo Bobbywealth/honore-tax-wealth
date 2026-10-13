@@ -29,6 +29,7 @@ import {
 import { and, asc, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { ensureMigrated } from "@/db/migrate";
 import { authorizedClientIds, primaryClientFor } from "@/lib/access";
+import { formatServiceType } from "../_lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -412,7 +413,7 @@ export default async function ClientDashboard() {
                       <span style={{ width: `${progress}%` }} />
                     </div>
                     <div className="dashboard-eng-foot">
-                      <span>{e.serviceType}</span>
+<span>{formatServiceType(e.serviceType)}</span>
                       <span className="dashboard-muted">Updated {relative(e.updatedAt)}</span>
                     </div>
                   </li>

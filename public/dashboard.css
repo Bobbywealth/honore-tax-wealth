@@ -499,9 +499,10 @@
 }
 
 /* Scrim and mobile menu toggle */
-.dashboard-scrim{position:fixed;inset:0;background:rgba(11,26,46,.45);z-index:35;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.dashboard-scrim{position:fixed;inset:0;background:rgba(11,26,46,.45);z-index:32;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 /* .dashboard-mobile-menu-toggle defaults to display:none on wide screens; the
    @media(max-width:900px) block above turns it into a grid button. */
+.dashboard-mobile-menu-toggle { display: none; }
 
 /* Staff chat (admin inbox) */
 .adm-staff-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 22px}

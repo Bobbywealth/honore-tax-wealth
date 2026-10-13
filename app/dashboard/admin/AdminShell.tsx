@@ -95,10 +95,10 @@ export default async function AdminShell({
 
         <div className="adm-me">
           <div className="adm-me-row">
-            <div className="adm-av">BW</div>
+            <div className="adm-av">{(user?.displayName || user?.email || "?").slice(0, 2).toUpperCase()}</div>
             <div className="adm-me-info">
-              <b>Bobby Wealth</b>
-              <div className="adm-sm">Owner · 28 min</div>
+              <b>{user?.displayName || user?.email || "Sign in"}</b>
+              <div className="adm-sm">{user?.role === "admin" ? "Owner" : user?.role === "staff" ? "Staff" : user?.role === "assistant" ? "Assistant" : user?.role === "client" ? "Client" : "Signed in"}</div>
             </div>
           </div>
           <form className="adm-logout-form" action="/api/auth/logout" method="post">
