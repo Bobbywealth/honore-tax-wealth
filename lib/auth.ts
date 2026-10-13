@@ -365,15 +365,28 @@ async function ensureBootstrapUser(
     .limit(1);
   if (existing.length > 0) {
     if (existing[0].role !== role) {
+      // The env vars are the source of truth for the bootstrap user's role.
+      // Promote (or demote) the existing row to match, otherwise the self-heal
+      // would skip the password update and the row would stay locked on a
+      // mismatched role with no recovery path other than manual DB surgery.
       console.warn(
         JSON.stringify({
           ts: new Date().toISOString(),
-          event: "auth.bootstrap_role_mismatch",
+          event: "auth.bootstrap_role_corrected",
           email: normalizedEmail,
           existingRole: existing[0].role,
           requestedRole: role,
         }),
       );
+      const correctedHash = await hashPassword(password);
+      await getDb()
+        .update(users)
+        .set({
+          role,
+          passwordHash: correctedHash,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existing[0].id));
       return;
     }
     // Self-heal: if env password is set, keep the stored hash in sync so a rotated
