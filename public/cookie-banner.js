@@ -18,7 +18,7 @@
     "background:rgba(11,26,42,.96)",
     "color:#e6eef3",
     "border-top:1px solid rgba(199,165,105,.35)",
-    "padding:10px 20px",
+    "padding:10px 20px max(10px, env(safe-area-inset-bottom))",
     "display:flex",
     "align-items:center",
     "gap:14px",
@@ -35,12 +35,15 @@
     "</span>" +
     '<button data-cookie="accept" type="button" style="background:#d9b878;color:#0b1a2a;border:0;padding:8px 14px;border-radius:6px;font:800 11px Manrope,sans-serif;letter-spacing:.08em;cursor:pointer;white-space:nowrap">GOT IT</button>';
   document.body.appendChild(bar);
+  // Lets CSS hide the floating consultation pill while this bar is open.
+  document.body.classList.add("htw-cookie-open");
   requestAnimationFrame(() => {
     bar.style.opacity = "1";
     bar.style.transform = "none";
   });
   bar.querySelector("[data-cookie=accept]").addEventListener("click", () => {
     localStorage.setItem("htw-cookie-consent", "1");
+    document.body.classList.remove("htw-cookie-open");
     bar.style.opacity = "0";
     bar.style.transform = "translateY(100%)";
     setTimeout(() => bar.remove(), 320);

@@ -66,6 +66,9 @@ export default function Login() {
 
   return (
     <div className="login-simple">
+      {/* Warm the cache for the portal stylesheet (no longer global) so the
+          post-login client-side navigation renders styled immediately. */}
+      <link rel="prefetch" href="/dashboard.css" as="style" />
       <header className="login-simple-header">
         <a href="/" aria-label="Honore Tax & Wealth home">
           <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />

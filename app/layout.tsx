@@ -52,15 +52,15 @@ export default function RootLayout({children}:{children:React.ReactNode}){
         {/* Loaded here rather than via @import in globals.css: the plain
             Next.js build resolves CSS imports at build time and cannot
             resolve absolute /public paths. Order preserves the original
-            cascade: style.css then cleanup.css. */}
+            cascade: style.css then cleanup.css. dashboard.css is loaded only
+            by app/dashboard/layout.tsx so marketing pages skip it. */}
         <link rel="stylesheet" href="/style.css"/>
         <link rel="stylesheet" href="/cleanup.css"/>
-        <link rel="stylesheet" href="/dashboard.css"/>
         <script dangerouslySetInnerHTML={{__html:`(function(){if('scrollRestoration' in history){history.scrollRestoration='manual'}function top(){try{window.scrollTo(0,0)}catch(e){}}top();window.addEventListener('pageshow',function(e){if(e.persisted){top()}});})();`}}/>
       </head>
       <body>
-        <link rel="preload" as="image" href="/assets/hero-couple.webp" fetchPriority="high"/>
-        <link rel="preload" as="image" href="/assets/hero-consultation-approved.webp" fetchPriority="low"/>
+        <link rel="preload" as="image" href="/assets/hero-couple-1600.webp" fetchPriority="high"/>
+        <link rel="preload" as="image" href="/assets/hero-consultation-approved-1600.webp" fetchPriority="low"/>
         <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(jsonLd)}}/>
         {children}
         <link rel="stylesheet" href="/visual-upgrades.css" />

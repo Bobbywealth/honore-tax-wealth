@@ -207,13 +207,15 @@
     go(0);start();
   }
 
-  // Mobile action bar visibility — only show after scrolling past hero
-  const bar=document.querySelector('.mobile-action-bar');
-  if(bar && hero && 'IntersectionObserver' in window){
-    const observer=new IntersectionObserver(entries=>{
-      bar.classList.toggle('is-visible',!entries[0].isIntersecting);
+  // Past-hero state: the floating consultation pill (mobile) only appears
+  // once the hero is scrolled out of view, so it never covers hero content.
+  if(hero && 'IntersectionObserver' in window){
+    const heroObserver=new IntersectionObserver(entries=>{
+      document.body.classList.toggle('htw-past-hero', !entries[0].isIntersecting);
     },{threshold:0, rootMargin:'-80px 0px 0px 0px'});
-    observer.observe(hero);
+    heroObserver.observe(hero);
+  } else {
+    document.body.classList.add('htw-past-hero');
   }
 
   // Floating consultation pill — tuck it above the footer tagline once the
