@@ -70,14 +70,14 @@ export default function Login() {
           post-login client-side navigation renders styled immediately. */}
       <link rel="prefetch" href="/dashboard.css" as="style" />
       <header className="login-simple-header">
-        <a href="/" aria-label="Honore Tax & Wealth home">
-          <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
-        </a>
         <a className="login-home" href="/">Back to website</a>
       </header>
 
       <main className="login-simple-main">
         <section className="login-simple-panel" aria-labelledby="login-title">
+          <div className="login-card-logo">
+            <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
+          </div>
           <span className="login-eyebrow">HONORE TAX &amp; WEALTH</span>
           <h1 id="login-title">Welcome back.</h1>
           <p className="login-intro">Access your account.</p>
@@ -113,7 +113,11 @@ export default function Login() {
               </p>
             ) : null}
 
-            <button type="submit" disabled={busy} aria-describedby={error ? "login-error" : undefined}>
+            <button
+              type="submit"
+              disabled={busy || email.trim().length === 0 || password.length === 0}
+              aria-describedby={error ? "login-error" : undefined}
+            >
               {busy ? "Signing in…" : "Sign in"}
             </button>
           </form>
