@@ -105,7 +105,7 @@ const counts = await loadAdminNavCounts();
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
   return (
-    <DashboardShell audience="Admin" title="Leads" description="Leads captured from the consultation form. Move them through new → contacted → won." nav={nav} currentHref="/dashboard/admin/leads">
+    <DashboardShell audience="Admin" title="Leads" description="Leads captured from the consultation form. Move them through new → contacted → consultation scheduled → proposal sent → won (or lost)." nav={nav} currentHref="/dashboard/admin/leads">
       <div className="adm-page-h">
         <div>
           <h1>Leads</h1>
