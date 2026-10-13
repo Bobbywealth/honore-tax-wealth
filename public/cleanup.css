@@ -631,3 +631,9 @@ img,svg,video,canvas{max-width:100%;height:auto}
   .experience-steps article h3{font-size:18px!important}
   .experience-steps article p{font-size:13.5px!important}
 }
+
+/* ====== Experience image — show the wife's full face ====== */
+.experience-scene img{object-position:right center!important}
+@media(max-width:900px){
+  .experience-scene img{object-position:75% center!important}
+}
