@@ -544,7 +544,7 @@ img,svg,video,canvas{max-width:100%;height:auto}
 .honore-team-card:hover::before{opacity:1}
 .honore-team-card img{
   width:180px!important;height:180px!important;
-  object-position:center 22%!important;
+  object-position:center 35%!important;
   border:3px solid #fff!important;
   box-shadow:0 0 0 1px #c7a569,0 6px 18px rgba(14,26,38,.1)!important;
   transition:box-shadow .3s ease, transform .3s ease;
