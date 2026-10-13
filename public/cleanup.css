@@ -493,3 +493,25 @@ img,svg,video,canvas{max-width:100%;height:auto}
   .hero-tax-strip > a{min-height:84px;padding:16px 16px 14px;border-radius:12px}
   .hero-tax-strip > a span{font-size:12.5px!important;line-height:1.4!important;margin-top:10px}
 }
+
+/* ====== Hero CTA buttons as cards ====== */
+.hero-cta-row{gap:14px!important;margin-top:26px!important}
+.hero-primary,.hero-secondary{
+  min-height:62px!important;min-width:240px;
+  padding:18px 26px!important;
+  border-radius:12px!important;
+  font:900 12px Manrope,sans-serif!important;letter-spacing:.12em!important;
+  backdrop-filter:blur(6px);
+  box-shadow:0 6px 18px rgba(0,0,0,.32);
+  transition:transform .25s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
+}
+.hero-primary{border:1px solid #dabc88!important;background:rgba(218,188,136,.92)!important;color:#071829!important}
+.hero-secondary{border:1px solid rgba(217,184,120,.55)!important;background:rgba(7,24,41,.78)!important;color:#faf6e9!important}
+.hero-primary:hover{transform:translateY(-2px);background:#e8c98e!important;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.hero-secondary:hover{transform:translateY(-2px);border-color:rgba(217,184,120,.95)!important;background:rgba(11,26,42,.94)!important;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.hero-primary > span,.hero-secondary > span{font-size:16px!important;margin-left:18px!important;color:inherit!important;opacity:.85}
+@media(max-width:700px){
+  .hero-cta-row{flex-direction:column;gap:10px!important;width:calc(100% - 32px)!important;margin:18px auto 0!important}
+  .hero-primary,.hero-secondary{width:100%!important;min-width:0;min-height:54px!important;padding:16px 20px!important;font-size:11px!important;letter-spacing:.1em!important}
+  .hero-primary > span,.hero-secondary > span{font-size:15px!important;margin-left:14px!important}
+}
