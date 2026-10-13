@@ -166,7 +166,7 @@ export default async function CalendarPage({ searchParams }: { searchParams?: Pr
     const isToday = formatDayKey(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) === todayKey;
     const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
     const dateLabel = isToday ? time : d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
-    return { time: dateLabel, title: a.title, sub: a.status, tag: isToday ? "Today" : "Scheduled" };
+    return { id: a.id, status: a.status, time: dateLabel, title: a.title, sub: a.status, tag: isToday ? "Today" : "Scheduled" };
   });
 
 const navCounts = await loadAdminNavCounts();
@@ -266,12 +266,26 @@ const navCounts = await loadAdminNavCounts();
             </p>
           ) : (
             upcoming.map((u, i) => (
-              <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: i === 0 ? 0 : "1px solid #efece3", alignItems: "flex-start" }}>
+              <div key={u.id} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: i === 0 ? 0 : "1px solid #efece3", alignItems: "flex-start" }}>
                 <div style={{ minWidth: 64, font: "500 11px Fraunces, Georgia, serif", color: "#9a7a2e", textAlign: "right" }}>{u.time}</div>
                 <div style={{ flex: 1 }}>
                   <b style={{ fontSize: 12.5, fontWeight: 600, color: "#0e1a26", display: "block" }}>{u.title}</b>
                   <div className="adm-sm" style={{ marginTop: 2 }}>{u.sub}</div>
                   <span className={`adm-tag ${u.tag === "Today" ? "am" : "bl"}`} style={{ marginTop: 6 }}>{u.tag}</span>
+                  {u.status === "requested" ? (
+                    <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                      <form action={`/api/admin/appointments/${u.id}/confirm`} method="post" style={{ display: "inline" }}>
+                        <button type="submit" className="adm-btn" style={{ padding: "4px 10px", fontSize: 12 }}>
+                          Confirm
+                        </button>
+                      </form>
+                      <form action={`/api/admin/appointments/${u.id}/cancel`} method="post" style={{ display: "inline" }}>
+                        <button type="submit" className="adm-btn adm-btn-ghost" style={{ padding: "4px 10px", fontSize: 12 }}>
+                          Decline
+                        </button>
+                      </form>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ))

@@ -168,6 +168,33 @@ const navCounts = await loadAdminNavCounts();
                       <span className="adm-card-meta">Source: {lead.source}</span>
                       <span className="adm-card-meta">Follow up: {formatDate(lead.followUpAt)}</span>
                       {lead.notes ? <p className="adm-card-note">{lead.notes}</p> : null}
+                      <form
+                        action={`/api/admin/leads/${lead.id}/stage`}
+                        method="post"
+                        style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center" }}
+                      >
+                        <label className="adm-sm" htmlFor={`stage-${lead.id}`} style={{ whiteSpace: "nowrap" }}>
+                          Move to:
+                        </label>
+                        <select
+                          id={`stage-${lead.id}`}
+                          name="stage"
+                          defaultValue=""
+                          className="adm-clients-filter"
+                          style={{ flex: 1, minWidth: 0 }}
+                          required
+                        >
+                          <option value="" disabled>Select stage…</option>
+                          {STAGES.filter((s) => s.key !== lead.stage).map((s) => (
+                            <option key={s.key} value={s.key}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                        <button type="submit" className="adm-btn adm-btn-ghost" style={{ padding: "4px 10px", fontSize: 12 }}>
+                          Move
+                        </button>
+                      </form>
                     </article>
                   ))
                 )}

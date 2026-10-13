@@ -50,7 +50,7 @@ function formatDate(value: Date): string {
  * and it is exactly the demonstration data the brief requires be kept out of
  * production.
  */
-export default async function DocumentsPage({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
+export default async function DocumentsPage({ searchParams }: { searchParams?: Promise<{ q?: string; new?: string; created?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
@@ -60,6 +60,8 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
 
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
+  const showForm = params.new === "1";
+  const justCreated = params.created === "1";
 
   let rows: Array<{
     id: string;
@@ -74,6 +76,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
   }> = [];
   let outstanding = 0;
   let unavailable = false;
+  let clientOptions: Array<{ id: string; name: string }> = [];
 
   try {
     await ensureMigrated();
@@ -119,6 +122,16 @@ export default async function DocumentsPage({ searchParams }: { searchParams?: P
       .from(documentRequests)
       .where(isNull(documentRequests.fulfilledAt));
     outstanding = reqs.length;
+
+    if (showForm) {
+      const cliRows = await db
+        .select({ id: clients.id, name: clients.displayName })
+        .from(clients)
+        .where(isNull(clients.archivedAt))
+        .orderBy(asc(clients.displayName))
+        .limit(200);
+      clientOptions = cliRows;
+    }
   } catch {
     unavailable = true;
   }
@@ -134,10 +147,48 @@ const navCounts = await loadAdminNavCounts();
             {unavailable ? "Unavailable" : `${rows.length} on file · ${outstanding} outstanding requests`}
           </div>
         </div>
-        <a className="adm-badge adm-badge-link" href="/dashboard/admin/settings#storage" title="Open storage settings to enable document uploads">
-          <Upload size={13} aria-hidden="true" /> Upload not configured
-        </a>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <a className="adm-btn" href="?new=1" title="Request a document from a client">
+            <FileText size={13} /> New document request
+          </a>
+          <a className="adm-badge adm-badge-link" href="/dashboard/admin/settings#storage" title="Open storage settings to enable document uploads">
+            <Upload size={13} aria-hidden="true" /> Upload not configured
+          </a>
+        </div>
       </div>
+
+      {justCreated ? (
+        <div className="adm-import-results">
+          <h3>Document request sent.</h3>
+        </div>
+      ) : null}
+
+      {showForm ? (
+        <form className="adm-quick-form" action="/api/admin/document-requests" method="post">
+          <div className="adm-quick-form-row">
+            <label>Client
+              <select name="clientId" required defaultValue="">
+                <option value="" disabled>Select a client…</option>
+                {clientOptions.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </label>
+            <label>Due date (optional)<input name="dueAt" type="date" /></label>
+          </div>
+          <label>Document title<input name="title" required minLength={2} maxLength={200} placeholder="e.g. 2025 W-2 from employer" /></label>
+          <label className="adm-quick-form-notes">Description<textarea name="description" maxLength={2000} rows={2} placeholder="Optional — what exactly do you need?" /></label>
+          {clientOptions.length === 0 ? (
+            <p className="adm-sm" style={{ margin: 0 }}>
+              No clients yet — add a client from the Clients page before requesting documents.
+            </p>
+          ) : null}
+          <div className="adm-quick-form-actions">
+            <button type="submit" className="adm-btn" disabled={clientOptions.length === 0}>Send request</button>
+            <a className="adm-btn adm-btn-ghost" href="/dashboard/admin/documents">Cancel</a>
+          </div>
+        </form>
+      ) : null}
 
       {unavailable ? (
         <div className="adm-empty">

@@ -314,6 +314,28 @@ const counts = await loadAdminNavCounts();
                     Convert to client
                   </a>
                 </div>
+                <div className="adm-inbox-actions" style={{ marginTop: 8 }}>
+                  <span className="adm-sm" style={{ alignSelf: "center" }}>Set status:</span>
+                  {[
+                    { v: "in_progress", label: "Mark in progress" },
+                    { v: "waiting_on_client", label: "Waiting on client" },
+                    { v: "closed", label: "Close request" },
+                  ]
+                    .filter((o) => o.v !== selected.status)
+                    .map((o) => (
+                      <form
+                        key={o.v}
+                        action={`/api/admin/inbox/${selected.id}/status`}
+                        method="post"
+                        style={{ display: "inline" }}
+                      >
+                        <input type="hidden" name="status" value={o.v} />
+                        <button type="submit" className="adm-btn adm-btn-ghost">
+                          {o.label}
+                        </button>
+                      </form>
+                    ))}
+                </div>
               </>
             ) : (
               <div className="adm-empty">
