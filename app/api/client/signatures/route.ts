@@ -4,6 +4,7 @@ import { getDb } from "@/db";
 import { signatures, signableDocuments } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser, requireRole } from "@/lib/auth";
+import { primaryClientFor } from "@/lib/access";
 import { ESIGN_CONSENT, TEMPLATES } from "@/lib/signature-templates";
 import { revalidatePath } from "next/cache";
 
@@ -71,16 +72,25 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "validation_failed" }, { status: 400 });
   }
 
-  // Clients can only sign their own documents. Staff/admin can sign
-  // on a client's behalf (e.g. paid preparer block on a 1040).
+  // Clients can only sign their own documents. signableDocuments.clientId
+  // is the *client record* id (clients.id), not the user id — resolve it
+  // via primaryClientFor. Staff/admin can sign on a client's behalf
+  // (e.g. paid preparer block on a 1040).
   if (user.role === "client") {
-    const access = await getDb()
-      .select({ id: signableDocuments.id })
-      .from(signableDocuments)
-      .where(and(eq(signableDocuments.id, payload.documentId), eq(signableDocuments.clientId, user.id)))
-      .limit(1);
-    if (access.length === 0) {
+    const clientId = await primaryClientFor(user);
+    if (!clientId) {
       return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+    }
+    const [doc] = await getDb()
+      .select({ id: signableDocuments.id, status: signableDocuments.status })
+      .from(signableDocuments)
+      .where(and(eq(signableDocuments.id, payload.documentId), eq(signableDocuments.clientId, clientId)))
+      .limit(1);
+    if (!doc) {
+      return Response.json({ ok: false, error: "forbidden" }, { status: 403 });
+    }
+    if (doc.status !== "pending") {
+      return Response.json({ ok: false, error: "document_not_pending" }, { status: 400 });
     }
   } else {
     const doc = await getDb()
@@ -107,7 +117,7 @@ export async function POST(request: Request) {
     await ensureMigrated();
     const db = getDb();
 
-    await db.insert(signatures).values({
+    const [sig] = await db.insert(signatures).values({
       documentId: payload.documentId,
       signerId: user.role === "client" ? user.id : null,
       signerName: payload.signerName,
@@ -118,7 +128,7 @@ export async function POST(request: Request) {
       consentText: payload.consent.consentText,
       ipAddress,
       userAgent,
-    });
+    }).returning({ id: signatures.id });
 
     // Promote the document to 'signed' if we've hit the required
     // signers count and the template allows that many.
@@ -155,7 +165,9 @@ export async function POST(request: Request) {
     revalidatePath("/dashboard/client");
     revalidatePath(`/dashboard/admin/forms/${payload.documentId}`);
     revalidatePath("/dashboard/admin/forms");
-    return Response.json({ ok: true });
+    // Return the persisted signature id so the client can verify the
+    // signature was actually saved before showing a success state.
+    return Response.json({ ok: true, signatureId: sig?.id ?? null });
   } catch (error) {
     logEvent("signatures.create.db_error", { user: user.id, err: String((error as Error).message) });
     return Response.json({ ok: false, error: "db_error" }, { status: 500 });

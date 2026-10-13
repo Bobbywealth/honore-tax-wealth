@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { KIND_OPTIONS, TEMPLATES, type SignableKind } from "@/lib/signature-templates";
 
@@ -42,15 +43,45 @@ const inputStyle: React.CSSProperties = {
  *   tax-year field, and the API derives the document's taxYear from it.
  */
 export default function NewFormClient({ clients, preselectedClient, preselectedKind }: Props) {
+  const router = useRouter();
   const [kind, setKind] = useState<SignableKind>(preselectedKind);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const tpl = TEMPLATES[kind] ?? TEMPLATES.custom;
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      const form = e.currentTarget;
+      const res = await fetch("/api/admin/forms", {
+        method: "POST",
+        headers: { accept: "application/json" },
+        body: new FormData(form),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || !body?.ok || !body?.id) {
+        setError(
+          body?.error
+            ? `Could not create the form: ${body.error}. Nothing was saved — fix the highlighted fields and try again.`
+            : "Could not create the form. Nothing was saved — try again.",
+        );
+        setSubmitting(false);
+        return;
+      }
+      // Success: the list page shows a "Form created" banner for ?created=.
+      router.push(`/dashboard/admin/forms?created=${body.id}`);
+    } catch (err) {
+      setError(`Could not create the form: ${String((err as Error).message ?? err)}. Nothing was saved.`);
+      setSubmitting(false);
+    }
+  }
 
   return (
     <form
       className="adm-clients-upload"
-      action="/api/admin/forms"
-      method="post"
-      encType="application/x-www-form-urlencoded"
+      onSubmit={handleSubmit}
       style={{ flexDirection: "column", alignItems: "stretch", gap: 14, padding: 18, border: "1px solid #dabc88" }}
     >
       <div>
@@ -161,8 +192,16 @@ export default function NewFormClient({ clients, preselectedClient, preselectedK
         <p className="adm-sm" style={{ marginTop: 6 }}>Default 1. Set 2 for a 1040 filed jointly, or 3 to capture the paid-preparer signature too.</p>
       </div>
 
+      {error ? (
+        <div className="adm-import-results" style={{ borderColor: "#a63b37", background: "#fdf1f0" }}>
+          <p style={{ color: "#a63b37", margin: 0 }}><strong>Not saved.</strong> {error}</p>
+        </div>
+      ) : null}
+
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        <button type="submit" className="adm-btn">Create &amp; send to client</button>
+        <button type="submit" className="adm-btn" disabled={submitting}>
+          {submitting ? "Creating…" : "Create & send to client"}
+        </button>
         <Link href="/dashboard/admin/forms" className="adm-btn adm-btn-ghost" style={{ background: "#f1ede2", color: "#0e1a26", boxShadow: "none", border: "1px solid #d6dce1" }}>Cancel</Link>
         <span className="adm-sm" style={{ marginLeft: "auto" }}>The client gets the form on their portal home; you can also share a direct link.</span>
       </div>

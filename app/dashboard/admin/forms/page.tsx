@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { ClipboardList, Plus } from "lucide-react";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
@@ -82,7 +82,7 @@ export default async function FormsListPage({ searchParams }: { searchParams?: P
       const sigs = await db
         .select({ documentId: signatures.documentId, n: sql<number>`count(*)::int` })
         .from(signatures)
-        .where(sql`${signatures.documentId} = any(${ids})`)
+        .where(inArray(signatures.documentId, ids))
         .groupBy(signatures.documentId);
       for (const s of sigs) countsMap.set(s.documentId, Number(s.n));
     }

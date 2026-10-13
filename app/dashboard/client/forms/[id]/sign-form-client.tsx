@@ -181,7 +181,10 @@ export default function SignFormClient({
         }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok || !body?.ok) {
+      // Only treat the signature as saved when the server confirms with
+      // the persisted signature id. Never show success on a failed or
+      // ambiguous response.
+      if (!res.ok || !body?.ok || !body?.signatureId) {
         setError(body?.error ? `Could not save: ${body.error}` : "Could not save the signature. Try again.");
         setSubmitting(false);
         return;
