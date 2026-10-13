@@ -734,3 +734,25 @@ body .login-simple .login-simple-form button[type="submit"]:focus-visible{
   .tax-panel .panel-detail{display:none!important}
   .services{padding-bottom:120px}
 }
+
+/* ====== Sidebar logo: white card so the gold monogram is readable ====== */
+.dashboard-logo{
+  display:block;
+  width:fit-content;
+  margin:0 0 28px 10px;
+  padding:10px 14px 8px;
+  background:#ffffff;
+  border-radius:8px;
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+}
+.dashboard-logo img{
+  display:block;
+  width:130px;
+  height:auto;
+  object-fit:contain;
+  filter:none;
+}
+@media(max-width:900px){
+  .dashboard-logo{padding:8px 10px 6px;margin:0 0 20px 8px}
+  .dashboard-logo img{width:96px}
+}
