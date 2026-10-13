@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import PasswordInput from "@/components/PasswordInput";
 
 function ResetPasswordForm() {
   const params = useSearchParams();
@@ -82,26 +83,26 @@ function ResetPasswordForm() {
             <form className="login-simple-form" onSubmit={onSubmit} noValidate>
               <p className="login-intro">Use at least 12 characters.</p>
 
-              <label htmlFor="new-password">New password</label>
-              <input
+              <PasswordInput
                 id="new-password"
-                type="password"
-                autoComplete="new-password"
+                label="New password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={setPassword}
+                autoComplete="new-password"
                 required
                 minLength={12}
+                disabled={busy}
               />
 
-              <label htmlFor="confirm-password">Confirm new password</label>
-              <input
+              <PasswordInput
                 id="confirm-password"
-                type="password"
-                autoComplete="new-password"
+                label="Confirm new password"
                 value={confirm}
-                onChange={e => setConfirm(e.target.value)}
+                onChange={setConfirm}
+                autoComplete="new-password"
                 required
                 minLength={12}
+                disabled={busy}
               />
 
               {error ? (

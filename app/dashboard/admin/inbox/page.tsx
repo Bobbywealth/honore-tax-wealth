@@ -43,7 +43,20 @@ function initials(name: string): string {
     .join("");
 }
 
-type SearchParams = Promise<{ q?: string; status?: string }>;
+type SearchParams = Promise<{ q?: string; status?: string; id?: string }>;
+
+type InboxRow = {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  service: string;
+  message: string;
+  status: string;
+  reference: string;
+  requestedAt: Date;
+  createdAt: Date;
+};
 
 export default async function InboxPage({ searchParams }: { searchParams?: SearchParams }) {
   const access = await checkAdminAccess(await searchParams);
@@ -67,19 +80,10 @@ const counts = await loadAdminNavCounts();
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
   const status = params.status ?? "";
+  const selectedId = Number(params.id ?? "");
+  const hasSelection = Number.isFinite(selectedId) && selectedId > 0;
 
-  let rows: Array<{
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    service: string;
-    message: string;
-    status: string;
-    reference: string;
-    requestedAt: Date;
-    createdAt: Date;
-  }> = [];
+  let rows: Array<InboxRow> = [];
   let unavailable = false;
 
   try {
@@ -122,6 +126,38 @@ const counts = await loadAdminNavCounts();
   }
 
   const newCount = rows.filter((r) => r.status === "new").length;
+  let selected: InboxRow | null = hasSelection
+    ? (rows.find((r) => r.id === selectedId) ?? null)
+    : null;
+  // The selected request may be filtered out of the list — load it directly
+  // so a shared/bookmarked detail link still resolves.
+  if (hasSelection && !selected && !unavailable) {
+    try {
+      const db = getDb();
+      const found = await db
+        .select({
+          id: consultations.id,
+          name: consultations.name,
+          email: consultations.email,
+          phone: consultations.phone,
+          service: consultations.service,
+          message: consultations.message,
+          status: consultations.status,
+          reference: consultations.reference,
+          requestedAt: consultations.requestedAt,
+          createdAt: consultations.createdAt,
+        })
+        .from(consultations)
+        .where(eq(consultations.id, selectedId))
+        .limit(1);
+      selected = found[0] ?? null;
+    } catch {
+      selected = null;
+    }
+  }
+  // Preserve current filters when linking to a detail view.
+  const filterSuffix =
+    (query ? `&q=${encodeURIComponent(query)}` : "") + (status ? `&status=${status}` : "");
 
   return (
     <DashboardShell audience="Admin" title="Inbox" description="Every new consultation request from the public form lands here. Reply or convert to a client." nav={nav} currentHref="/dashboard/admin/inbox">
@@ -182,7 +218,11 @@ const counts = await loadAdminNavCounts();
             </form>
 
             {rows.map((r) => (
-              <article key={r.id} className="adm-inbox-i">
+              <article
+                key={r.id}
+                className={`adm-inbox-i${selected?.id === r.id ? " active" : ""}`}
+                style={{ position: "relative" }}
+              >
                 <div className="av">{initials(r.name)}</div>
                 <div className="body">
                   <div className="row1">
@@ -195,13 +235,93 @@ const counts = await loadAdminNavCounts();
                     <code className="refcode">{r.reference}</code>
                   </div>
                   {r.message ? <p className="preview">{r.message}</p> : null}
-                  <div className="row3">
+                  <div className="row3" style={{ position: "relative", zIndex: 1 }}>
                     <a href={`mailto:${r.email}`}>{r.email}</a>
                     {r.phone ? <a href={`tel:${r.phone}`}>{r.phone}</a> : null}
                   </div>
                 </div>
+                {/* Stretched link: whole row opens the detail view; the
+                    mailto/tel links above stay clickable via z-index. */}
+                <a
+                  href={`/dashboard/admin/inbox?id=${r.id}${filterSuffix}`}
+                  className="adm-inbox-hit"
+                  aria-label={`View consultation request from ${r.name}`}
+                />
               </article>
             ))}
+          </div>
+
+          <div className="adm-inbox-detail">
+            {hasSelection && !selected && !unavailable ? (
+              <div className="adm-empty">
+                <h2>Request not found</h2>
+                <p>That consultation request does not exist or is no longer available.</p>
+                <a className="adm-btn" href={`/dashboard/admin/inbox${filterSuffix ? `?${filterSuffix.slice(1)}` : ""}`}>
+                  Back to inbox
+                </a>
+              </div>
+            ) : selected ? (
+              <>
+                <div className="adm-inbox-thread-head">
+                  <div className="av">{initials(selected.name)}</div>
+                  <div>
+                    <b>{selected.name}</b>
+                    <div className="sm">
+                      {selected.service} · <code className="refcode">{selected.reference}</code>
+                    </div>
+                  </div>
+                  <span className="adm-badge" style={{ marginLeft: "auto" }}>
+                    {STATUS_LABEL[selected.status] ?? selected.status}
+                  </span>
+                </div>
+                <div className="adm-inbox-thread-msgs">
+                  <div className="adm-msg in">
+                    <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>
+                      {selected.message || "No message was included."}
+                    </p>
+                    <div className="sm" style={{ marginTop: 8 }}>
+                      Requested{" "}
+                      {new Intl.DateTimeFormat("en-US", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                        timeZone: "America/New_York",
+                      }).format(new Date(selected.requestedAt))}
+                    </div>
+                  </div>
+                  <div className="adm-inbox-contact">
+                    <div>
+                      <span className="adm-sm">Email</span>
+                      <a href={`mailto:${selected.email}`}>{selected.email}</a>
+                    </div>
+                    {selected.phone ? (
+                      <div>
+                        <span className="adm-sm">Phone</span>
+                        <a href={`tel:${selected.phone}`}>{selected.phone}</a>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="adm-inbox-actions">
+                  <a
+                    className="adm-btn"
+                    href={`mailto:${selected.email}?subject=${encodeURIComponent(
+                      `Re: your consultation request (${selected.reference})`,
+                    )}`}
+                  >
+                    Reply via email
+                  </a>
+                  <a className="adm-btn" href="/dashboard/admin/clients?new=1">
+                    Convert to client
+                  </a>
+                </div>
+              </>
+            ) : (
+              <div className="adm-empty">
+                <Mail size={22} aria-hidden="true" />
+                <h2>Select a request</h2>
+                <p>Choose a consultation request from the list to see its details here.</p>
+              </div>
+            )}
           </div>
         </div>
       )}

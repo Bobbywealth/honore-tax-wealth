@@ -8,6 +8,7 @@ import {
   UserPlus as UserPlusIcon, BarChart3, Contact, Settings, Menu, X, type LucideIcon,
 } from "lucide-react";
 import CommandPalette from "./admin/_components/CommandPalette";
+import ConsultationDialog from "@/components/ConsultationDialog";
 
 
 export type NavIconKey =
@@ -168,6 +169,10 @@ export default function DashboardShell({
           {children}
         </div>
       </div>
+      {/* Consultation request dialog for the [data-open-consultation] buttons
+          used across the portals. Rendered here so public/consultation.js can
+          find #consultation-dialog on dashboard pages. */}
+      <ConsultationDialog />
     </div>
   );
 }

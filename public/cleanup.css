@@ -697,3 +697,12 @@ body .login-simple .login-simple-form button[type="submit"]:disabled{
 body .login-simple .login-simple-form button[type="submit"]:focus-visible{
   outline:3px solid rgba(217,184,120,.55);outline-offset:2px;
 }
+
+/* Password field with show/hide toggle (login, forgot/reset, change password) */
+.password-field{position:relative;display:block}
+.password-field input{width:100%;padding-right:44px !important}
+.password-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:grid;place-items:center;background:transparent;border:0;border-radius:8px;color:#8a96a3;cursor:pointer;padding:0}
+.password-toggle:hover{color:#0e1a26;background:rgba(14,26,38,.06)}
+.password-toggle:focus-visible{outline:2px solid #d9b878;outline-offset:1px}
+.password-toggle:disabled{opacity:.4;cursor:not-allowed}
+.password-toggle svg{width:17px;height:17px}

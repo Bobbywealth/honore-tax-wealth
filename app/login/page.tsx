@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import PasswordInput from "@/components/PasswordInput";
 
 const QUICK_ADMIN_EMAIL = process.env.NEXT_PUBLIC_QUICK_ADMIN_EMAIL ?? "";
 const QUICK_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_QUICK_ADMIN_PASSWORD ?? "";
@@ -95,16 +96,15 @@ export default function Login() {
               required
             />
 
-            <label htmlFor="login-password">Password</label>
-            <input
+            <PasswordInput
               id="login-password"
-              name="password"
-              type="password"
+              label="Password"
+              value={password}
+              onChange={setPassword}
               autoComplete="current-password"
               placeholder="Enter your password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
               required
+              disabled={busy}
             />
 
             {error ? (

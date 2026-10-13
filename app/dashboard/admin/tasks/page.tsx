@@ -1,4 +1,4 @@
-import { CheckSquare, Filter, LayoutList, KanbanSquare } from "lucide-react";
+import { CheckSquare, Filter, LayoutList, KanbanSquare, Plus } from "lucide-react";
 import Link from "next/link";
 import { asc, eq, inArray, isNull, or, and } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
@@ -44,7 +44,7 @@ function dueLabel(dueAt: Date | null): { text: string; overdue: boolean; today: 
   return { text: today ? `Today ${time}` : date, overdue, today };
 }
 
-export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ view?: string; assignee?: string }> }) {
+export default async function TasksPage({ searchParams }: { searchParams?: Promise<{ view?: string; assignee?: string; new?: string; created?: string; error?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
@@ -53,6 +53,9 @@ export default async function TasksPage({ searchParams }: { searchParams?: Promi
   const nav = navForRole(me?.role, counts);
   const sp = (await searchParams) ?? {};
   const kanban = sp.view === "kanban";
+  const showNewForm = sp.new === "1";
+  const justCreated = sp.created === "1";
+  const formError = sp.error ?? "";
   // Non-admin agents only see their own tasks. The URL can override to
   // "all" with ?assignee= (admin-only affordance), but the default — and
   // anything not explicitly named — is "just me".
@@ -163,8 +166,69 @@ const navCounts = await loadAdminNavCounts();
               <KanbanSquare size={13} aria-hidden="true" /> Kanban
             </Link>
           </div>
+          <a className="adm-btn" href="/dashboard/admin/tasks?new=1">
+            <Plus size={13} aria-hidden="true" /> New task
+          </a>
         </div>
       </div>
+
+      {justCreated ? (
+        <div className="adm-alert" role="status" style={{ borderLeftColor: "var(--green)" }}>
+          <b style={{ color: "var(--green)" }}>Task created</b>
+          <span className="adm-sm">It now appears in the list below.</span>
+        </div>
+      ) : null}
+
+      {showNewForm ? (
+        <form className="adm-card adm-task-new" method="post" action="/api/admin/tasks">
+          <h3>New task</h3>
+          {formError ? (
+            <p className="adm-sm" role="alert" style={{ color: "var(--red)" }}>
+              {formError === "invalid"
+                ? "Please give the task a title (max 240 characters)."
+                : "Could not save the task. Please try again."}
+            </p>
+          ) : null}
+          <label>
+            <span className="adm-sm">Title</span>
+            <input type="text" name="title" required maxLength={240} placeholder="e.g. Review Okafor 1040" />
+          </label>
+          <label>
+            <span className="adm-sm">Details <em>(optional)</em></span>
+            <textarea name="description" rows={3} maxLength={2000} placeholder="What needs to happen?" />
+          </label>
+          <div className="adm-task-new-row">
+            <label>
+              <span className="adm-sm">Priority</span>
+              <select name="priority" defaultValue="normal">
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </label>
+            <label>
+              <span className="adm-sm">Due <em>(optional)</em></span>
+              <input type="date" name="dueAt" />
+            </label>
+            <label>
+              <span className="adm-sm">Assign to <em>(optional)</em></span>
+              <select name="assignedToId" defaultValue="">
+                <option value="">Unassigned</option>
+                {assigneeOptions.map((u) => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="adm-task-new-actions">
+            <button type="submit" className="adm-btn">Create task</button>
+            <a className="adm-btn" href="/dashboard/admin/tasks" style={{ background: "#f1ede2", color: "#0e1a26", boxShadow: "none" }}>
+              Cancel
+            </a>
+          </div>
+        </form>
+      ) : null}
 
       {unavailable ? (
         <div className="adm-empty">

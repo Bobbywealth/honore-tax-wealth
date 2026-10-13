@@ -47,25 +47,62 @@
   }
 
   // Consultation dialog
+  // Open/close use event delegation (not one-time binding) so buttons keep
+  // working across Next.js client-side navigations and on pages where the
+  // dialog mounts later (e.g. the client portal renders <ConsultationDialog/>
+  // inside the dashboard shell). Previously `if(!dialog) return` bailed out
+  // of the entire script on dialog-less pages, leaving every
+  // [data-open-consultation] button dead.
   const dialog=document.getElementById('consultation-dialog');
-  if(!dialog) return;
-  document.querySelectorAll('[data-open-consultation]').forEach(button=>button.addEventListener('click',(e)=>{
-    if(dialog.open) return; // already open
-    e.preventDefault();
-    try { dialog.showModal(); } catch(_){}
-    const sel=dialog.querySelector('[name=service]');
-    if(sel) sel.value=button.dataset.service||'';
-    dialog.dispatchEvent(new Event('consultation-open'));
-  }));
-  const closeBtn=document.querySelector('[data-close-consultation]');
-  if(closeBtn) closeBtn.addEventListener('click',()=>dialog.close());
-  dialog.addEventListener('click',event=>{if(event.target===dialog) dialog.close()});
+  function openDialog(opener){
+    const d=document.getElementById('consultation-dialog');
+    if(!d || d.open) return; // already open
+    wireDialog(d);
+    try { d.showModal(); } catch(_){}
+    const sel=d.querySelector('[name=service]');
+    if(sel) sel.value=(opener && opener.dataset.service)||'';
+    d.dispatchEvent(new Event('consultation-open'));
+  }
+  document.addEventListener('click',(e)=>{
+    const t=e.target instanceof Element ? e.target : null;
+    if(!t) return;
+    const opener=t.closest('[data-open-consultation]');
+    if(opener){ e.preventDefault(); openDialog(opener); return; }
+    const closer=t.closest('[data-close-consultation]');
+    if(closer){
+      const d=closer.closest('dialog')||document.getElementById('consultation-dialog');
+      if(d && d.open) d.close();
+    }
+  });
+  // Backdrop click closes (delegated: works for remounted dialogs too)
+  document.addEventListener('click',(e)=>{
+    const d=document.getElementById('consultation-dialog');
+    if(d && e.target===d) d.close();
+  });
 
-  // Form submit + multi-step
-  const form=document.getElementById('consultation-form');
-  const feedback=document.getElementById('form-feedback');
-  const dialog2=document.getElementById('consultation-dialog');
-  if(form && feedback){
+  // Per-dialog wiring (form steps, validation, submit, deep links). Guarded
+  // so a remounted dialog gets wired exactly once.
+  function wireDialog(d){
+    if(!d || d.dataset.wired) return;
+    d.dataset.wired="1";
+    // Mark dialog as touched on first interaction
+    d.addEventListener('input',()=>d.setAttribute('data-touched','1'),{once:true});
+    d.addEventListener('change',()=>d.setAttribute('data-touched','1'),{once:true});
+    wireDialogForm(d);
+    // Deep-link support: #consultation or ?service=
+    const requestedService=new URLSearchParams(location.search).get('service');
+    if(location.hash==='#consultation'||requestedService){
+      const select=d.querySelector('[name=service]');
+      if(select && requestedService && Array.from(select.options).some(o=>o.value===requestedService)) select.value=requestedService;
+      try{ d.showModal(); }catch(_){}
+      d.dispatchEvent(new Event('consultation-open'));
+    }
+  }
+  function wireDialogForm(d){
+    // Form submit + multi-step
+    const form=d.querySelector('#consultation-form');
+    const feedback=d.querySelector('#form-feedback');
+    if(!form || !feedback) return;
     // Service-card selection syncs the hidden select + sets aria-checked
     const cards=form.querySelectorAll('.service-card');
     const serviceSelect=form.querySelector('select[name=service]');
@@ -171,11 +208,15 @@
     });
   }
 
-  const requestedService=new URLSearchParams(location.search).get('service');
-  if(location.hash==='#consultation'||requestedService){
-    const select=dialog.querySelector('[name=service]');
-    if(select && Array.from(select.options).some(o=>o.value===requestedService)) select.value=requestedService;
-    dialog.showModal();dialog.dispatchEvent(new Event('consultation-open'));
+  // Wire any dialog present at load; re-wire if it remounts (Next.js
+  // client-side navigation replaces the element without re-running this
+  // script).
+  wireDialog(document.getElementById('consultation-dialog'));
+  if('MutationObserver' in window){
+    new MutationObserver(()=>{
+      const d=document.getElementById('consultation-dialog');
+      if(d) wireDialog(d);
+    }).observe(document.documentElement,{childList:true,subtree:true});
   }
 
   // Hero slideshow — single source of truth
@@ -193,7 +234,7 @@
       dots.forEach((d,idx)=>{d.classList.toggle('active',idx===i);d.setAttribute('aria-pressed',String(idx===i))});
       if(countEl) countEl.textContent=String(i+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
     };
-    const start=()=>{stop();if(paused||document.hidden)return;timer=setInterval(()=>{if(!hero.matches(':focus-within')&&!dialog.open) go(i+1)},5500)};
+    const start=()=>{stop();if(paused||document.hidden)return;timer=setInterval(()=>{if(!hero.matches(':focus-within')&&!(dialog&&dialog.open)) go(i+1)},5500)};
     const stop=()=>{if(timer){clearInterval(timer);timer=null}};
     dots.forEach((d,idx)=>d.addEventListener('click',()=>{go(idx);start()}));
     if(pauseBtn){pauseBtn.addEventListener('click',()=>{paused=!paused;pauseBtn.setAttribute('aria-label',paused?'Resume slideshow':'Pause slideshow');pauseBtn.textContent=paused?'Play':'Pause';if(paused)stop();else start()})}
@@ -260,11 +301,5 @@
 
   // Lazy images
   document.querySelectorAll('img').forEach(img=>{if(!img.classList.contains('brand-logo') && !img.hasAttribute('loading')) img.setAttribute('loading','lazy')});
-
-  // Mark dialog as touched on first interaction
-  if(dialog2){
-    dialog2.addEventListener('input',()=>dialog2.setAttribute('data-touched','1'),{once:true});
-    dialog2.addEventListener('change',()=>dialog2.setAttribute('data-touched','1'),{once:true});
-  }
 
 })();

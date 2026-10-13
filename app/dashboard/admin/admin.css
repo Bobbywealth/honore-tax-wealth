@@ -40,7 +40,7 @@
 .adm-foot a svg{width:13px;height:13px}
 
 /* Main area */
-.adm-main{min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.adm-main{min-width:0;display:flex;flex-direction:column;overflow:hidden;grid-column:2;position:relative;z-index:1}
 .adm-top{height:64px;background:rgba(255,255,255,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(14,26,38,.06);display:flex;align-items:center;padding:0 28px;gap:16px}
 .adm-crumb{font-size:12px;color:#6a7785;display:flex;align-items:center;gap:6px}
 .adm-crumb b{color:var(--ink);font-weight:600}
@@ -199,10 +199,14 @@
 @media(max-width:1100px){
   .adm-root{grid-template-columns:1fr}
   .adm-sb{display:none}
+  .adm-main{grid-column:1}
+  .adm-mobile-nav{display:block}
   .adm-kp{grid-template-columns:repeat(2,1fr)}
   .adm-kan{grid-template-columns:repeat(2,1fr)}
   .adm-g{grid-template-columns:1fr}
 }
+/* Mobile nav toggle: desktop uses the fixed sidebar, so hide it there. */
+.adm-mobile-nav{display:none}
 @media(max-width:700px){
   .adm-top{height:60px;padding:0 18px;gap:10px}
   .adm-crumb{display:none}
@@ -232,6 +236,18 @@
 .adm-inbox-i .body{flex:1;min-width:0}
 .adm-inbox-i b{font-size:12.5px;font-weight:600;color:#0e1a26;display:block;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .adm-inbox-i .preview{font-size:11px;color:#7a858e;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}
+/* Stretched row link — the whole inbox row opens the detail view, while the
+   mailto/tel links inside keep working via their own stacking position. */
+.adm-inbox-hit{position:absolute;inset:0;border-radius:inherit}
+.adm-inbox-hit:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+/* Detail column (second grid track of .adm-inbox) */
+.adm-inbox-detail{display:flex;flex-direction:column;background:#fdfcf8;min-height:600px;border-left:1px solid #efece3}
+.adm-inbox-detail .adm-empty{margin:auto;text-align:center;padding:32px}
+.adm-inbox-contact{display:grid;gap:10px;margin-top:6px}
+.adm-inbox-contact>div{display:grid;gap:2px}
+.adm-inbox-contact a{color:var(--ink);font-weight:600;font-size:12.5px;text-decoration:none}
+.adm-inbox-contact a:hover{color:var(--gold-deep);text-decoration:underline}
+.adm-inbox-actions{display:flex;gap:8px;padding:14px 20px;border-top:1px solid #efece3;background:#fff;flex-wrap:wrap}
 .adm-inbox-i .meta-row{display:flex;align-items:center;justify-content:space-between;margin-top:3px}
 .adm-inbox-i .time{font-size:10px;color:#9a7a2e;font-weight:600;letter-spacing:.3px}
 .adm-inbox-thread{display:flex;flex-direction:column;background:#fdfcf8}
@@ -272,6 +288,18 @@
 .adm-table tbody tr:last-child td{border-bottom:0}
 .adm-table tbody tr{cursor:pointer}
 .adm-table tbody tr:hover{background:#fdfcf8}
+.adm-row-link{color:inherit;text-decoration:none}
+.adm-row-link:hover{color:var(--gold-deep);text-decoration:underline}
+/* New-task form (Tasks page, ?new=1) */
+.adm-task-new{display:grid;gap:12px;margin-bottom:14px}
+.adm-task-new label{display:grid;gap:6px;font-weight:600}
+.adm-task-new input[type=text],.adm-task-new input[type=date],.adm-task-new select,.adm-task-new textarea{width:100%;border:1px solid #e4e1d6;border-radius:10px;background:#fbf9f4;padding:10px 12px;font:inherit;font-size:13px;color:var(--ink);outline:0}
+.adm-task-new input:focus,.adm-task-new select:focus,.adm-task-new textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,167,85,.18);background:#fff}
+.adm-task-new textarea{resize:vertical;min-height:72px}
+.adm-task-new .adm-sm em{font-style:normal;color:#9a8f7a}
+.adm-task-new-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:700px){.adm-task-new-row{grid-template-columns:1fr}}
+.adm-task-new-actions{display:flex;gap:8px}
 .adm-table .av{width:30px;height:30px;font-size:11px;background:linear-gradient(135deg,#e8dcc0,#cdb88a);color:#5a4818;flex:0 0 30px;border-radius:50%;display:grid;place-items:center;font-weight:700}
 .adm-table .av.red{background:linear-gradient(135deg,#f0c4bd,#d68c80);color:#7a2a25}
 .adm-table .av.gn{background:linear-gradient(135deg,#cde0c4,#9bbf8a);color:#3a5a2a}

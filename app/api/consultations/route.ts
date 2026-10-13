@@ -4,14 +4,14 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { ensureMigrated } from "@/db/migrate";
 import { sendConsultationEmails } from "@/lib/email";
+import { consumeRateLimit, saltedIpKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Simple in-memory rate limit: max 5 submissions per IP per 10 minutes.
-// Replaced by a Postgres-backed rate limiter in P2-04.
-const buckets = new Map<string, number[]>();
-const WINDOW_MS = 10 * 60 * 1000;
+// Postgres-backed rate limit: max 5 submissions per IP per 10 minutes.
+// Shared across instances/restarts via lib/rate-limit (rate_limit_counters).
+const WINDOW_SECONDS = 10 * 60;
 const MAX_REQ = 5;
 const MAX_BODY_BYTES = 4000;
 const ALLOWED_SERVICES = [
@@ -25,14 +25,6 @@ const ALLOWED_SERVICES = [
 function clientIp(request: Request): string {
   const fwd = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || "";
   return fwd.split(",")[0].trim() || "unknown";
-}
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const arr = buckets.get(ip) || [];
-  const recent = arr.filter(t => now - t < WINDOW_MS);
-  if (recent.length >= MAX_REQ) { buckets.set(ip, recent); return true; }
-  recent.push(now); buckets.set(ip, recent);
-  return false;
 }
 // Salted SHA-256 hash of the IP so logs don't carry raw client addresses.
 const hashSalt = process.env.LOG_SALT ?? "";
@@ -58,9 +50,20 @@ const schema = z.object({
 export async function POST(request: Request) {
   const ip = clientIp(request);
   const iph = await ipHash(ip);
-  if (rateLimited(ip)) {
-    logEvent("consult.rate_limited", { iph });
-    return Response.json({ error: "Too many requests. Please try again in a few minutes." }, { status: 429 });
+  try {
+    const limit = await consumeRateLimit(saltedIpKey("consult", iph), MAX_REQ, WINDOW_SECONDS);
+    if (!limit.allowed) {
+      logEvent("consult.rate_limited", { iph });
+      return Response.json(
+        { error: "Too many requests. Please try again in a few minutes." },
+        { status: 429, headers: { "retry-after": String(limit.retryAfterSeconds) } },
+      );
+    }
+  } catch (error) {
+    // Rate-limit store unavailable (e.g. DB down): log and fail open so a
+    // legitimate consultation request is not lost. Abuse is still bounded by
+    // the honeypot, validation, and duplicate checks below.
+    logEvent("consult.rate_limit_unavailable", { iph, err: (error as Error).message });
   }
   try {
     const len = Number(request.headers.get("content-length") || 0);
