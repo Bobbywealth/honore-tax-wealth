@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import DashboardShell from "../DashboardShell";
+import OpenChatButton from "./_components/OpenChatButton";
+import QuickMessageForm from "./_components/QuickMessageForm";
 import { currentUser } from "@/lib/auth";
 import { clientNav } from "./_lib/nav";
 import { getDb } from "@/db";
@@ -79,32 +81,29 @@ type Counters = {
   openRequests: number;
   upcomingAppointments: number;
   unpaidInvoices: number;
-  unreadMessages: number;
 };
 
 async function loadCounters(clientId: string): Promise<Counters> {
   try {
     if (!process.env.DATABASE_URL) {
-      return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+      return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 };
     }
     await ensureMigrated();
     const db = getDb();
-    const [eg, req, appt, inv, msg] = await Promise.all([
+    const [eg, req, appt, inv] = await Promise.all([
       db.select({ c: count() }).from(engagements).where(and(eq(engagements.clientId, clientId), isNull(engagements.archivedAt))),
       db.select({ c: count() }).from(documentRequests).where(and(eq(documentRequests.clientId, clientId), isNull(documentRequests.fulfilledAt))),
       db.select({ c: count() }).from(appointments).where(and(eq(appointments.clientId, clientId), inArray(appointments.status, ["requested", "confirmed"]))),
       db.select({ c: count() }).from(invoices).where(and(eq(invoices.clientId, clientId), inArray(invoices.status, ["sent", "overdue"]))),
-      db.select({ c: sql<number>`coalesce(sum(${conversations.clientUnreadCount}), 0)::int` }).from(conversations).where(eq(conversations.clientId, clientId)),
     ]);
     return {
       activeEngagements: eg[0]?.c ?? 0,
       openRequests: req[0]?.c ?? 0,
       upcomingAppointments: appt[0]?.c ?? 0,
       unpaidInvoices: inv[0]?.c ?? 0,
-      unreadMessages: Number(msg[0]?.c ?? 0),
     };
   } catch {
-    return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+    return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 };
   }
 }
 
@@ -121,7 +120,7 @@ export default async function ClientDashboard() {
         audience="Client"
         title="Your tax home"
         description="Your preparer will connect your account to a client record shortly."
-        nav={clientNav({ activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 })}
+        nav={clientNav({ activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 })}
         userLabel={user.displayName ?? user.email}
         currentHref="/dashboard/client"
       >
@@ -374,9 +373,9 @@ export default async function ClientDashboard() {
                     <strong>{m.subject || "New message from your preparer"}</strong>
                     <span>&ldquo;{m.body.slice(0, 140)}{m.body.length > 140 ? "…" : ""}&rdquo; · {relative(m.createdAt)}</span>
                   </div>
-                  <Link className="dashboard-triage-cta" href="/dashboard/client/messages">
+                  <OpenChatButton threadId={m.conversationId} className="dashboard-triage-cta" ariaLabel={`Reply to ${m.subject || "message from your preparer"}`}>
                     Reply <ChevronRight size={14} aria-hidden="true" />
-                  </Link>
+                  </OpenChatButton>
                 </li>
               ))}
           </ul>
@@ -542,27 +541,8 @@ export default async function ClientDashboard() {
       <section className="dashboard-section client-checklist" aria-labelledby="send-msg">
         <span className="dashboard-eyebrow"><MessageSquareText size={14} aria-hidden="true" /> SEND A MESSAGE</span>
         <h2 id="send-msg">Ask your preparer anything</h2>
-        <p className="dashboard-quiet">Reply in your existing threads from the Messages page, or open a new one here.</p>
-        <form className="dashboard-quick-form" action="/api/client/conversations" method="post">
-          <div className="dashboard-form-row">
-            <label>
-              Subject
-              <input name="subject" required maxLength={200} placeholder="e.g. Question about my 1099" />
-            </label>
-          </div>
-          <label className="dashboard-form-notes">
-            Message
-            <textarea name="body" required maxLength={4000} rows={3} placeholder="What can we help with?" />
-          </label>
-          <div className="dashboard-form-actions">
-            <button type="submit" className="dashboard-button">
-              Send to preparer <ArrowUpRight size={16} aria-hidden="true" />
-            </button>
-            <Link href="/dashboard/client/messages" className="dashboard-button dashboard-button-secondary">
-              Open messages
-            </Link>
-          </div>
-        </form>
+        <p className="dashboard-quiet">Reply in your existing threads from the chat widget, or open a new one here.</p>
+        <QuickMessageForm />
       </section>
     </DashboardShell>
   );

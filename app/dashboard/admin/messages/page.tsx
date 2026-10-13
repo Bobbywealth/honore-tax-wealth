@@ -84,7 +84,7 @@ function buildAdminNav(counts: { unanswered: number; conversationsUnread: number
 export default async function AdminMessagesPage({ searchParams }: { searchParams?: Promise<{ thread?: string }> }) {
   const user = await currentUser();
   if (!user) redirect("/login?next=/dashboard/admin/messages");
-  if (user.role === "client") redirect("/dashboard/client/messages");
+  if (user.role === "client") redirect("/dashboard/client");
   if (user.role !== "admin") {
     // Non-admin staff don't get access to the inter-staff message board.
     return (

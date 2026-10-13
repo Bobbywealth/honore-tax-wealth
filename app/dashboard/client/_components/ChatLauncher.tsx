@@ -123,6 +123,20 @@ export default function ChatLauncher({
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages.length, activeId]);
 
+  // Allow page CTAs to open the widget programmatically:
+  // window.dispatchEvent(new CustomEvent("open-client-chat", { detail: { threadId } }))
+  useEffect(() => {
+    function onOpenClientChat(e: Event) {
+      const threadId = (e as CustomEvent<{ threadId?: string }>).detail?.threadId;
+      setMinimized(false);
+      setOpen(true);
+      if (threadId) void selectThread(threadId);
+    }
+    window.addEventListener("open-client-chat", onOpenClientChat);
+    return () => window.removeEventListener("open-client-chat", onOpenClientChat);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filteredThreads = useMemo(() => {
     let list = threads;
     if (filter === "unread") list = list.filter((t) => t.unread > 0);
