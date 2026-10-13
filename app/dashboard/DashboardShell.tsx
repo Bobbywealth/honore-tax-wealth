@@ -173,27 +173,45 @@ export default function DashboardShell({
               <h1>{title}</h1>
               <p>{description}</p>
             </div>
-            {/* Only intake path. The same handler the marketing CTAs use is
-              wired into the same #consultation-dialog that's now mounted globally. */}
-            <button type="button" className="dashboard-request-cta" data-open-consultation>
-              Request a consultation <span aria-hidden="true">↗</span>
-            </button>
+            {/* Client portal: open the appointment request dialog (mounted in the
+              client layout). Admin keeps the consultation trigger. */}
+            {audience === "Client" ? (
+              <button type="button" className="dashboard-request-cta" data-open-appointment-request>
+                Request an appointment <span aria-hidden="true">↗</span>
+              </button>
+            ) : (
+              <button type="button" className="dashboard-request-cta" data-open-consultation>
+                Request a consultation <span aria-hidden="true">↗</span>
+              </button>
+            )}
           </div>
           {children}
         </div>
       </div>
-      {/* Persistent floating pill mirrors the marketing site's
-        `.honore-floating-cta`. Hidden when the dialog is open via
-        consultation.js. */}
-      <button
-        type="button"
-        className="dashboard-floating-cta"
-        data-open-consultation
-        aria-label="Request a consultation"
-      >
-        <span className="dashboard-floating-cta-dot" aria-hidden="true" />
-        Request a consultation <span aria-hidden="true">↗</span>
-      </button>
+      {/* Persistent floating pill. Client portal: opens the appointment request
+        dialog. Admin: keeps the consultation trigger. Hidden when the dialog
+        is open via consultation.js. */}
+      {audience === "Client" ? (
+        <button
+          type="button"
+          className="dashboard-floating-cta"
+          data-open-appointment-request
+          aria-label="Request an appointment"
+        >
+          <span className="dashboard-floating-cta-dot" aria-hidden="true" />
+          Request an appointment <span aria-hidden="true">↗</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="dashboard-floating-cta"
+          data-open-consultation
+          aria-label="Request a consultation"
+        >
+          <span className="dashboard-floating-cta-dot" aria-hidden="true" />
+          Request a consultation <span aria-hidden="true">↗</span>
+        </button>
+      )}
     </div>
   );
 }
