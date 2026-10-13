@@ -141,7 +141,13 @@ export async function POST(request: Request) {
     logEvent("auth.login.success", { iph, role: account.role });
     return Response.json({ ok: true, role: account.role });
   } catch (err) {
-    logEvent("auth.login.error", { iph, reason: err instanceof Error ? err.name : "unknown" });
+    // Never log the submitted email or password. err.message gives the real
+    // reason (e.g. "column \"deactivated_at\" does not exist") so future
+    // 500s are diagnosable from the logs without exposing credentials.
+    logEvent("auth.login.error", {
+      iph,
+      reason: err instanceof Error ? err.message : "unknown",
+    });
     return Response.json({ ok: false, error: "server_error" }, { status: 500 });
   }
 }

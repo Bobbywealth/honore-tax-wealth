@@ -56,11 +56,19 @@ const STATEMENTS: string[] = [
      last_login_at TIMESTAMPTZ,
      failed_login_count INTEGER NOT NULL DEFAULT 0,
      locked_until TIMESTAMPTZ,
+     deactivated_at TIMESTAMPTZ,
      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
    )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS users_email_key ON users (email)`,
   `CREATE INDEX IF NOT EXISTS users_role_idx ON users (role)`,
+  // Soft-delete watermark added by f91cc07 ("extend roles with assistant +
+  // add deactivatedAt soft-delete"). Backfill column on existing
+  // deployments and keep a partial index for the team-list filter that
+  // excludes deactivated accounts.
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMPTZ`,
+  `CREATE INDEX IF NOT EXISTS users_deactivated_at_idx
+     ON users (deactivated_at) WHERE deactivated_at IS NOT NULL`,
 
   `CREATE TABLE IF NOT EXISTS sessions (
      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
