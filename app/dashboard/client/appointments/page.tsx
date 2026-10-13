@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 function fmtDate(value: Date | null, tz = "America/New_York"): string {
   if (!value) return "";
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "full", month: "short", day: "numeric", year: "numeric", timeZone: tz }).format(new Date(value));
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: tz }).format(new Date(value));
 }
 function fmtTime(value: Date | null, tz = "America/New_York"): string {
   if (!value) return "";

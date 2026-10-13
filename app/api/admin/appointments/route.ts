@@ -24,10 +24,31 @@ function logEvent(event: string, fields: Record<string, unknown>) {
   console.log(JSON.stringify({ ts: new Date().toISOString(), event, ...fields }));
 }
 
+function getNyOffsetMs(at: Date): number {
+  // How far behind UTC is America/New_York at the given moment?
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(at);
+  const v = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  const nyWallAsUtc = Date.UTC(v("year"), v("month") - 1, v("day"), v("hour"), v("minute"), v("second"));
+  return at.getTime() - nyWallAsUtc;
+}
+
 function combineDateTime(date: string, time: string): Date {
-  // Interprets the form's date+time as America/New_York (the practice's local
-  // timezone, which the appointments table defaults to).
-  return new Date(`${date}T${time}:00-05:00`);
+  // Interprets the form's date+time as a wall-clock time in America/New_York,
+  // respecting daylight saving time. A fixed -05:00 offset is wrong during
+  // EDT (UTC-4), shifting displayed times by an hour.
+  const [y, mo, d] = date.split("-").map(Number);
+  const [h, mi] = time.split(":").map(Number);
+  const asUtc = new Date(Date.UTC(y, mo - 1, d, h, mi, 0));
+  return new Date(asUtc.getTime() + getNyOffsetMs(asUtc));
 }
 
 /**
