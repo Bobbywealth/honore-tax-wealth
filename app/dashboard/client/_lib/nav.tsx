@@ -1,10 +1,8 @@
 import type { PortalNavItem } from "../../DashboardShell";
-import { LayoutDashboard, FileText, Receipt, MessageSquareText, CalendarDays, ClipboardList } from "lucide-react";
 
 export type ClientCounts = {
   openRequests: number;
   unpaidInvoices: number;
-  unreadMessages: number;
   upcomingAppointments: number;
   activeEngagements: number;
   pendingSignatures?: number;
@@ -47,12 +45,6 @@ export function clientNav(counts: ClientCounts): PortalNavItem[] {
       href: "/dashboard/client/appointments",
       label: "Appointments",
       icon: "appointments",
-    },
-    {
-      href: "/dashboard/client/messages",
-      label: "Messages",
-      icon: "messages",
-      badge: counts.unreadMessages > 0 ? { value: counts.unreadMessages, tone: "red" as const } : undefined,
     },
   ];
 }

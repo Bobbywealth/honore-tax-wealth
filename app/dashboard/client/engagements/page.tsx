@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight, ClipboardList, FileText, CheckCircle2, Circle } from "lucide-react";
 import DashboardShell from "../../DashboardShell";
+import OpenChatButton from "../_components/OpenChatButton";
 import { currentUser } from "@/lib/auth";
 import { clientNav } from "../_lib/nav";
 import { primaryClientFor } from "@/lib/access";
@@ -52,26 +53,24 @@ function relative(value: Date): string {
 }
 
 async function loadCounts(clientId: string) {
-  if (!process.env.DATABASE_URL) return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+  if (!process.env.DATABASE_URL) return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 };
   try {
     await ensureMigrated();
     const db = getDb();
-    const [eg, req, appt, inv, msg] = await Promise.all([
+    const [eg, req, appt, inv] = await Promise.all([
       db.select({ c: sql<number>`count(*)::int` }).from(engagements).where(and(eq(engagements.clientId, clientId), isNull(engagements.archivedAt))),
       db.select({ c: sql<number>`count(*)::int` }).from(documentRequests).where(and(eq(documentRequests.clientId, clientId), isNull(documentRequests.fulfilledAt))),
       db.select({ c: sql<number>`count(*)::int` }).from(appointments).where(and(eq(appointments.clientId, clientId), inArray(appointments.status, ["requested", "confirmed"]))),
       db.select({ c: sql<number>`count(*)::int` }).from(invoices).where(and(eq(invoices.clientId, clientId), inArray(invoices.status, ["sent", "overdue"]))),
-      db.select({ c: sql<number>`coalesce(sum(${conversations.clientUnreadCount}), 0)::int` }).from(conversations).where(eq(conversations.clientId, clientId)),
     ]);
     return {
       activeEngagements: eg[0]?.c ?? 0,
       openRequests: req[0]?.c ?? 0,
       upcomingAppointments: appt[0]?.c ?? 0,
       unpaidInvoices: inv[0]?.c ?? 0,
-      unreadMessages: Number(msg[0]?.c ?? 0),
     };
   } catch {
-    return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+    return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 };
   }
 }
 
@@ -84,7 +83,6 @@ export default async function ClientEngagementsPage() {
     openRequests: 0,
     upcomingAppointments: 0,
     unpaidInvoices: 0,
-    unreadMessages: 0,
   });
 
   if (!clientId) {
@@ -299,9 +297,9 @@ export default async function ClientEngagementsPage() {
                 <Link href="/dashboard/client/documents" className="dashboard-button dashboard-button-secondary">
                   Open documents <ArrowUpRight size={14} aria-hidden="true" />
                 </Link>
-                <Link href="/dashboard/client/messages" className="dashboard-button dashboard-button-secondary">
+                <OpenChatButton className="dashboard-button dashboard-button-secondary">
                   Send a message <ArrowUpRight size={14} aria-hidden="true" />
-                </Link>
+                </OpenChatButton>
               </div>
             </section>
           );

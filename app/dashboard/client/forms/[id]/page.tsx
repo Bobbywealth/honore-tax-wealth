@@ -31,7 +31,6 @@ export default async function ClientFormDetailPage({ params }: { params: Promise
   const counts = {
     openRequests: 0,
     unpaidInvoices: 0,
-    unreadMessages: 0,
     upcomingAppointments: 0,
     activeEngagements: 0,
     pendingSignatures: 0,

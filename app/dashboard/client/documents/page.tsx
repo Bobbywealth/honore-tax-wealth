@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { ArrowUpRight, FileText, Upload, CheckCircle2, AlertTriangle, FileQuestion } from "lucide-react";
 import DashboardShell from "../../DashboardShell";
+import OpenChatButton from "../_components/OpenChatButton";
 import { currentUser } from "@/lib/auth";
 import { clientNav } from "../_lib/nav";
 import { primaryClientFor } from "@/lib/access";
@@ -36,27 +36,25 @@ function relative(value: Date): string {
 }
 
 async function loadCounts(clientId: string) {
-  if (!process.env.DATABASE_URL) return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+  if (!process.env.DATABASE_URL) return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 };
   try {
     await ensureMigrated();
     const db = getDb();
     const schema = await import("@/db/schema");
-    const [eg, req, appt, inv, msg] = await Promise.all([
+    const [eg, req, appt, inv] = await Promise.all([
       db.select({ c: count() }).from(schema.engagements).where(and(eq(schema.engagements.clientId, clientId), isNull(schema.engagements.archivedAt))),
       db.select({ c: count() }).from(schema.documentRequests).where(and(eq(schema.documentRequests.clientId, clientId), isNull(schema.documentRequests.fulfilledAt))),
       db.select({ c: count() }).from(schema.appointments).where(and(eq(schema.appointments.clientId, clientId), sql`${schema.appointments.status} IN ('requested','confirmed')`)),
       db.select({ c: count() }).from(schema.invoices).where(and(eq(schema.invoices.clientId, clientId), sql`${schema.invoices.status} IN ('sent','overdue')`)),
-      db.select({ c: sql<number>`coalesce(sum(${schema.conversations.clientUnreadCount}), 0)::int` }).from(schema.conversations).where(eq(schema.conversations.clientId, clientId)),
     ]);
     return {
       activeEngagements: eg[0]?.c ?? 0,
       openRequests: req[0]?.c ?? 0,
       upcomingAppointments: appt[0]?.c ?? 0,
       unpaidInvoices: inv[0]?.c ?? 0,
-      unreadMessages: Number(msg[0]?.c ?? 0),
     };
   } catch {
-    return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 };
+    return { activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 };
   }
 }
 
@@ -64,7 +62,7 @@ export default async function ClientDocumentsPage() {
   const user = await currentUser();
   if (!user) redirect("/login?next=/dashboard/client/documents");
   const clientId = await primaryClientFor(user);
-  const nav = clientNav({ activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0, unreadMessages: 0 });
+  const nav = clientNav({ activeEngagements: 0, openRequests: 0, upcomingAppointments: 0, unpaidInvoices: 0 });
 
   if (!clientId) {
     return (
@@ -249,9 +247,9 @@ export default async function ClientDocumentsPage() {
         <span className="dashboard-eyebrow"><Upload size={14} aria-hidden="true" /> NEXT STEP</span>
         <h2>Need a refresher?</h2>
         <p className="dashboard-quiet">Send your preparer a quick note in the messages tab if anything is missing or unclear.</p>
-        <Link href="/dashboard/client/messages" className="dashboard-button">
+        <OpenChatButton className="dashboard-button">
           Open messages <ArrowUpRight size={16} aria-hidden="true" />
-        </Link>
+        </OpenChatButton>
       </section>
     </DashboardShell>
   );
