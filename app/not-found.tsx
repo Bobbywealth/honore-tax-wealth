@@ -10,7 +10,7 @@ export default function NotFound(){
       <p style={{fontSize:16,lineHeight:1.55,color:"#53606d",margin:"0 0 28px"}}>The link you followed may be broken, or the page may have moved. Let&apos;s get you back to something useful.</p>
       <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
         <Link href="/" style={{display:"inline-block",padding:"14px 22px",borderRadius:8,font:"800 12px Manrope,sans-serif",letterSpacing:"0.1em",textDecoration:"none",background:"#0b1a2a",color:"#fff"}}>BACK TO HOME</Link>
-        <a href="mailto:hello@honoretaxwealth.com" style={{display:"inline-block",padding:"14px 22px",borderRadius:8,font:"800 12px Manrope,sans-serif",letterSpacing:"0.1em",textDecoration:"none",border:"1px solid #d9c9a3",color:"#0b1a2a"}}>EMAIL US</a>
+        <a href="mailto:ihonoretaxwealth@gmail.com" style={{display:"inline-block",padding:"14px 22px",borderRadius:8,font:"800 12px Manrope,sans-serif",letterSpacing:"0.1em",textDecoration:"none",border:"1px solid #d9c9a3",color:"#0b1a2a"}}>EMAIL US</a>
       </div>
     </main>
     </>

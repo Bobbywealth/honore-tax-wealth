@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import SiteFooter from "../_components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "About",
@@ -24,6 +25,7 @@ const p = { color: "#5b6c78", fontSize: 15, lineHeight: 1.7, margin: "0 0 14px" 
 
 export default function AboutPage() {
   return (
+    <>
     <main style={page}>
       <div style={wrap}>
         <Link href="/" style={{ ...gold, display: "inline-block", marginBottom: 24, textDecoration: "none" }}>
@@ -128,5 +130,7 @@ export default function AboutPage() {
         </p>
       </div>
     </main>
+    <SiteFooter />
+    </>
   );
 }

@@ -47,7 +47,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="7. Your choices">
-          <p>You can ask us to correct, export, or delete the information you sent us. Email <a href="mailto:office@honore-tax.com" style={{ color: "#9a7642" }}>office@honore-tax.com</a> and we will respond within 30 days.</p>
+          <p>You can ask us to correct, export, or delete the information you sent us. Email <a href="mailto:ihonoretaxwealth@gmail.com" style={{ color: "#9a7642" }}>ihonoretaxwealth@gmail.com</a> and we will respond within 30 days.</p>
         </Section>
 
         <Section title="8. Security">
@@ -65,8 +65,8 @@ export default function PrivacyPage() {
         <Section title="11. Contact">
           <p>
             Honore Tax & Wealth<br />
-            <span aria-label="Mailing address pending">[ mailing address to be confirmed at launch ]</span><br />
-            <span aria-label="Email address pending">[ email address to be confirmed at launch ]</span>
+            Phone: <a href="tel:+14073407964" style={{ color: "#9a7642" }}>407-340-7964</a><br />
+            Email: <a href="mailto:ihonoretaxwealth@gmail.com" style={{ color: "#9a7642" }}>ihonoretaxwealth@gmail.com</a>
           </p>
         </Section>
 

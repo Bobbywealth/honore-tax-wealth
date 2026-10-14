@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SiteFooter from "../_components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -23,6 +24,7 @@ const p = { color: "#5b6c78", fontSize: 15, lineHeight: 1.7, margin: "0 0 14px" 
 
 export default function ContactPage() {
   return (
+    <>
     <main style={page}>
       <div style={wrap}>
         <Link href="/" style={{ ...gold, display: "inline-block", marginBottom: 24, textDecoration: "none" }}>
@@ -54,13 +56,13 @@ export default function ContactPage() {
             <div>
               <dt style={{ ...gold, marginBottom: 4 }}>Phone</dt>
               <dd style={{ margin: 0, font: "500 18px/1.4 Georgia, serif", color: "#172435" }}>
-                <span aria-label="Phone number pending">[ to be confirmed at launch ]</span>
+                <a href="tel:+14073407964" style={{ color: "inherit", textDecoration: "none" }}>407-340-7964</a>
               </dd>
             </div>
             <div>
               <dt style={{ ...gold, marginBottom: 4 }}>Email</dt>
               <dd style={{ margin: 0, font: "500 18px/1.4 Georgia, serif", color: "#172435" }}>
-                <span aria-label="Email address pending">[ to be confirmed at launch ]</span>
+                <a href="mailto:ihonoretaxwealth@gmail.com" style={{ color: "inherit", textDecoration: "none" }}>ihonoretaxwealth@gmail.com</a>
               </dd>
             </div>
             <div>
@@ -139,5 +141,7 @@ export default function ContactPage() {
         </p>
       </div>
     </main>
+    <SiteFooter />
+    </>
   );
 }
