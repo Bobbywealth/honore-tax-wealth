@@ -529,6 +529,30 @@ const STATEMENTS: string[] = [
    )`,
   `CREATE INDEX IF NOT EXISTS idempotency_keys_expires_at_idx ON idempotency_keys (expires_at)`,
 
+  `CREATE TABLE IF NOT EXISTS email_templates (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     key VARCHAR(80) NOT NULL UNIQUE,
+     name VARCHAR(160) NOT NULL,
+     subject VARCHAR(240) NOT NULL,
+     body TEXT NOT NULL,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS email_templates_key_idx ON email_templates (key)`,
+
+  `CREATE TABLE IF NOT EXISTS intake_form_fields (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     field_key VARCHAR(80) NOT NULL UNIQUE,
+     label VARCHAR(160) NOT NULL,
+     field_type VARCHAR(20) NOT NULL DEFAULT 'text',
+     required BOOLEAN NOT NULL DEFAULT FALSE,
+     sort_order INTEGER NOT NULL DEFAULT 0,
+     options JSONB,
+     is_custom BOOLEAN NOT NULL DEFAULT FALSE,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS intake_form_fields_key_idx ON intake_form_fields (field_key)`,
+  `CREATE INDEX IF NOT EXISTS intake_form_fields_order_idx ON intake_form_fields (sort_order)`,
+
   /* Release the advisory lock on every path, including failure. */
   `SELECT pg_advisory_unlock(918273645)`,
 ];
@@ -617,6 +641,75 @@ export async function seedCannedResponsesIfEmpty(): Promise<void> {
     const existing = await db.select({ id: cannedResponses.id }).from(cannedResponses).limit(1);
     if (existing.length > 0) return;
     await db.insert(cannedResponses).values(SEED);
+  } catch {
+    // best-effort; do not block page renders
+  }
+}
+
+import { emailTemplates, intakeFormFields } from "@/db/schema";
+
+const EMAIL_TEMPLATE_SEED: Array<{ key: string; name: string; subject: string; body: string }> = [
+  {
+    key: "consultation_request",
+    name: "New consultation request notification",
+    subject: "New consultation request — {{name}}",
+    body: "A new consultation request was submitted.\n\nName: {{name}}\nEmail: {{email}}\nPhone: {{phone}}\nService: {{service}}\n\nNotes:\n{{notes}}",
+  },
+  {
+    key: "appointment_confirmation",
+    name: "Appointment confirmation",
+    subject: "Your appointment is confirmed — {{date}}",
+    body: "Hi {{name}},\n\nYour appointment on {{date}} at {{time}} is confirmed.\n\nMeeting type: {{meetingType}}\n\nReply to this email if you need to reschedule.",
+  },
+  {
+    key: "document_request",
+    name: "Document request",
+    subject: "Documents needed for your tax return",
+    body: "Hi {{name}},\n\nTo keep your return moving, please upload the following:\n\n{{documents}}\n\nYou can mark each item as uploaded from your client portal.",
+  },
+  {
+    key: "form_ready_to_sign",
+    name: "Form ready to sign",
+    subject: "A document is ready for your signature",
+    body: "Hi {{name}},\n\n{{formTitle}} is ready for your review and signature.\n\nSign in to your client portal to review and sign.",
+  },
+  {
+    key: "invoice_sent",
+    name: "Invoice sent",
+    subject: "Invoice {{invoiceNumber}} from Honore Tax & Wealth",
+    body: "Hi {{name}},\n\nInvoice {{invoiceNumber}} for {{amount}} is ready.\n\nDue date: {{dueDate}}\n\nYou can view it in your client portal.",
+  },
+];
+
+export async function seedEmailTemplatesIfEmpty(): Promise<void> {
+  try {
+    await ensureMigrated();
+    const db = getDb();
+    const existing = await db.select({ id: emailTemplates.id }).from(emailTemplates).limit(1);
+    if (existing.length > 0) return;
+    await db.insert(emailTemplates).values(EMAIL_TEMPLATE_SEED);
+  } catch {
+    // best-effort; do not block page renders
+  }
+}
+
+const INTAKE_FIELD_SEED: Array<{
+  fieldKey: string; label: string; fieldType: string; required: boolean; sortOrder: number; isCustom: boolean;
+}> = [
+  { fieldKey: "name", label: "Full name", fieldType: "text", required: true, sortOrder: 10, isCustom: false },
+  { fieldKey: "email", label: "Email address", fieldType: "email", required: true, sortOrder: 20, isCustom: false },
+  { fieldKey: "phone", label: "Phone number", fieldType: "tel", required: true, sortOrder: 30, isCustom: false },
+  { fieldKey: "service", label: "Service needed", fieldType: "select", required: true, sortOrder: 40, isCustom: false },
+  { fieldKey: "notes", label: "Notes", fieldType: "textarea", required: false, sortOrder: 50, isCustom: false },
+];
+
+export async function seedIntakeFieldsIfEmpty(): Promise<void> {
+  try {
+    await ensureMigrated();
+    const db = getDb();
+    const existing = await db.select({ id: intakeFormFields.id }).from(intakeFormFields).limit(1);
+    if (existing.length > 0) return;
+    await db.insert(intakeFormFields).values(INTAKE_FIELD_SEED);
   } catch {
     // best-effort; do not block page renders
   }
