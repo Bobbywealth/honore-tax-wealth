@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/PasswordInput";
+import SiteFooter from "../_components/SiteFooter";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -47,6 +48,7 @@ export default function Login() {
   }
 
   return (
+    <>
     <div className="login-simple">
       {/* Warm the cache for the portal stylesheet (no longer global) so the
           post-login client-side navigation renders styled immediately. */}
@@ -112,5 +114,7 @@ export default function Login() {
         </section>
       </main>
     </div>
+    <SiteFooter />
+    </>
   );
 }
