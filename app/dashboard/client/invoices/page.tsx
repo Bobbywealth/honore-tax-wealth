@@ -108,7 +108,7 @@ export default async function ClientInvoicesPage() {
         <article className={`client-kpi${totalDue > 0 ? " is-warn" : ""}`}>
           <small>Open balance</small>
           <strong>${totalDue.toLocaleString("en-US", { maximumFractionDigits: 0 })}</strong>
-          <p>{unpaidRows.length} invoice{unpaidRows.length === 1 ? "" : "s"} outstanding.</p>
+          <p>{unpaidRows.length} invoice{unpaidRows.length === 1 ? "" : "s"}{" "}outstanding.</p>
         </article>
         <article className={`client-kpi${overdueCount > 0 ? " is-alert" : ""}`}>
           <small>Overdue</small>
@@ -118,7 +118,7 @@ export default async function ClientInvoicesPage() {
         <article className="client-kpi">
           <small>Paid this year</small>
           <strong>${totalPaid.toLocaleString("en-US", { maximumFractionDigits: 0 })}</strong>
-          <p>Across {paidRows.length} paid invoice{paidRows.length === 1 ? "" : "s"}.</p>
+          <p>Across{" "}{paidRows.length} paid invoice{paidRows.length === 1 ? "" : "s"}.</p>
         </article>
       </section>
 

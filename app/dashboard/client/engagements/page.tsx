@@ -360,7 +360,7 @@ export default async function ClientEngagementsPage() {
           <li>
             <span>02</span>
             <div><strong>Prepare for the conversation</strong><p>Review the general checklist before your appointment.</p></div>
-            <Link href="/#prepare" aria-label="View preparation checklist"><ArrowUpRight size={20} /></Link>
+            <Link href="/dashboard/client/documents" aria-label="View preparation checklist"><ArrowUpRight size={20} /></Link>
           </li>
           <li>
             <span>03</span>
