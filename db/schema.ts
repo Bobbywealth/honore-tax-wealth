@@ -856,3 +856,47 @@ export const signatures = pgTable(
 
 export type SignableDocument = typeof signableDocuments.$inferSelect;
 export type Signature = typeof signatures.$inferSelect;
+
+/* ====================== Email templates ========================= */
+/* Practice-managed transactional email copy. Seeded with defaults; */
+/* admins edit subject/body in Settings → Email templates.          */
+export const emailTemplates = pgTable(
+  "email_templates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    key: varchar("key", { length: 80 }).notNull().unique(),
+    name: varchar("name", { length: 160 }).notNull(),
+    subject: varchar("subject", { length: 240 }).notNull(),
+    body: text("body").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().default(now),
+  },
+  (t) => ({
+    keyIdx: index("email_templates_key_idx").on(t.key),
+  }),
+);
+
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+
+/* ====================== Intake form config ====================== */
+/* Admin-customizable fields for the public consultation/intake form. */
+/* Core fields map to the 5-step dialog; custom fields are appended.   */
+export const intakeFormFields = pgTable(
+  "intake_form_fields",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    fieldKey: varchar("field_key", { length: 80 }).notNull().unique(),
+    label: varchar("label", { length: 160 }).notNull(),
+    fieldType: varchar("field_type", { length: 20 }).notNull().default("text"),
+    required: boolean("required").notNull().default(false),
+    sortOrder: integer("sort_order").notNull().default(0),
+    options: jsonb("options"),
+    isCustom: boolean("is_custom").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(now),
+  },
+  (t) => ({
+    keyIdx: index("intake_form_fields_key_idx").on(t.fieldKey),
+    orderIdx: index("intake_form_fields_order_idx").on(t.sortOrder),
+  }),
+);
+
+export type IntakeFormField = typeof intakeFormFields.$inferSelect;

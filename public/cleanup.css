@@ -564,14 +564,6 @@ img,svg,video,canvas{max-width:100%;height:auto}
   color:#9a7642!important;
   margin-top:4px!important;
 }
-.honore-team-card::after{
-  content:'SCHEDULE A CONSULTATION';position:absolute;bottom:18px;left:50%;
-  transform:translateX(-50%) translateY(6px);
-  font:800 10.5px/1 Manrope,sans-serif;letter-spacing:.14em;
-  color:#9a7642;opacity:0;transition:opacity .3s ease, transform .3s ease;
-  pointer-events:none;
-}
-.honore-team-card:hover::after{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:1180px){
   .honore-team-card img{width:150px!important;height:150px!important}
   .honore-team-card{min-height:300px!important}

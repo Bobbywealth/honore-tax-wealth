@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { Pencil, Check, X, AlertTriangle } from "lucide-react";
+import EmailTemplatesSection from "./EmailTemplatesSection";
+import IntakeFormSection from "./IntakeFormSection";
+import RolesAccessSection from "./RolesAccessSection";
 
 type Profile = { displayName: string; email: string; phone: string | null };
 type Integration = { name: string; desc: string; connected: boolean; on: boolean; envKey?: string };
@@ -186,7 +189,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
           </div>
           <span className="adm-clients-filter is-disabled" aria-disabled="true">Configure in production</span>
         </div>
-        <div className="adm-settings-row" id="team">
+        <div className="adm-settings-row" id="team-invitations">
           <div>
             <b>Team invitations</b>
             <div className="sm">Send invitation emails to add new staff — requires transactional email configured</div>
@@ -242,6 +245,10 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
           <Switch on={notifs.dailyEod} label="Daily EOD" onChange={(v) => setNotifs({ ...notifs, dailyEod: v })} />
         </div>
       </section>
+
+      <EmailTemplatesSection />
+      <IntakeFormSection />
+      <RolesAccessSection />
 
       <section className="adm-settings-pane" id="integrations" style={{ marginTop: 14 }}>
         <h3>Integrations</h3>

@@ -189,7 +189,7 @@ const navCounts = await loadAdminNavCounts();
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <a className="adm-btn" href="/dashboard/admin/calendar" style={{ background: "#f1ede2", color: "#0e1a26", boxShadow: "none" }}>
+          <a className="adm-btn" href="/dashboard/admin/deadlines" style={{ background: "#f1ede2", color: "#0e1a26", boxShadow: "none" }}>
             <Calendar size={13} /> Deadlines
           </a>
           <a className="adm-btn" href="?new=1" title="Create a new return">
