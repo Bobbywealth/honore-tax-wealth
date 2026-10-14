@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { ArrowUpRight, CalendarDays, Clock, CheckCircle2 } from "lucide-react";
 import DashboardShell from "../../DashboardShell";
 import OpenChatButton from "../_components/OpenChatButton";
+import CancelAppointmentButton from "../_components/CancelAppointmentButton";
 import { currentUser } from "@/lib/auth";
 import { clientNav } from "../_lib/nav";
 import { primaryClientFor } from "@/lib/access";
@@ -123,9 +124,7 @@ export default async function ClientAppointmentsPage() {
                 ) : (
                   <span className="dashboard-tag is-pending">Awaiting confirmation</span>
                 )}
-                <form action={`/api/client/appointments/${next.id}/cancel`} method="post">
-                  <button type="submit" className="dashboard-button dashboard-button-secondary">Reschedule</button>
-                </form>
+                <CancelAppointmentButton appointmentId={next.id} />
               </div>
             </div>
           </div>
