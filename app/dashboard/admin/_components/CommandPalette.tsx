@@ -197,7 +197,7 @@ export default function CommandPalette() {
           <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
           <span><kbd>↵</kbd> open</span>
           <span><kbd>esc</kbd> dismiss</span>
-          <span className="cmdk-pad">Honore</span>
+          <span className="cmdk-pad">iHonore</span>
         </div>
       </div>
     </div>

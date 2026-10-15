@@ -84,8 +84,8 @@ export default async function AdminShell({
     <div className="adm-root">
       <aside className="adm-sb">
         <div className="adm-brand">
-          <a href="/" className="adm-brand-plate" aria-label="Honore Tax & Wealth home">
-            <img src="/assets/honore-logo-cropped.png" alt="Honore Tax & Wealth" />
+          <a href="/" className="adm-brand-plate" aria-label="iHonore Tax & Wealth home">
+            <img src="/assets/honore-logo-cropped.png" alt="iHonore Tax & Wealth" />
           </a>
         </div>
 
@@ -117,7 +117,7 @@ export default async function AdminShell({
       <main className="adm-main">
         <header className="adm-top">
           <div className="adm-crumb">
-            <span>Honore</span>
+            <span>iHonore</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
             <b>Admin</b>
           </div>

@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Personal Tax Preparation",
   description:
-    "Individual tax preparation for W-2, 1099, self-employment, and family changes. Honoré Tax & Wealth helps you file with confidence.",
+    "Individual tax preparation for W-2, 1099, self-employment, and family changes. iHonore Tax & Wealth helps you file with confidence.",
   alternates: { canonical: "/services/individual" },
 };
 

@@ -88,7 +88,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
     dailyEod: false,
   });
   const [practice, setPractice] = useState({
-    legalName: "Honore Tax & Wealth LLC",
+    legalName: "iHonore Tax & Wealth LLC",
     address: "",
     acceptNewClients: true,
     taxSeasonSurcharge: false,
@@ -115,7 +115,7 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
     <>
       <section className="adm-settings-pane" id="profile">
         <h3>Profile</h3>
-        <div className="sub">How you appear to staff and clients across Honore.</div>
+        <div className="sub">How you appear to staff and clients across iHonore.</div>
         <div className="adm-settings-row">
           <div>
             <b>Display name</b>

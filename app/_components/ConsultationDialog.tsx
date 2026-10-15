@@ -21,7 +21,7 @@ export default function ConsultationDialog() {
         ×
       </button>
       <div className="form-head">
-        <span className="label">HONORE / CONSULTATION REQUEST</span>
+        <span className="label">IHONORE / CONSULTATION REQUEST</span>
         <h2 id="consultation-title">
           Your next step, <br />
           <i>made simple.</i>

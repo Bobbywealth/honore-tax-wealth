@@ -51,7 +51,7 @@ export async function GET(_request: Request, ctx: { params: Promise<{ id: string
     const participants = senderIds.map((id) => {
       if (id === user.id) return { id, name: "You" };
       const found = threadMsgs.find((m) => m.senderId === id);
-      return { id, name: found?.senderName ?? "Honore Tax & Wealth" };
+      return { id, name: found?.senderName ?? "iHonore Tax & Wealth" };
     });
 
     return Response.json({
