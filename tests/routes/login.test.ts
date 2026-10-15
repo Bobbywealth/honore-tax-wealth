@@ -197,7 +197,7 @@ describe("POST /api/auth/login — happy path", () => {
     );
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, role: "client" });
+    expect(await res.json()).toEqual({ ok: true, role: "client", mfaEnrollmentRequired: false });
     expect(fakeDb.inserts).toHaveLength(1);
     expect(fakeCookies.setCalls).toHaveLength(1);
     const cookie = fakeCookies.setCalls[0]!;
