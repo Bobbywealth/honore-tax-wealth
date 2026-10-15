@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PasswordInput from "@/components/PasswordInput";
 import SiteFooter from "../_components/SiteFooter";
@@ -16,6 +16,20 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const agentId = searchParams.get("agent") ?? "";
+  const [agentName, setAgentName] = useState<string | null>(null);
+
+  // Look up the selected agent's name for display.
+  useEffect(() => {
+    if (agentId) {
+      fetch("/api/agents")
+        .then((r) => r.json())
+        .then((d) => {
+          const found = (d.agents ?? []).find((a: { id: string }) => a.id === agentId);
+          if (found) setAgentName(found.name);
+        })
+        .catch(() => {});
+    }
+  }, [agentId]);
 
   const valid =
     displayName.trim().length >= 2 &&
@@ -89,6 +103,12 @@ function RegisterForm() {
             Register once and use the same account every tax year. Track your
             return, sign documents, and message the team from your client portal.
           </p>
+          {agentName ? (
+            <p className="login-preview-note" role="status">
+              You selected <strong>{agentName}</strong> as your tax professional.
+              You will be connected automatically.
+            </p>
+          ) : null}
 
           <form className="login-simple-form" onSubmit={onSubmit} noValidate>
             <label htmlFor="register-name">Full name</label>
