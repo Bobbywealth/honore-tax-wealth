@@ -89,6 +89,14 @@ export async function POST(request: Request) {
       })
       .returning({ id: documentRequests.id });
     logEvent("docrequest.create.success", { userId: user.id, requestId: row?.id, clientId: payload.clientId });
+    // Notify the client's portal users (in-app; email queued when configured).
+    const { notifyClientUsers } = await import("@/lib/notifications");
+    await notifyClientUsers(
+      payload.clientId,
+      "document_requested",
+      { documentTitle: payload.title },
+      `docreq:${row?.id}`,
+    );
   } catch (error) {
     logEvent("docrequest.create.db_error", { userId: user.id, err: (error as Error).message });
     if (!isJson) {

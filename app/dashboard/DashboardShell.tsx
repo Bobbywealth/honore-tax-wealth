@@ -8,6 +8,7 @@ import {
   UserPlus as UserPlusIcon, BarChart3, Contact, Settings, Menu, X, type LucideIcon,
 } from "lucide-react";
 import CommandPalette from "./admin/_components/CommandPalette";
+import NotificationBell from "./client/_components/NotificationBell";
 
 
 export type NavIconKey =
@@ -151,6 +152,7 @@ export default function DashboardShell({
             <img src="/assets/honore-logo-cropped.png" alt="I Honore Tax & Wealth" />
           </Link>
           <span>{audience} dashboard</span>
+          {audience === "Client" ? <NotificationBell /> : null}
           {userLabel ? (
             <details className="dashboard-account" aria-label="Account menu">
               <summary>

@@ -704,3 +704,19 @@ a.timeline-label:hover{text-decoration:underline;color:#9a7642}
   .appt-req-grid-2{grid-template-columns:1fr}
   .appt-req-form input,.appt-req-form select,.appt-req-form textarea{font-size:16px}
 }
+
+/* In-app notification bell (client portal) */
+.notif-bell-wrap{position:relative;margin-left:auto}
+.notif-bell{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:999px;border:1px solid rgba(11,26,42,.15);background:#fff;cursor:pointer;color:#0e1927}
+.notif-bell:hover{background:#f4f1e8}
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#b3261e;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.notif-panel{position:absolute;top:44px;right:0;width:min(340px,calc(100vw - 32px));max-height:380px;overflow:auto;background:#fff;border:1px solid rgba(11,26,42,.12);border-radius:12px;box-shadow:0 12px 32px rgba(11,26,42,.16);z-index:60}
+.notif-panel-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(11,26,42,.08)}
+.notif-mark{background:none;border:none;color:#5b6c78;font-size:12px;cursor:pointer;text-decoration:underline}
+.notif-empty{padding:18px 14px;color:#5b6c78;font-size:13px;margin:0}
+.notif-list{list-style:none;margin:0;padding:0}
+.notif-list li{padding:12px 14px;border-bottom:1px solid rgba(11,26,42,.06)}
+.notif-list li.is-unread{background:#fdf9ef}
+.notif-list strong{font-size:13px;display:block}
+.notif-list p{font-size:13px;color:#3c4750;margin:4px 0}
+.notif-time{font-size:11px;color:#8a97a0}

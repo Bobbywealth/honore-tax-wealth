@@ -103,6 +103,30 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
       from: rows[0].stage,
       to: dbStage,
     });
+    // Notify the client when the move needs their attention. The client
+    // sees only the simplified status (lib/client-status.ts).
+    const { clientFacingStatus } = await import("@/lib/client-status");
+    const facing = clientFacingStatus(dbStage);
+    if (facing === "Action Needed" || facing === "Ready for Signature") {
+      // Resolve the client via the return -> engagement chain.
+      const { engagements } = await import("@/db/schema");
+      const chain = await getDb()
+        .select({ clientId: engagements.clientId })
+        .from(engagements)
+        .innerJoin(returns, eq(returns.engagementId, engagements.id))
+        .where(eq(returns.id, id))
+        .limit(1);
+      const clientId = chain[0]?.clientId;
+      if (clientId) {
+        const { notifyClientUsers } = await import("@/lib/notifications");
+        await notifyClientUsers(
+          clientId,
+          facing === "Action Needed" ? "status_action_needed" : "status_ready_for_signature",
+          {},
+          `stage:${id}:${dbStage}`,
+        );
+      }
+    }
   } catch (error) {
     logEvent("return.stage.db_error", { userId: user.id, returnId: id, err: (error as Error).message });
     if (!isJson) {

@@ -65,6 +65,17 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
       .where(eq(conversations.id, conversationId));
 
     logEvent("admin.conversation.reply.sent", { userId: user.id, conversationId });
+    // Notify the client's portal users about the new message.
+    const convRows = await db
+      .select({ clientId: conversations.clientId })
+      .from(conversations)
+      .where(eq(conversations.id, conversationId))
+      .limit(1);
+    const cId = convRows[0]?.clientId;
+    if (cId) {
+      const { notifyClientUsers } = await import("@/lib/notifications");
+      await notifyClientUsers(cId, "message_received", {}, `msg:${conversationId}:${Date.now()}`);
+    }
   } catch (error) {
     logEvent("admin.conversation.reply.db_error", { userId: user.id, err: (error as Error).message });
     return Response.json({ ok: false, error: "db_error" }, { status: 500 });
