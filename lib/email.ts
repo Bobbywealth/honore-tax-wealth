@@ -23,7 +23,7 @@ const CREAM = "#f7f5ef";
 const MUTED = "#5a6672";
 const BORDER = "#e3e0d6";
 
-const PRACTICE = "Honore Tax & Wealth";
+const PRACTICE = "iHonore Tax & Wealth";
 
 /** Absolute site origin used for links in transactional email. */
 const SITE_ORIGIN = (
@@ -264,7 +264,7 @@ export async function sendPasswordResetEmail(
   if (!apiKey || !from) return { ok: false, reason: "not_configured" };
 
   const link = `${SITE_ORIGIN}/reset-password?token=${encodeURIComponent(token)}`;
-  const subject = "Reset your Honore Tax & Wealth password";
+  const subject = "Reset your iHonore Tax & Wealth password";
 
   try {
     const resend = new Resend(apiKey);
@@ -274,11 +274,11 @@ export async function sendPasswordResetEmail(
       subject,
       html: shell(
         "Reset your password",
-        `<p>We received a request to reset the password for your Honore Tax &amp; Wealth account.</p>
+        `<p>We received a request to reset the password for your iHonore Tax &amp; Wealth account.</p>
          <p><a href="${escapeHtml(link)}" style="display:inline-block;background:${NAVY};color:#fff;padding:13px 24px;border-radius:8px;text-decoration:none;font-weight:700">Choose a new password</a></p>
          <p style="color:${MUTED};font-size:13px">This link expires in one hour and can be used once. If you did not request a reset, you can ignore this email — your password will not change.</p>`,
       ),
-      text: `We received a request to reset your Honore Tax & Wealth password.\n\nChoose a new password: ${link}\n\nThis link expires in one hour and can be used once. If you did not request a reset, ignore this email.`,
+      text: `We received a request to reset your iHonore Tax & Wealth password.\n\nChoose a new password: ${link}\n\nThis link expires in one hour and can be used once. If you did not request a reset, ignore this email.`,
     });
     if (result.error) {
       console.log(
@@ -323,7 +323,7 @@ export async function sendVerificationEmail(
       subject,
       html: shell(
         "Confirm your email address",
-        `<p>Please confirm this email address to finish setting up your Honore Tax &amp; Wealth account.</p>
+        `<p>Please confirm this email address to finish setting up your iHonore Tax &amp; Wealth account.</p>
          <p><a href="${escapeHtml(link)}" style="display:inline-block;background:${NAVY};color:#fff;padding:13px 24px;border-radius:8px;text-decoration:none;font-weight:700">Confirm my email</a></p>
          <p style="color:${MUTED};font-size:13px">If you did not create this account, you can ignore this email.</p>`,
       ),
