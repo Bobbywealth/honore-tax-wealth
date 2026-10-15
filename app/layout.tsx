@@ -9,13 +9,13 @@ export const viewport:Viewport={
 };
 export const metadata:Metadata={
   metadataBase: new URL("https://ihonoretaxandwealth.com"),
-  title:{default:"iHonore Tax & Wealth",template:"%s · iHonore Tax & Wealth"},
+  title:{default:"I Honore Tax & Wealth",template:"%s · I Honore Tax & Wealth"},
   description:"Tax preparation, filing, and planning with a bigger picture in focus.",
-  applicationName:"iHonore Tax & Wealth",
+  applicationName:"I Honore Tax & Wealth",
   keywords:["tax preparation","tax filing","tax planning","IRS notices","small business tax","Bloomfield NJ tax","NJ tax accountant"],
-  authors:[{name:"iHonore Tax & Wealth"}],
-  creator:"iHonore Tax & Wealth",
-  publisher:"iHonore Tax & Wealth",
+  authors:[{name:"I Honore Tax & Wealth"}],
+  creator:"I Honore Tax & Wealth",
+  publisher:"I Honore Tax & Wealth",
   alternates:{canonical:"/"},
   robots:{index:true, follow:true, googleBot:{index:true, follow:true, "max-image-preview":"large", "max-snippet":-1}},
   formatDetection:{telephone:false,address:false,email:false},
@@ -26,13 +26,13 @@ export const metadata:Metadata={
   ], apple:[
     {url:"/apple-touch-icon.png", sizes:"180x180", type:"image/png"},
   ]},
-  openGraph:{title:"iHonore Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",type:"website",siteName:"iHonore Tax & Wealth",images:[{url:"/assets/og/og.jpg",width:1200,height:630,alt:"iHonore Tax & Wealth"}]},
-  twitter:{card:"summary_large_image",title:"iHonore Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",images:["/assets/og/og.jpg"]},
+  openGraph:{title:"I Honore Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",type:"website",siteName:"I Honore Tax & Wealth",images:[{url:"/assets/og/og.jpg",width:1200,height:630,alt:"I Honore Tax & Wealth"}]},
+  twitter:{card:"summary_large_image",title:"I Honore Tax & Wealth",description:"Tax preparation, filing, and planning with a bigger picture in focus.",images:["/assets/og/og.jpg"]},
 };
 const jsonLd = {
   "@context":"https://schema.org",
   "@type":"ProfessionalService",
-  "name":"iHonore Tax & Wealth",
+  "name":"I Honore Tax & Wealth",
   "description":"Tax preparation, filing, and planning for individuals, families, and business owners.",
   "url":"https://ihonoretaxandwealth.com/",
   "image":"https://ihonoretaxandwealth.com/assets/og/og.jpg",

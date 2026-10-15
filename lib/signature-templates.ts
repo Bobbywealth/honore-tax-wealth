@@ -61,7 +61,7 @@ export const TEMPLATES: Record<SignableKind, Template> = {
       { key: "total_tax", label: "Total tax (line 24)", type: "currency", required: true },
       { key: "withholding", label: "Federal withholding (line 25c)", type: "currency" },
       { key: "refund_or_owed", label: "Refund or amount owed", type: "text", helper: "Plain language — e.g. 'Estimated refund: $1,234' or 'Balance due: $567'" },
-      { key: "designee_name", label: "Third-party designee (optional)", type: "text", helper: "Person iHonore Tax authorizes to discuss the return with the IRS." },
+      { key: "designee_name", label: "Third-party designee (optional)", type: "text", helper: "Person I Honore Tax authorizes to discuss the return with the IRS." },
     ],
     signers: [
       { role: "taxpayer", label: "Taxpayer signature", required: true },
@@ -74,19 +74,19 @@ export const TEMPLATES: Record<SignableKind, Template> = {
     kind: "engagement_letter",
     label: "Engagement letter",
     description:
-      "Confirms the scope of services iHonore Tax will perform, the fee, and the client's authorization to receive communications electronically.",
-    defaultTitle: ({ scope }) => `${fmt(scope) || "Engagement"} — iHonore Tax & Wealth`,
+      "Confirms the scope of services I Honore Tax will perform, the fee, and the client's authorization to receive communications electronically.",
+    defaultTitle: ({ scope }) => `${fmt(scope) || "Engagement"} — I Honore Tax & Wealth`,
     bodyTemplate: (d, fullName) => {
       const lines: string[] = [];
       lines.push(
-        `This letter confirms the engagement between iHonore Tax & Wealth ("the firm") and ${fullName || "the undersigned"} ("the client") for the services described below.`,
+        `This letter confirms the engagement between I Honore Tax & Wealth ("the firm") and ${fullName || "the undersigned"} ("the client") for the services described below.`,
       );
       if (d.scope) lines.push(`Scope: ${d.scope}`);
       if (d.tax_year) lines.push(`Tax year(s): ${d.tax_year}`);
       if (d.fee) lines.push(`Fee: ${d.fee.startsWith("$") ? d.fee : "$" + d.fee}${d.fee_basis ? " " + d.fee_basis : ""}`);
       if (d.turnaround) lines.push(`Turnaround: ${d.turnaround}`);
       lines.push("");
-      lines.push("You authorize iHonore Tax & Wealth to deliver notices, statements, and copies of your tax returns electronically to the email address on file.");
+      lines.push("You authorize I Honore Tax & Wealth to deliver notices, statements, and copies of your tax returns electronically to the email address on file.");
       return lines.join("\n");
     },
     fields: [
@@ -112,7 +112,7 @@ export const TEMPLATES: Record<SignableKind, Template> = {
         `${fullName || "I"}, the taxpayer, declare that I have examined the ${fmt(d.tax_year) || "current"} Form 1040 return and certify it is true, correct, and complete.`,
       );
       lines.push(
-        "I authorize iHonore Tax & Wealth to transmit this return by electronic means and to receive acknowledgments from the IRS.",
+        "I authorize I Honore Tax & Wealth to transmit this return by electronic means and to receive acknowledgments from the IRS.",
       );
       if (d.agi_prior_year) lines.push(`Prior-year AGI for PIN verification: $${d.agi_prior_year}.`);
       if (d.pin_signature) lines.push(`5-digit PIN signature: ${d.pin_signature} (signing on line 6b of Form 8879).`);
@@ -163,6 +163,6 @@ export const KIND_OPTIONS: Array<{ value: SignableKind; label: string }> = Objec
  * block; the signer must accept before the canvas activates. */
 export const ESIGN_CONSENT =
   "By signing below, I agree that my electronic signature is the legal equivalent of my manual signature. " +
-  "I consent to do business electronically with iHonore Tax & Wealth, " +
+  "I consent to do business electronically with I Honore Tax & Wealth, " +
   "I have had the opportunity to review the document in full, and I intend my signature to bind me to the terms above. " +
   "(ESIGN Act, 15 U.S.C. § 7001 et seq.)";

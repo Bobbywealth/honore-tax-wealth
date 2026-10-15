@@ -9,10 +9,10 @@ export default function SiteFooter() {
       <div className="footer-inner">
         <div className="footer-grid">
           <div className="footer-brand">
-            <a className="brand" href="/" aria-label="iHonore Tax & Wealth home">
+            <a className="brand" href="/" aria-label="I Honore Tax & Wealth home">
               <picture>
                 <source type="image/webp" srcSet="/assets/honore-logo-sm.webp 1x, /assets/honore-logo-sm@2x.webp 2x" />
-                <img className="brand-logo" src="/assets/honore-logo-cropped-sm.png" alt="iHonore Tax & Wealth" width="130" height="84" loading="lazy" decoding="async" />
+                <img className="brand-logo" src="/assets/honore-logo-cropped-sm.png" alt="I Honore Tax & Wealth" width="130" height="84" loading="lazy" decoding="async" />
               </picture>
             </a>
             <p>Personal attention.<br />A bigger picture in focus.</p>
@@ -50,7 +50,7 @@ export default function SiteFooter() {
           <p>Please don’t send tax forms, Social Security numbers, or other sensitive information through the consultation form.</p>
         </div>
         <div className="footer-bar">
-          <span>© iHonore Tax & Wealth</span>
+          <span>© I Honore Tax & Wealth</span>
           <nav aria-label="Legal information">
             <a href="/privacy">Privacy</a>
             <a href="/terms">Terms</a>

@@ -71,7 +71,7 @@ export async function GET() {
           lastMessageAt: c.lastMessageAt ? c.lastMessageAt.toISOString() : null,
           unread: c.unread,
           lastMessage: last ? {
-            senderName: last.senderName ?? "iHonore Tax & Wealth",
+            senderName: last.senderName ?? "I Honore Tax & Wealth",
             body: last.body,
             createdAt: last.createdAt.toISOString(),
           } : null,

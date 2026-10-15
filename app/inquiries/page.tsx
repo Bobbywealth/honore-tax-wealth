@@ -58,7 +58,7 @@ export default async function Inquiries() {
   }
   return (
     <main style={{ maxWidth: 1050, margin: "50px auto", padding: 24, fontFamily: "sans-serif", color: "#102033" }}>
-      <a href="/">← iHonore home</a>
+      <a href="/">← I Honore home</a>
       <h1 style={{ fontFamily: "Georgia", fontSize: 48 }}>Consultation requests</h1>
       {error ? (
         <p>Requests are temporarily unavailable.</p>

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Website Disclaimer & Terms",
-  description: "Terms of use for the iHonore Tax & Wealth website and the limits of what this site does.",
+  description: "Terms of use for the I Honore Tax & Wealth website and the limits of what this site does.",
 };
 
 export default function TermsPage() {
@@ -17,15 +17,15 @@ export default function TermsPage() {
         <p style={{ color: "#5b6c78", fontSize: 14, marginBottom: 32 }}>Last updated October 4, 2026</p>
 
         <Section title="1. Not tax advice">
-          <p>Nothing on this site is tax, legal, or investment advice. The content is general information about the tax preparation, filing, and planning services iHonore offers. Your situation is unique; please talk with a qualified preparer or adviser before acting on anything you read here.</p>
+          <p>Nothing on this site is tax, legal, or investment advice. The content is general information about the tax preparation, filing, and planning services I Honore offers. Your situation is unique; please talk with a qualified preparer or adviser before acting on anything you read here.</p>
         </Section>
 
         <Section title="2. No client relationship from this site">
-          <p>Submitting a consultation request, browsing the site, or reading the information here does not create a preparer–client relationship. A relationship begins only when you and iHonore sign an engagement letter and iHonore begins work.</p>
+          <p>Submitting a consultation request, browsing the site, or reading the information here does not create a preparer–client relationship. A relationship begins only when you and I Honore sign an engagement letter and I Honore begins work.</p>
         </Section>
 
         <Section title="3. Do not send sensitive information">
-          <p>Do not submit Social Security numbers, account numbers, prior tax returns, or other sensitive tax documents through the consultation form, the contact form, or any general message on this site. Use only the secure method iHonore provides to you once a preparer–client relationship is established.</p>
+          <p>Do not submit Social Security numbers, account numbers, prior tax returns, or other sensitive tax documents through the consultation form, the contact form, or any general message on this site. Use only the secure method I Honore provides to you once a preparer–client relationship is established.</p>
         </Section>
 
         <Section title="4. Eligibility and use">
@@ -33,11 +33,11 @@ export default function TermsPage() {
         </Section>
 
         <Section title="5. Estimates and fee information">
-          <p>Any fee ranges, service descriptions, or turnaround times shown on the site are for general information and may change once iHonore reviews your specific situation.</p>
+          <p>Any fee ranges, service descriptions, or turnaround times shown on the site are for general information and may change once I Honore reviews your specific situation.</p>
         </Section>
 
         <Section title="6. Intellectual property">
-          <p>The site content, branding, and design are owned by iHonore or used with permission. You may view and print pages for personal reference. You may not reproduce, republish, or sell any portion without written permission.</p>
+          <p>The site content, branding, and design are owned by I Honore or used with permission. You may view and print pages for personal reference. You may not reproduce, republish, or sell any portion without written permission.</p>
         </Section>
 
         <Section title="7. Third-party links">
@@ -49,11 +49,11 @@ export default function TermsPage() {
         </Section>
 
         <Section title="9. Limitation of liability">
-          <p>To the maximum extent permitted by law, iHonore isn't liable for any indirect, incidental, or consequential damages arising from your use of this site. Nothing in these terms limits any liability that cannot be excluded by law.</p>
+          <p>To the maximum extent permitted by law, I Honore isn't liable for any indirect, incidental, or consequential damages arising from your use of this site. Nothing in these terms limits any liability that cannot be excluded by law.</p>
         </Section>
 
         <Section title="10. Indemnification">
-          <p>You agree to indemnify iHonore against claims arising from information you submit through the site in violation of these terms or applicable law.</p>
+          <p>You agree to indemnify I Honore against claims arising from information you submit through the site in violation of these terms or applicable law.</p>
         </Section>
 
         <Section title="11. Governing law">

@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Business Tax Filing",
   description:
-    "Business tax filing for small businesses and owners. iHonore Tax & Wealth handles 1040 Sch C, 1065, 1120-S and more.",
+    "Business tax filing for small businesses and owners. I Honore Tax & Wealth handles 1040 Sch C, 1065, 1120-S and more.",
   alternates: { canonical: "/services/business" },
 };
 

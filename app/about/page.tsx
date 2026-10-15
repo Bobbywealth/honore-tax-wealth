@@ -6,7 +6,7 @@ import SiteFooter from "../_components/SiteFooter";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Meet the founders behind iHonore Tax & Wealth, and how a tax engagement actually works.",
+    "Meet the founders behind I Honore Tax & Wealth, and how a tax engagement actually works.",
   alternates: { canonical: "/about" },
 };
 
@@ -32,15 +32,15 @@ export default function AboutPage() {
           ← Back to home
         </Link>
 
-        <h1 style={h1}>About iHonore.</h1>
+        <h1 style={h1}>About I Honore.</h1>
         <p style={{ ...p, fontSize: 17, marginBottom: 8 }}>
-          iHonore Tax &amp; Wealth is a tax company focused on preparation, filing, and planning for
+          I Honore Tax &amp; Wealth is a tax company focused on preparation, filing, and planning for
           individuals, families, and business owners.
         </p>
 
         <h2 style={h2}>The founders</h2>
         <p style={p}>
-          iHonore was founded by John Joseph and Sade Joseph. They are the personal side of the
+          I Honore was founded by John Joseph and Sade Joseph. They are the personal side of the
           practice — a relationship built on care, purpose, and looking ahead together.
         </p>
 
@@ -48,7 +48,7 @@ export default function AboutPage() {
           <figure style={{ margin: 0 }}>
             <Image
               src="/assets/founder-brown.webp"
-              alt="John Joseph, iHonore founder in a brown suit"
+              alt="John Joseph, I Honore founder in a brown suit"
               width={640}
               height={800}
               style={{ width: "100%", height: "auto", borderRadius: 12, display: "block" }}
@@ -60,7 +60,7 @@ export default function AboutPage() {
           <figure style={{ margin: 0 }}>
             <Image
               src="/assets/founder-navy.webp"
-              alt="Sade Joseph, iHonore president in a navy suit"
+              alt="Sade Joseph, I Honore president in a navy suit"
               width={640}
               height={800}
               style={{ width: "100%", height: "auto", borderRadius: 12, display: "block" }}
