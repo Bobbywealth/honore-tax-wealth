@@ -566,6 +566,19 @@ const STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS internal_notes_client_id_idx ON internal_notes (client_id)`,
   `CREATE INDEX IF NOT EXISTS internal_notes_created_at_idx ON internal_notes (created_at)`,
 
+  /* MFA columns on users. Idempotent: ADD COLUMN IF NOT EXISTS. */
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret TEXT`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_backup_codes JSONB`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enrolled_at TIMESTAMPTZ`,
+
+  /* App settings key/value table. */
+  `CREATE TABLE IF NOT EXISTS app_settings (
+     key VARCHAR(120) PRIMARY KEY,
+     value TEXT NOT NULL,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   )`,
+
   /* Release the advisory lock on every path, including failure. */
   `SELECT pg_advisory_unlock(918273645)`,
 ];

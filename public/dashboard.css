@@ -720,3 +720,13 @@ a.timeline-label:hover{text-decoration:underline;color:#9a7642}
 .notif-list strong{font-size:13px;display:block}
 .notif-list p{font-size:13px;color:#3c4750;margin:4px 0}
 .notif-time{font-size:11px;color:#8a97a0}
+
+/* MFA enrollment (Phase 7) */
+.dashboard-backup-codes{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;padding:0;margin:16px 0}
+.dashboard-backup-codes li{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center}
+.dashboard-backup-codes code{font-size:15px;letter-spacing:1px;font-weight:600}
+.dashboard-mfa-secret{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.dashboard-mfa-url{word-break:break-all;font-size:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;display:block}
+.dashboard-steps{margin:12px 0 16px 20px;display:flex;flex-direction:column;gap:12px}
+.dashboard-alert-text{color:#b91c1c;font-size:14px;margin:8px 0}
+@media(max-width:480px){.dashboard-backup-codes{grid-template-columns:repeat(2,1fr)}}

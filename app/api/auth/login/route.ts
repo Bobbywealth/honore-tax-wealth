@@ -101,7 +101,7 @@ export async function POST(request: Request) {
 
     const email = normalizeEmail(parsed.email);
     const rows = await getDb()
-      .select({ id: users.id, passwordHash: users.passwordHash, role: users.role, deactivatedAt: users.deactivatedAt })
+      .select({ id: users.id, passwordHash: users.passwordHash, role: users.role, deactivatedAt: users.deactivatedAt, mfaEnabled: users.mfaEnabled })
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
@@ -133,13 +133,31 @@ export async function POST(request: Request) {
     // A valid sign-in clears this caller's quota so their own typos do not
     // accumulate against them.
     await resetRateLimit(`login:${iph}`);
+
+    // MFA gate: password verified, but the account requires a second factor.
+    // Issue a short-lived challenge token instead of a session.
+    if (account.mfaEnabled) {
+      const { mintMfaToken } = await import("@/lib/mfa");
+      logEvent("auth.login.mfa_required", { iph, role: account.role });
+      return Response.json({ ok: false, mfaRequired: true, mfaToken: mintMfaToken(account.id) });
+    }
+
+    // Staff MFA requirement: admins can force every agent/admin to enroll.
+    // They still get a session, but the client redirects them to enroll and
+    // protected layouts keep redirecting until MFA is enabled.
+    let mfaEnrollmentRequired = false;
+    if (account.role !== "client") {
+      const { mfaRequiredForStaff } = await import("@/lib/settings");
+      mfaEnrollmentRequired = await mfaRequiredForStaff();
+    }
+
     const { token, expires } = await createSession(account.id, {
       userAgent: request.headers.get("user-agent") ?? undefined,
       ipHash: iph,
     });
     (await cookies()).set(SESSION_COOKIE, token, sessionCookieOptions(expires));
     logEvent("auth.login.success", { iph, role: account.role });
-    return Response.json({ ok: true, role: account.role });
+    return Response.json({ ok: true, role: account.role, mfaEnrollmentRequired });
   } catch (err) {
     // Never log the submitted email or password. err.message gives the real
     // reason (e.g. "column \"deactivated_at\" does not exist") so future

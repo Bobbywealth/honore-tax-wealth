@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil, Check, X, AlertTriangle } from "lucide-react";
 import EmailTemplatesSection from "./EmailTemplatesSection";
 import IntakeFormSection from "./IntakeFormSection";
@@ -100,7 +100,31 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
     ssnMasking: true,
     idleTimeout: "30 min",
     auditRetention: "3 years",
+    mfaRequired: false,
   });
+  const [mfaLoaded, setMfaLoaded] = useState(false);
+
+  // Load the persisted staff-MFA requirement (admin-managed, server-side).
+  useEffect(() => {
+    fetch("/api/admin/settings/mfa")
+      .then((r) => r.json())
+      .then((j) => {
+        if (j.ok) {
+          setSecurity((s) => ({ ...s, mfaRequired: !!j.mfaRequiredStaff }));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setMfaLoaded(true));
+  }, []);
+
+  async function saveMfaRequirement(value: boolean) {
+    const res = await fetch("/api/admin/settings/mfa", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ mfaRequiredStaff: value }),
+    });
+    if (!res.ok) throw new Error("Could not save");
+  }
 
   async function saveProfile(field: string, value: string) {
     const res = await fetch("/api/admin/settings/profile", {
@@ -325,9 +349,18 @@ export default function SettingsForm({ profile, integrations }: { profile: Profi
         <div className="adm-settings-row">
           <div>
             <b>Two-factor authentication</b>
-            <div className="sm">Required for all staff — SMS + TOTP</div>
+            <div className="sm">Require every agent and admin to enroll a TOTP authenticator</div>
           </div>
-          <span className="adm-tag gr">ENFORCED</span>
+          <Switch
+            on={mfaLoaded ? security.mfaRequired : false}
+            label="Require MFA for staff"
+            onChange={(v) => {
+              setSecurity({ ...security, mfaRequired: v });
+              saveMfaRequirement(v).catch(() => {
+                setSecurity((s) => ({ ...s, mfaRequired: !v }));
+              });
+            }}
+          />
         </div>
         <div className="adm-settings-row">
           <div>

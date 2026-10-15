@@ -8,6 +8,8 @@ import SiteFooter from "../_components/SiteFooter";
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const router = useRouter();
@@ -25,7 +27,16 @@ function LoginForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: emailValue, password: passwordValue }),
       });
-      const data = await res.json().catch(() => ({}) as { ok?: boolean; error?: string; role?: string });
+      const data = await res.json().catch(() => ({}) as { ok?: boolean; error?: string; role?: string; mfaRequired?: boolean; mfaToken?: string; mfaEnrollmentRequired?: boolean });
+
+      if (data.mfaRequired && data.mfaToken) {
+        // Password verified; second factor needed.
+        setMfaToken(data.mfaToken);
+        setMfaCode("");
+        setError(null);
+        setBusy(false);
+        return;
+      }
 
       if (!res.ok || !data.ok) {
         setError(
@@ -34,6 +45,14 @@ function LoginForm() {
             : "We could not sign you in. Check your email and password.",
         );
         setBusy(false);
+        return;
+      }
+
+      // Admins can require MFA for all staff: send unenrolled staff
+      // straight to enrollment after sign-in.
+      if (data.mfaEnrollmentRequired) {
+        router.push("/account/mfa?required=1");
+        router.refresh();
         return;
       }
 
@@ -48,6 +67,39 @@ function LoginForm() {
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     await signIn(email, password);
+  }
+
+  async function onMfaSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (busy || !mfaToken || mfaCode.trim().length < 6) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/mfa/challenge", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ mfaToken, code: mfaCode.trim() }),
+      });
+      const data = await res.json().catch(() => ({}) as { ok?: boolean; error?: string; role?: string });
+      if (!res.ok || !data.ok) {
+        setError(
+          data.error === "invalid_code"
+            ? "That code didn't work. Check your authenticator app and try again."
+            : data.error === "too_many_attempts"
+              ? "Too many attempts. Please wait a few minutes."
+              : data.error === "invalid_or_expired"
+                ? "This verification expired. Sign in again from the start."
+                : "Verification failed. Try again.",
+        );
+        setBusy(false);
+        return;
+      }
+      router.push(data.role === "client" ? "/dashboard/client" : "/dashboard/admin");
+      router.refresh();
+    } catch {
+      setError("We could not reach the server. Check your connection and try again.");
+      setBusy(false);
+    }
   }
 
   return (
@@ -80,6 +132,47 @@ function LoginForm() {
             </p>
           ) : null}
 
+          {mfaToken ? (
+            <form className="login-simple-form" onSubmit={onMfaSubmit} noValidate>
+              <p className="login-preview-note" role="status">
+                Two-factor authentication is on for this account. Enter the
+                6-digit code from your authenticator app (or a backup code).
+              </p>
+              <label htmlFor="login-mfa">Authentication code</label>
+              <input
+                id="login-mfa"
+                name="mfaCode"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="123456"
+                value={mfaCode}
+                onChange={e => setMfaCode(e.target.value)}
+                required
+                autoFocus
+              />
+              {error ? (
+                <p className="login-preview-note" role="alert" id="login-error">
+                  {error}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                disabled={busy || mfaCode.trim().length < 6}
+                aria-describedby={error ? "login-error" : undefined}
+              >
+                {busy ? "Verifying…" : "Verify"}
+              </button>
+              <button
+                type="button"
+                className="login-help"
+                disabled={busy}
+                onClick={() => { setMfaToken(null); setMfaCode(""); setError(null); }}
+              >
+                Back to sign in
+              </button>
+            </form>
+          ) : (
           <form className="login-simple-form" onSubmit={onSubmit} noValidate>
             <label htmlFor="login-email">Email address</label>
             <input
@@ -118,6 +211,7 @@ function LoginForm() {
               {busy ? "Signing in…" : "Sign in"}
             </button>
           </form>
+          )}
 
           <p className="login-preview-note">
             This portal is where clients track their tax work, sign forms, review documents,

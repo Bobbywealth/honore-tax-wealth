@@ -22,6 +22,7 @@ export type AuditAction =
   | "document.reviewed"
   | "mfa.enabled"
   | "mfa.disabled"
+  | "settings.mfa_required_changed"
   | "user.registered"
   | "user.deactivated";
 

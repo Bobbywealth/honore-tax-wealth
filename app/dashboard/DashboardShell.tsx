@@ -161,6 +161,7 @@ export default function DashboardShell({
               <div className="dashboard-account-menu" role="menu">
                 <a href="/dashboard/profile" role="menuitem">Profile</a>
                 <a href="/account/change-password" role="menuitem">Change password</a>
+                <a href="/account/mfa" role="menuitem">Two-factor authentication</a>
                 <form action="/api/auth/logout" method="post">
                   <button type="submit" className="danger" role="menuitem">Sign out</button>
                 </form>

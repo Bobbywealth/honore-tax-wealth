@@ -52,6 +52,12 @@ export const users = pgTable(
     failedLoginCount: integer("failed_login_count").notNull().default(0),
     lockedUntil: timestamp("locked_until", { withTimezone: true }),
     deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
+    // TOTP MFA. Secret is stored encrypted (see lib/mfa.ts); null when MFA
+    // is not set up. Backup codes are single-use, hashed with SHA-256.
+    totpSecret: text("totp_secret"),
+    mfaEnabled: boolean("mfa_enabled").notNull().default(false),
+    mfaBackupCodes: jsonb("mfa_backup_codes").$type<string[]>(),
+    mfaEnrolledAt: timestamp("mfa_enrolled_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(now),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().default(now),
   },
@@ -927,3 +933,12 @@ export const internalNotes = pgTable(
 );
 
 export type InternalNote = typeof internalNotes.$inferSelect;
+
+/* Simple key/value app settings (admin-managed). */
+export const appSettings = pgTable("app_settings", {
+  key: varchar("key", { length: 120 }).primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().default(now),
+});
+
+export type AppSetting = typeof appSettings.$inferSelect;
