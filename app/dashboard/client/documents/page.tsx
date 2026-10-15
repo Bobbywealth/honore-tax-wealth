@@ -2,11 +2,12 @@ import { redirect } from "next/navigation";
 import { ArrowUpRight, FileText, Upload, CheckCircle2, AlertTriangle, FileQuestion } from "lucide-react";
 import DashboardShell from "../../DashboardShell";
 import OpenChatButton from "../_components/OpenChatButton";
+import DocumentUpload from "../_components/DocumentUpload";
 import { currentUser } from "@/lib/auth";
 import { clientNav } from "../_lib/nav";
 import { primaryClientFor } from "@/lib/access";
 import { getDb } from "@/db";
-import { documents, documentRequests } from "@/db/schema";
+import { documents, documentRequests, taxYears } from "@/db/schema";
 import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { ensureMigrated } from "@/db/migrate";
 
@@ -79,7 +80,8 @@ export default async function ClientDocumentsPage() {
 
   let openRequests: Array<{ id: string; title: string; description: string | null; required: boolean; dueAt: Date | null }> = [];
   let fulfilledRequests: Array<{ id: string; title: string; fulfilledAt: Date | null }> = [];
-  let onFile: Array<{ id: string; originalFilename: string; contentType: string; sizeBytes: number; category: string; reviewStatus: string; createdAt: Date }> = [];
+  let onFile: Array<{ id: string; originalFilename: string; contentType: string; sizeBytes: number; category: string; reviewStatus: string; createdAt: Date; taxYear: number | null }> = [];
+  let yearRows: Array<{ id: string; year: number }> = [];
 
   try {
     if (process.env.DATABASE_URL) {
@@ -100,17 +102,47 @@ export default async function ClientDocumentsPage() {
         .limit(10);
 
       onFile = await db
-        .select({ id: documents.id, originalFilename: documents.originalFilename, contentType: documents.contentType, sizeBytes: documents.sizeBytes, category: documents.category, reviewStatus: documents.reviewStatus, createdAt: documents.createdAt })
+        .select({
+          id: documents.id,
+          originalFilename: documents.originalFilename,
+          contentType: documents.contentType,
+          sizeBytes: documents.sizeBytes,
+          category: documents.category,
+          reviewStatus: documents.reviewStatus,
+          createdAt: documents.createdAt,
+          taxYear: taxYears.year,
+        })
         .from(documents)
+        .leftJoin(taxYears, eq(documents.taxYearId, taxYears.id))
         .where(and(eq(documents.clientId, clientId), isNull(documents.deletedAt)))
         .orderBy(desc(documents.createdAt))
         .limit(40);
+
+      yearRows = await db
+        .select({ id: taxYears.id, year: taxYears.year })
+        .from(taxYears)
+        .where(eq(taxYears.clientId, clientId))
+        .orderBy(desc(taxYears.year));
     }
   } catch {
     // best-effort
   }
 
   const totalSize = onFile.reduce((s, k) => s + Number(k.sizeBytes ?? 0), 0);
+
+  // Group on-file documents by tax year for returning clients.
+  const byYear = new Map<string, typeof onFile>();
+  for (const d of onFile) {
+    const key = d.taxYear ? String(d.taxYear) : "Unassigned";
+    const arr = byYear.get(key) ?? [];
+    arr.push(d);
+    byYear.set(key, arr);
+  }
+  const yearGroups = [...byYear.entries()].sort((a, b) => {
+    if (a[0] === "Unassigned") return 1;
+    if (b[0] === "Unassigned") return -1;
+    return Number(b[0]) - Number(a[0]);
+  });
 
   return (
     <DashboardShell audience="Client" title="Documents" description="What your preparer needs from you, and everything they've shared with you on file." nav={nav2} userLabel={user.displayName ?? user.email} currentHref="/dashboard/client/documents">
@@ -180,8 +212,10 @@ export default async function ClientDocumentsPage() {
         )}
 
         <div className="dashboard-alert">
-          <p><strong>Do not email tax documents.</strong> Secure upload is not yet available, so your preparer will give you a private method for sending anything sensitive.</p>
+          <p><strong>Do not email tax documents.</strong> Use the secure upload below — files go straight to your preparer and are never sent over email.</p>
         </div>
+
+        <DocumentUpload taxYears={yearRows} />
       </section>
 
       {/* ON FILE */}
@@ -195,31 +229,44 @@ export default async function ClientDocumentsPage() {
         {onFile.length === 0 ? (
           <div className="dashboard-empty">
             <h3>No documents yet</h3>
-            <p>When your preparer sends you a copy of a return, statement, or signed form, it will appear here.</p>
+            <p>Upload your W-2s, 1099s, and other tax documents above. When your preparer sends you a copy of a return or signed form, it will appear here too.</p>
           </div>
         ) : (
-          <div className="dashboard-table">
-            <table>
-              <thead>
-                <tr><th>File</th><th>Type</th><th>Status</th><th>Size</th><th>Received</th></tr>
-              </thead>
-              <tbody>
-                {onFile.map((d) => (
-                  <tr key={d.id}>
-                    <td><b>{d.originalFilename}</b></td>
-                    <td className="dashboard-muted">{d.contentType}</td>
-                    <td>
-                      <span className={`dashboard-tag ${d.reviewStatus === "approved" ? "is-good" : d.reviewStatus === "rejected" ? "is-bad" : "is-pending"}`}>
-                        {REVIEW_STATUS[d.reviewStatus] ?? d.reviewStatus}
-                      </span>
-                    </td>
-                    <td className="dashboard-muted">{d.sizeBytes ? `${(Number(d.sizeBytes) / 1024).toFixed(0)} KB` : "—"}</td>
-                    <td className="dashboard-muted">{relative(d.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          yearGroups.map(([yearLabel, docs]) => (
+            <div key={yearLabel} className="dashboard-year-group">
+              <h3 className="dashboard-year-heading">
+                {yearLabel === "Unassigned" ? "Unassigned" : `Tax year ${yearLabel}`}
+                <span className="dashboard-muted"> · {docs.length} file{docs.length === 1 ? "" : "s"}</span>
+              </h3>
+              <div className="dashboard-table">
+                <table>
+                  <thead>
+                    <tr><th>File</th><th>Type</th><th>Status</th><th>Size</th><th>Received</th><th><span className="sr-only">Actions</span></th></tr>
+                  </thead>
+                  <tbody>
+                    {docs.map((d) => (
+                      <tr key={d.id}>
+                        <td><b>{d.originalFilename}</b></td>
+                        <td className="dashboard-muted">{d.contentType}</td>
+                        <td>
+                          <span className={`dashboard-tag ${d.reviewStatus === "approved" ? "is-good" : d.reviewStatus === "rejected" ? "is-bad" : "is-pending"}`}>
+                            {REVIEW_STATUS[d.reviewStatus] ?? d.reviewStatus}
+                          </span>
+                        </td>
+                        <td className="dashboard-muted">{d.sizeBytes ? `${(Number(d.sizeBytes) / 1024).toFixed(0)} KB` : "—"}</td>
+                        <td className="dashboard-muted">{relative(d.createdAt)}</td>
+                        <td>
+                          <a className="dashboard-link" href={`/api/client/documents/${d.id}/download`}>
+                            Download
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))
         )}
       </section>
 

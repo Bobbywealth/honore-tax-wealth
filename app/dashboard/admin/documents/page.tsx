@@ -327,6 +327,11 @@ const navCounts = await loadAdminNavCounts();
                     <td>
                       <time dateTime={new Date(r.createdAt).toISOString()}>{formatDate(r.createdAt)}</time>
                     </td>
+                    <td>
+                      <a className="adm-link" href={`/api/admin/documents/${r.id}/download`}>
+                        Download
+                      </a>
+                    </td>
                   </tr>
                 ))}
               </tbody>
