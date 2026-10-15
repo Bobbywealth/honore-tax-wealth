@@ -22,6 +22,7 @@ import {
 import { ensureMigrated } from "@/db/migrate";
 import { CalendarDays, ClipboardList, FileText, MessageSquareText, Receipt, UserRoundCheck } from "lucide-react";
 import { formatServiceType } from "../../../_lib/format";
+import InternalNotes from "../../../admin/_components/InternalNotes";
 
 export const dynamic = "force-dynamic";
 
@@ -407,6 +408,8 @@ export default async function AdminClientDetailPage({ params, searchParams }: { 
             </div>
           )}
         </section>
+
+        <InternalNotes clientId={id} />
 
         {/* CLIENT SUMMARY SIDEBAR */}
         <section className="dashboard-section client-summary-side" aria-labelledby="client-summary">

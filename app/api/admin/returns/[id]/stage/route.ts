@@ -97,6 +97,12 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
       .set({ stage: dbStage, history: [...prev, entry], updatedAt: new Date() })
       .where(eq(returns.id, id));
     logEvent("return.stage.changed", { userId: user.id, returnId: id, from: rows[0].stage, to: dbStage });
+    // Append-only audit trail: who changed the stage and when.
+    const { audit } = await import("@/lib/audit");
+    await audit(user, "return.stage_changed", "return", id, {
+      from: rows[0].stage,
+      to: dbStage,
+    });
   } catch (error) {
     logEvent("return.stage.db_error", { userId: user.id, returnId: id, err: (error as Error).message });
     if (!isJson) {

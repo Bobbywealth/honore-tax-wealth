@@ -900,3 +900,30 @@ export const intakeFormFields = pgTable(
 );
 
 export type IntakeFormField = typeof intakeFormFields.$inferSelect;
+
+/* ===================== Internal notes & audit ===================== */
+
+/* Internal agent/admin notes. NEVER exposed via client APIs — the client
+ * portal has no route that reads this table. Each note records its author
+ * so the audit trail shows who wrote what and when. */
+export const internalNotes = pgTable(
+  "internal_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    authorId: uuid("author_id").references(() => users.id, { onDelete: "set null" }),
+    // Denormalized at write time so the timeline survives user renames.
+    authorName: varchar("author_name", { length: 120 }),
+    authorRole: varchar("author_role", { length: 20 }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(now),
+  },
+  (t) => ({
+    clientIdx: index("internal_notes_client_id_idx").on(t.clientId),
+    createdIdx: index("internal_notes_created_at_idx").on(t.createdAt),
+  }),
+);
+
+export type InternalNote = typeof internalNotes.$inferSelect;

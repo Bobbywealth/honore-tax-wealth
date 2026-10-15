@@ -553,6 +553,19 @@ const STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS intake_form_fields_key_idx ON intake_form_fields (field_key)`,
   `CREATE INDEX IF NOT EXISTS intake_form_fields_order_idx ON intake_form_fields (sort_order)`,
 
+  /* Internal agent/admin notes. Never exposed to clients. */
+  `CREATE TABLE IF NOT EXISTS internal_notes (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+     author_id UUID REFERENCES users(id) ON DELETE SET NULL,
+     author_name VARCHAR(120),
+     author_role VARCHAR(20),
+     body TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+   )`,
+  `CREATE INDEX IF NOT EXISTS internal_notes_client_id_idx ON internal_notes (client_id)`,
+  `CREATE INDEX IF NOT EXISTS internal_notes_created_at_idx ON internal_notes (created_at)`,
+
   /* Release the advisory lock on every path, including failure. */
   `SELECT pg_advisory_unlock(918273645)`,
 ];
