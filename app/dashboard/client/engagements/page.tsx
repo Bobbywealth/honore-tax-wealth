@@ -11,6 +11,7 @@ import { engagements, taxYears, returns, documents, documentRequests, appointmen
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { ensureMigrated } from "@/db/migrate";
 import { formatServiceType } from "../../_lib/format";
+import { clientFacingStatus } from "@/lib/client-status";
 
 export const dynamic = "force-dynamic";
 
@@ -257,15 +258,26 @@ export default async function ClientEngagementsPage() {
                     <p className="dashboard-quiet">No returns filed under this engagement yet.</p>
                   ) : (
                     <ul className="dashboard-engagement-returns">
-                      {rets.map((r) => (
-                        <li key={r.id}>
-                          <span className={`dashboard-tag ${r.filedAt ? "is-good" : r.stage === "ready_to_file" ? "is-pending" : "is-pending"}`}>
-                            {r.filedAt ? "Filed" : r.stage.replace("_", " ")}
-                          </span>
-                          <strong>{r.formType}</strong>
-                          <span className="dashboard-muted">{r.filedAt ? `Filed ${dateOnly(r.filedAt)}` : r.preparedAt ? `Prepared ${dateOnly(r.preparedAt)}` : "—"}</span>
-                        </li>
-                      ))}
+                      {rets.map((r) => {
+                        // Clients see only the simplified 6-step status, never
+                        // internal pipeline stages. See lib/client-status.ts.
+                        const display = clientFacingStatus(r.stage);
+                        const tone =
+                          display === "Completed" || display === "Filed"
+                            ? "is-good"
+                            : display === "Action Needed"
+                              ? "is-bad"
+                              : "is-pending";
+                        return (
+                          <li key={r.id}>
+                            <span className={`dashboard-tag ${tone}`}>
+                              {display}
+                            </span>
+                            <strong>{r.formType}</strong>
+                            <span className="dashboard-muted">{r.filedAt ? `Filed ${dateOnly(r.filedAt)}` : r.preparedAt ? `Prepared ${dateOnly(r.preparedAt)}` : "—"}</span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </div>
