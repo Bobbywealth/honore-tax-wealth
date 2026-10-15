@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import PasswordInput from "@/components/PasswordInput";
 import SiteFooter from "../_components/SiteFooter";
 
-export default function Login() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get("registered") === "1";
+  const justVerified = searchParams.get("verified") === "1";
 
   async function signIn(emailValue: string, passwordValue: string) {
     if (busy) return;
@@ -66,6 +69,17 @@ export default function Login() {
           <h1 id="login-title">Welcome back.</h1>
           <p className="login-intro">Access your account.</p>
 
+          {justRegistered ? (
+            <p className="login-preview-note" role="status">
+              Your account was created. Sign in below to get started.
+            </p>
+          ) : null}
+          {justVerified ? (
+            <p className="login-preview-note" role="status">
+              Your email is verified. Sign in below.
+            </p>
+          ) : null}
+
           <form className="login-simple-form" onSubmit={onSubmit} noValidate>
             <label htmlFor="login-email">Email address</label>
             <input
@@ -111,11 +125,20 @@ export default function Login() {
             information through the public consultation form.
           </p>
           <a className="login-help" href="/forgot-password">Forgot your password?</a>
+          <a className="login-help" href="/register">Need an account? Register</a>
           <a className="login-help" href="/contact">Need help? Contact our team</a>
         </section>
       </main>
     </div>
     <SiteFooter />
     </>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
