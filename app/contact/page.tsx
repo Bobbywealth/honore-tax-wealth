@@ -65,12 +65,6 @@ export default function ContactPage() {
                 <a href="mailto:ihonoretaxwealth@gmail.com" style={{ color: "inherit", textDecoration: "none" }}>ihonoretaxwealth@gmail.com</a>
               </dd>
             </div>
-            <div>
-              <dt style={{ ...gold, marginBottom: 4 }}>Mailing address</dt>
-              <dd style={{ margin: 0, font: "500 16px/1.5 Georgia, serif", color: "#172435" }}>
-                <span aria-label="Mailing address pending">[ to be confirmed at launch ]</span>
-              </dd>
-            </div>
           </dl>
         </div>
 

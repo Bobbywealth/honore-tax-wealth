@@ -106,7 +106,8 @@ export default function Login() {
           </form>
 
           <p className="login-preview-note">
-            This portal is for your tax documents and messages. Please do not submit sensitive tax
+            This portal is where clients track their tax work, sign forms, review documents,
+            request appointments, and message the team. Please do not submit sensitive tax
             information through the public consultation form.
           </p>
           <a className="login-help" href="/forgot-password">Forgot your password?</a>
