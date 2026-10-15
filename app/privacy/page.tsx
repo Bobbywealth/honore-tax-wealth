@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "How iHonore Tax & Wealth collects, uses, and protects your information.",
+  description: "How I Honore Tax & Wealth collects, uses, and protects your information.",
 };
 
 export default function PrivacyPage() {
@@ -17,7 +17,7 @@ export default function PrivacyPage() {
         <p style={{ color: "#5b6c78", fontSize: 14, marginBottom: 32 }}>Last updated October 4, 2026</p>
 
         <Section title="1. Who we are">
-          iHonore Tax & Wealth ("iHonore", "we", "us") is a tax preparation and advisory practice. This policy explains what information we collect when you use this website, how we use it, and the choices you have.
+          I Honore Tax & Wealth ("I Honore", "we", "us") is a tax preparation and advisory practice. This policy explains what information we collect when you use this website, how we use it, and the choices you have.
         </Section>
 
         <Section title="2. What we collect">
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
             <li>The service you are asking about (for example, individual tax preparation or IRS notice help)</li>
             <li>A free-form message you choose to include</li>
           </ul>
-          <p>We do not request, and you should not submit, Social Security numbers, account numbers, prior tax returns, or any other sensitive tax documents through this website. Use only a secure method provided by your iHonore preparer for that information.</p>
+          <p>We do not request, and you should not submit, Social Security numbers, account numbers, prior tax returns, or any other sensitive tax documents through this website. Use only a secure method provided by your I Honore preparer for that information.</p>
         </Section>
 
         <Section title="3. What we don't collect through this site">
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="5. Cookies and analytics">
-          <p>iHonore uses only cookies that are strictly necessary to keep the site working. We do not set tracking or advertising cookies and we do not use third-party analytics that profile visitors.</p>
+          <p>I Honore uses only cookies that are strictly necessary to keep the site working. We do not set tracking or advertising cookies and we do not use third-party analytics that profile visitors.</p>
         </Section>
 
         <Section title="6. How long we keep it">
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="8. Security">
-          <p>Submission traffic is encrypted in transit (HTTPS). We limit who at iHonore can see consultation requests. Tax documents are never accepted through this site. Once the secure client portal is available, it will require multi-factor authentication for staff and encrypted document storage.</p>
+          <p>Submission traffic is encrypted in transit (HTTPS). We limit who at I Honore can see consultation requests. Tax documents are never accepted through this site. Once the secure client portal is available, it will require multi-factor authentication for staff and encrypted document storage.</p>
         </Section>
 
         <Section title="9. Children's privacy">
@@ -64,14 +64,14 @@ export default function PrivacyPage() {
 
         <Section title="11. Contact">
           <p>
-            iHonore Tax & Wealth<br />
+            I Honore Tax & Wealth<br />
             Phone: <a href="tel:+14073407964" style={{ color: "#9a7642" }}>407-340-7964</a><br />
             Email: <a href="mailto:ihonoretaxwealth@gmail.com" style={{ color: "#9a7642" }}>ihonoretaxwealth@gmail.com</a>
           </p>
         </Section>
 
         <Section title="12. Regulatory context">
-          <p>iHonore is a tax preparation firm. We maintain a Written Information Security Plan (WISP) consistent with IRS Publication 4557 and the FTC Safeguards Rule. Once the secure client portal is live, the additional controls required for handling taxpayer records (multi-factor authentication, encryption, audit logs, retention, backup, and disposal) will be described in the portal's own terms.</p>
+          <p>I Honore is a tax preparation firm. We maintain a Written Information Security Plan (WISP) consistent with IRS Publication 4557 and the FTC Safeguards Rule. Once the secure client portal is live, the additional controls required for handling taxpayer records (multi-factor authentication, encryption, audit logs, retention, backup, and disposal) will be described in the portal's own terms.</p>
         </Section>
       </div>
     </main>

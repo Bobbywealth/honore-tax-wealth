@@ -60,9 +60,9 @@ export default function Login() {
       <main className="login-simple-main">
         <section className="login-simple-panel" aria-labelledby="login-title">
           <div className="login-card-logo">
-            <img src="/assets/honore-logo-cropped.png" alt="iHonore Tax & Wealth" />
+            <img src="/assets/honore-logo-cropped.png" alt="I Honore Tax & Wealth" />
           </div>
-          <span className="login-eyebrow">IHONORE TAX &amp; WEALTH</span>
+          <span className="login-eyebrow">I HONORE TAX &amp; WEALTH</span>
           <h1 id="login-title">Welcome back.</h1>
           <p className="login-intro">Access your account.</p>
 
