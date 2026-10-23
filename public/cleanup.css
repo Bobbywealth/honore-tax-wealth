@@ -849,23 +849,29 @@ body .login-simple .login-simple-form button[type="submit"]:focus-visible{
 .experience-grid .experience-steps > button span{color:#16222f!important}
 
 /* --- image crop: both faces in frame ---------------------------- */
-/* The source is 1600x800 with the two subjects at roughly x=850-1010    */
-/* (John) and x=1250-1360 (Sade), and empty navy wall on the left.       */
+/* The source is 2:1 landscape with the two subjects at ~57.5-63% (John) */
+/* and ~80-86% (Sade) of the width, plus empty navy wall on the left.    */
 /*                                                                       */
-/* The pane is ~527x689, so `cover` shows only ~38% of the image width.  */
-/* cleanup.css:628 pinned that window to `right center`, which starts it */
-/* at x~989 and cuts John off almost entirely. Shifting the window to    */
-/* 81% centres it on the two faces (x~799-1411), which is what was asked */
-/* for: the man's face alongside the woman's, the way the source photo   */
-/* is framed. Tuned per breakpoint because the pane aspect changes.      */
-.experience-scene img{object-position:81% 50%!important}
+/* Two things were cutting the frame down:                               */
+/*   1. cleanup.css:628 pinned the crop to `right center`, which put the */
+/*      window past the man's face entirely.                             */
+/*   2. The image pane was 527x689 (~3:4) against a 2:1 photo, so `cover`*/
+/*      could only show 38% of the width -- not enough to hold both      */
+/*      faces with any margin.                                           */
+/*                                                                       */
+/* Fixed by giving the image an even split of the plate (600x689, which  */
+/* shows ~43% of the width) and centring the window on the two faces at  */
+/* 88%. Together that leaves ~120px of margin around the pair, which is  */
+/* how the source photo is framed.                                       */
+.experience-grid{grid-template-columns:1fr 1fr}
+.experience-scene img{object-position:88% 50%!important}
 
 /* --- responsive -------------------------------------------------- */
 @media(max-width:1100px){
   .experience-scene{min-height:540px}
 }
 @media(max-width:900px){
-  .experience-scene img{object-position:83% 50%!important}
+  .experience-scene img{object-position:86% 50%!important}
   .experience-grid{grid-template-columns:1fr!important;border-radius:16px}
   .experience-scene{min-height:380px!important;border-right:0;border-bottom:1px solid #ddd3c1}
   .experience-scene::before{inset:10px}
