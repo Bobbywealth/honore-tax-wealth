@@ -65,6 +65,14 @@ function randomDecoyInput(): string {
 const schema = z.object({
   email: z.string().trim().email("email").max(180, "email"),
   password: z.string().min(1, "password").max(200, "password"),
+  /**
+   * Which portal the person is trying to enter. Optional so existing callers
+   * keep working; when present it is enforced BEFORE a session or an MFA
+   * challenge is issued, so a client cannot use the agent entry point (and an
+   * agent cannot use the client one) even with valid credentials. This is a
+   * real separation, not a UI distinction.
+   */
+  audience: z.enum(["client", "agent"]).optional(),
 });
 
 export async function POST(request: Request) {
@@ -133,6 +141,26 @@ export async function POST(request: Request) {
     // A valid sign-in clears this caller's quota so their own typos do not
     // accumulate against them.
     await resetRateLimit(`login:${iph}`);
+
+    // Portal separation. Checked only after the credential is proven so this
+    // cannot be used to probe which addresses hold agent accounts, and before
+    // any session or MFA challenge exists so the wrong-portal user never gets
+    // a foothold.
+    const isAgentRole = account.role !== "client";
+    if (parsed.audience === "agent" && !isAgentRole) {
+      logEvent("auth.login.wrong_portal", { iph, role: account.role, audience: "agent" });
+      return Response.json(
+        { ok: false, error: "wrong_portal", audience: "client" },
+        { status: 403 },
+      );
+    }
+    if (parsed.audience === "client" && isAgentRole) {
+      logEvent("auth.login.wrong_portal", { iph, role: account.role, audience: "client" });
+      return Response.json(
+        { ok: false, error: "wrong_portal", audience: "agent" },
+        { status: 403 },
+      );
+    }
 
     // MFA gate: password verified, but the account requires a second factor.
     // Issue a short-lived challenge token instead of a session.

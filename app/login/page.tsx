@@ -25,7 +25,7 @@ function LoginForm() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: emailValue, password: passwordValue }),
+        body: JSON.stringify({ email: emailValue, password: passwordValue, audience: "client" }),
       });
       const data = await res.json().catch(() => ({}) as { ok?: boolean; error?: string; role?: string; mfaRequired?: boolean; mfaToken?: string; mfaEnrollmentRequired?: boolean });
 
@@ -40,9 +40,11 @@ function LoginForm() {
 
       if (!res.ok || !data.ok) {
         setError(
-          data.error === "too_many_attempts"
-            ? "Too many sign-in attempts. Please wait a few minutes and try again."
-            : "We could not sign you in. Check your email and password.",
+          data.error === "wrong_portal"
+            ? "That is a team account. Agents sign in through the team portal."
+            : data.error === "too_many_attempts"
+              ? "Too many sign-in attempts. Please wait a few minutes and try again."
+              : "We could not sign you in. Check your email and password.",
         );
         setBusy(false);
         return;
@@ -220,6 +222,7 @@ function LoginForm() {
           </p>
           <a className="login-help" href="/forgot-password">Forgot your password?</a>
           <a className="login-help" href="/register">Need an account? Register</a>
+          <a className="login-help" href="/agent">Team or management? Sign in here</a>
           <a className="login-help" href="/contact">Need help? Contact our team</a>
         </section>
       </main>

@@ -730,3 +730,19 @@ a.timeline-label:hover{text-decoration:underline;color:#9a7642}
 .dashboard-steps{margin:12px 0 16px 20px;display:flex;flex-direction:column;gap:12px}
 .dashboard-alert-text{color:#b91c1c;font-size:14px;margin:8px 0}
 @media(max-width:480px){.dashboard-backup-codes{grid-template-columns:repeat(2,1fr)}}
+
+/* ------------------------------------------------------------------ */
+/* Agent client list: bucket badges, paper-filing flag, next-step cell. */
+/* ------------------------------------------------------------------ */
+.adm-badge-warn{background:#fdf1ec;color:#8c3f2e;border-color:#e6c4b4}
+.adm-next-step{
+  display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;vertical-align:bottom;font-size:12.5px;color:#2b3a45;
+}
+.adm-bucket-new{background:#eef2f6;color:#3c4c59;border-color:#d6dee6}
+.adm-bucket-missing_documents{background:#fdf1ec;color:#8c3f2e;border-color:#e6c4b4}
+.adm-bucket-in_progress{background:#eaf1f8;color:#2c4c6b;border-color:#c9dae9}
+.adm-bucket-awaiting_signature{background:#fbf3e3;color:#7d5b1f;border-color:#e8d5ab}
+.adm-bucket-ready_to_file{background:#eef4ec;color:#3c5f3a;border-color:#cbdfc6}
+.adm-bucket-submitted{background:#e9eef7;color:#2f4470;border-color:#c6d3ea}
+.adm-bucket-completed{background:#e8f2ec;color:#2f5c43;border-color:#c2ddcc}

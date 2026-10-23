@@ -225,6 +225,13 @@ const STATEMENTS: string[] = [
    )`,
   `CREATE INDEX IF NOT EXISTS returns_engagement_id_idx ON returns (engagement_id)`,
   `CREATE INDEX IF NOT EXISTS returns_stage_idx ON returns (stage)`,
+  // Filing method is required so the agent client list can show E-File vs
+  // Paper at a glance. Paper is a real branch: a mailed return cannot go
+  // through the e-file pipeline. Backfill column on existing deployments and
+  // default to efile, which is correct for every return already in the system.
+  // Placed AFTER the returns CREATE so a fresh database has the table first.
+  `ALTER TABLE returns ADD COLUMN IF NOT EXISTS filing_method VARCHAR(20) NOT NULL DEFAULT 'efile'`,
+  `CREATE INDEX IF NOT EXISTS returns_filing_method_idx ON returns (filing_method)`,
 
   /* ============================ Documents =========================== */
   `CREATE TABLE IF NOT EXISTS documents (

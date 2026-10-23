@@ -11,15 +11,14 @@ import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
 import { navForRole } from "../_lib/nav";
 import { scopedClientIdsFor } from "../_lib/scoping";
+import {
+  AGENT_LIST_FILTERS,
+  loadAgentClientRows,
+  type AgentClientRow,
+  type AgentListBucket,
+} from "../_lib/agentList";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_FILTERS = [
-  { key: "", label: "All" },
-  { key: "prospect", label: "Prospect" },
-  { key: "active", label: "Active" },
-  { key: "inactive", label: "Inactive" },
-] as const;
 
 function initials(name: string): string {
   return name
@@ -38,7 +37,7 @@ function initials(name: string): string {
  * return counts. Revenue is not shown here at all: the schema has no
  * billed-lifetime field, so any number displayed would have been invented.
  */
-export default async function ClientsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string; imported?: string; errors?: string; report?: string; new?: string; created?: string }> }) {
+export default async function ClientsPage({ searchParams }: { searchParams?: Promise<{ q?: string; bucket?: string; status?: string; imported?: string; errors?: string; report?: string; new?: string; created?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
@@ -48,7 +47,7 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
 
   const params = (await searchParams) ?? {};
   const query = (params.q ?? "").trim();
-  const status = params.status ?? "";
+  const bucket = (params.bucket ?? (params.status ?? "")) as AgentListBucket | "";
   const showForm = params.new === "1";
   const justCreated = params.created === "1";
   const importedCount = Number(params.imported ?? 0);
@@ -64,21 +63,7 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
     }
   }
 
-  let rows: Array<{
-    id: string;
-    displayName: string;
-    legalName: string | null;
-    email: string | null;
-    phone: string | null;
-    entityType: string;
-    status: string;
-    city: string | null;
-    state: string | null;
-    updatedAt: Date;
-    engagementCount: number;
-    openInvoiceCount: number;
-    billedTotal: string;
-  }> = [];
+  let rows: (AgentClientRow & { openInvoiceCount: number; billedTotal: string })[] = [];
   let totalAll = 0;
   let statusCounts: Record<string, number> = {};
   let unavailable = false;
@@ -93,8 +78,8 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
     // assigned to them — via clients.owner_id or via any non-archived
     // engagement's owner_id. Admins see everything. The helper queries
     // both assignments in two indexed lookups instead of an EXISTS
-    // scan per row, and the resulting array is reused for status chips
-    // below so they count exactly the rows visible on the page.
+    // scan per row, and the resulting array is reused for the filter
+    // chips below so they count exactly the rows visible on the page.
     let scopedClientIds: string[] | null = null;
     if (me?.id) {
       scopedClientIds = await scopedClientIdsFor({ id: me.id, role: me.role });
@@ -109,35 +94,29 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
         )!,
       );
     }
-    if (status) conditions.push(eq(clients.status, status));
 
-    const baseRows = await db
-      .select({
-        id: clients.id,
-        displayName: clients.displayName,
-        legalName: clients.legalName,
-        email: clients.email,
-        phone: clients.phone,
-        entityType: clients.entityType,
-        status: clients.status,
-        city: clients.city,
-        state: clients.state,
-        updatedAt: clients.updatedAt,
-      })
+    // The bucket is derived from live engagement / return / request state, not
+    // a stored column, so it cannot be filtered in SQL here. Fetch the narrow
+    // id set first, enrich it once, then bucket and count in memory. A practice
+    // has hundreds of clients, not millions, and this keeps the chip counts
+    // exact instead of approximate.
+    const candidateRows = await db
+      .select({ id: clients.id })
       .from(clients)
       .where(and(...conditions))
       .orderBy(desc(clients.updatedAt))
-      .limit(200);
+      .limit(500);
 
-    // Engagement and billing aggregates per client, so the table shows real
-    // counts without an N+1 query per row.
-    const ids = baseRows.map((r) => r.id);
-    if (ids.length > 0) {
-      const engagementRows = await db
-        .select({ clientId: engagements.clientId, n: count() })
-        .from(engagements)
-        .where(and(isNull(engagements.archivedAt), inArray(engagements.clientId, ids)))
-        .groupBy(engagements.clientId);
+    const candidateIds = candidateRows.map((r) => r.id);
+    const enriched: (AgentClientRow & { openInvoiceCount: number; billedTotal: string })[] =
+      (await loadAgentClientRows(candidateIds)) as (AgentClientRow & {
+        openInvoiceCount: number;
+        billedTotal: string;
+      })[];
+
+    // Client-level billing stays on the list because an agent needs to see an
+    // unpaid invoice before scheduling filing.
+    if (enriched.length > 0) {
       const invoiceRows = await db
         .select({
           clientId: invoices.clientId,
@@ -145,48 +124,38 @@ export default async function ClientsPage({ searchParams }: { searchParams?: Pro
           total: sum(invoices.total),
         })
         .from(invoices)
-        .where(and(or(eq(invoices.status, "sent"), eq(invoices.status, "overdue")), inArray(invoices.clientId, ids)))
-        .groupBy(invoices.clientId);
-
-      rows = baseRows.map((r) => {
-        const e = engagementRows.find((x) => x.clientId === r.id);
-        const i = invoiceRows.find((x) => x.clientId === r.id);
-        return {
-          ...r,
-          engagementCount: Number(e?.n ?? 0),
-          openInvoiceCount: Number(i?.n ?? 0),
-          billedTotal: String(i?.total ?? "0"),
-        };
-      });
-    } else {
-      rows = baseRows.map((r) => ({
-        ...r,
-        engagementCount: 0,
-        openInvoiceCount: 0,
-        billedTotal: "0",
-      }));
-    }
-
-    for (const f of STATUS_FILTERS) {
-      // Status filter chips count only the rows the user can actually
-      // see. Reuse the scoping computed above so a non-admin never sees
-      // chip counts that exceed the rows they're allowed to view.
-      const c = await db
-        .select({ n: count() })
-        .from(clients)
         .where(
           and(
-            base,
-            f.key ? eq(clients.status, f.key) : undefined,
-            ...(scopedClientIds !== null ? [inArray(clients.id, scopedClientIds)] : []),
+            or(eq(invoices.status, "sent"), eq(invoices.status, "overdue")),
+            inArray(invoices.clientId, enriched.map((r) => r.id)),
           ),
-        );
-      statusCounts[f.key] = Number(c[0]?.n ?? 0);
+        )
+        .groupBy(invoices.clientId);
+      const byClient = new Map(invoiceRows.map((r) => [r.clientId, r]));
+      for (const r of enriched) {
+        const inv = byClient.get(r.id);
+        r.openInvoiceCount = Number(inv?.n ?? 0);
+        r.billedTotal = String(inv?.total ?? "0");
+      }
+    } else {
+      for (const r of enriched) {
+        r.openInvoiceCount = 0;
+        r.billedTotal = "0";
+      }
     }
-    totalAll = statusCounts[""] ?? 0;
+
+    for (const f of AGENT_LIST_FILTERS) {
+      // Chips count only rows the user can actually see, so a non-admin never
+      // sees counts that exceed what they are allowed to view.
+      statusCounts[f.key] = enriched.filter((r) => (f.key ? r.bucket === f.key : true)).length;
+    }
+    totalAll = enriched.length;
+
+    rows = bucket ? enriched.filter((r) => r.bucket === bucket) : enriched;
   } catch {
     unavailable = true;
   }
+
 
 const navCounts = await loadAdminNavCounts();
   const conversationsUnread = navCounts.conversationsUnread;
@@ -260,9 +229,9 @@ const navCounts = await loadAdminNavCounts();
               </button>
             </form>
             <div className="adm-clients-filters">
-              {STATUS_FILTERS.map((f) => {
-                const active = status === f.key;
-                const href = f.key ? `?status=${f.key}` : "?";
+              {AGENT_LIST_FILTERS.map((f) => {
+                const active = bucket === f.key;
+                const href = f.key ? `?bucket=${f.key}` : "?";
                 return (
                   <a
                     key={f.key || "all"}
@@ -282,7 +251,7 @@ const navCounts = await loadAdminNavCounts();
               <Filter size={22} aria-hidden="true" />
               <h2>No clients found</h2>
               <p>
-                {query || status
+                {query || bucket
                   ? "Nothing matches those filters. Try clearing the search."
                   : "Clients appear here once a lead is converted."}
               </p>
@@ -294,57 +263,96 @@ const navCounts = await loadAdminNavCounts();
                 <thead>
                   <tr>
                     <th scope="col">Client</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Engagements</th>
-                    <th scope="col">Open invoices</th>
+                    <th scope="col">Tax year</th>
+                    <th scope="col">Return</th>
+                    <th scope="col">Filing</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Updated</th>
+                    <th scope="col">Documents</th>
+                    <th scope="col">Last activity</th>
+                    <th scope="col">Next step</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.id}>
-                      <td>
-                        <div className="adm-client-cell">
-                          <span className="av">{initials(r.displayName)}</span>
-                          <div>
-                            <strong>
-                              <a href={`/dashboard/admin/clients/${r.id}`} className="adm-row-link">
-                                {r.displayName}
-                              </a>
-                            </strong>
-                            {r.email ? (
-                              <a href={`mailto:${r.email}`} className="adm-card-sub">
-                                {r.email}
-                              </a>
-                            ) : (
-                              <span className="adm-card-meta">No email on file</span>
-                            )}
-                            {r.city ? (
-                              <span className="adm-card-meta">
-                                {r.city}
-                                {r.state ? `, ${r.state}` : ""}
-                              </span>
-                            ) : null}
+                  {rows.map((r) => {
+                    const bucketLabel =
+                      AGENT_LIST_FILTERS.find((f) => f.key === r.bucket)?.label ?? r.bucket;
+                    return (
+                      <tr key={r.id}>
+                        <td>
+                          <div className="adm-client-cell">
+                            <span className="av">{initials(r.displayName)}</span>
+                            <div>
+                              <strong>
+                                <a href={`/dashboard/admin/clients/${r.id}`} className="adm-row-link">
+                                  {r.displayName}
+                                </a>
+                              </strong>
+                              {r.email ? (
+                                <a href={`mailto:${r.email}`} className="adm-card-sub">
+                                  {r.email}
+                                </a>
+                              ) : (
+                                <span className="adm-card-meta">No email on file</span>
+                              )}
+                              {r.city ? (
+                                <span className="adm-card-meta">
+                                  {r.city}
+                                  {r.state ? `, ${r.state}` : ""}
+                                </span>
+                              ) : null}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>{r.entityType}</td>
-                      <td>{r.engagementCount}</td>
-                      <td>{r.openInvoiceCount}</td>
-                      <td>
-                        <span className="adm-badge">{r.status}</span>
-                      </td>
-                      <td>
-                        <time dateTime={new Date(r.updatedAt).toISOString()}>
-                          {new Intl.DateTimeFormat("en-US", {
-                            dateStyle: "medium",
-                            timeZone: "America/New_York",
-                          }).format(new Date(r.updatedAt))}
-                        </time>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>{r.taxYear ?? <span className="adm-card-meta">—</span>}</td>
+                        <td>{r.returnType ?? <span className="adm-card-meta">—</span>}</td>
+                        <td>
+                          {r.filingMethod === "paper" ? (
+                            <span className="adm-badge adm-badge-warn">Paper</span>
+                          ) : r.filingMethod === "efile" ? (
+                            <span className="adm-badge">E-File</span>
+                          ) : (
+                            <span className="adm-card-meta">—</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`adm-badge adm-bucket-${r.bucket}`}>{bucketLabel}</span>
+                        </td>
+                        <td>
+                          {r.docsTotal === 0 ? (
+                            <span className="adm-card-meta">None requested</span>
+                          ) : r.docsMissing > 0 ? (
+                            <span className="adm-badge adm-badge-warn">
+                              {r.docsMissing} missing
+                            </span>
+                          ) : (
+                            <span className="adm-badge">{r.docsTotal} received</span>
+                          )}
+                        </td>
+                        <td>
+                          {r.lastActivityAt ? (
+                            <time dateTime={new Date(r.lastActivityAt).toISOString()}>
+                              {new Intl.DateTimeFormat("en-US", {
+                                dateStyle: "medium",
+                                timeZone: "America/New_York",
+                              }).format(new Date(r.lastActivityAt))}
+                            </time>
+                          ) : (
+                            <span className="adm-card-meta">—</span>
+                          )}
+                        </td>
+                        <td>
+                          {r.nextStep ? (
+                            <span className="adm-next-step" title={r.nextStep}>
+                              {r.nextStep}
+                              {r.openTaskCount > 1 ? ` (+${r.openTaskCount - 1})` : ""}
+                            </span>
+                          ) : (
+                            <span className="adm-card-meta">No follow-up</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

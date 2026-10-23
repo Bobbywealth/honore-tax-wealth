@@ -347,6 +347,10 @@ export const returns = pgTable(
       .notNull()
       .references(() => taxYears.id, { onDelete: "cascade" }),
     formType: varchar("form_type", { length: 40 }).notNull(),
+    // How this return reaches the IRS. `paper` is a real branch, not a label:
+    // a mailed return cannot use the e-file pipeline and has to stay visible
+    // to the agent as such. Unknown at creation time defaults to efile.
+    filingMethod: varchar("filing_method", { length: 20 }).notNull().default("efile"),
     stage: varchar("stage", { length: 30 }).notNull().default("not_started"),
     assignedToId: uuid("assigned_to_id").references(() => users.id, { onDelete: "set null" }),
     preparedAt: timestamp("prepared_at", { withTimezone: true }),

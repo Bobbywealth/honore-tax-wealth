@@ -26,6 +26,7 @@
 import { createHash, randomBytes } from "crypto";
 import { mkdir, writeFile, readFile, unlink, stat } from "fs/promises";
 import { join, resolve, sep } from "path";
+import { s3StorageFromEnv } from "./storage-s3";
 
 export type PutResult = {
   /** Opaque storage key, safe to persist in `documents.storage_key`. */
@@ -109,11 +110,13 @@ class LocalDiskStorage implements StorageDriver {
   }
 }
 
-// Singleton driver. Swap the constructor here (or via STORAGE_DRIVER env)
-// when the S3 implementation lands.
+// Singleton driver. Selected by env: when the S3/R2 block is configured we
+// use object storage, because local disk does not survive a Render free
+// instance restart and these are tax documents. Otherwise fall back to local
+// disk so the app still runs in development.
 let driver: StorageDriver | null = null;
 export function storage(): StorageDriver {
-  if (!driver) driver = new LocalDiskStorage();
+  if (!driver) driver = s3StorageFromEnv() ?? new LocalDiskStorage();
   return driver;
 }
 
