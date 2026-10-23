@@ -748,3 +748,155 @@ body .login-simple .login-simple-form button[type="submit"]:focus-visible{
   .dashboard-logo{padding:8px 10px 6px;margin:0 0 20px 8px}
   .dashboard-logo img{width:96px}
 }
+
+/* ================================================================== */
+/* 02 / THE EXPERIENCE — "a clear path forward"                        */
+/*                                                                      */
+/* The section is titled a path but previously read as four unrelated    */
+/* rows. This makes the metaphor literal: a gold rail runs through the   */
+/* numbered stations, each step becomes a card riding that rail, and    */
+/* the consultation image gets the framed-plate treatment used          */
+/* elsewhere on the site.                                                */
+/*                                                                      */
+/* CSS-only on purpose. Every functional element (the consultation      */
+/* buttons, the image, the caption, all step copy) is preserved; this   */
+/* changes presentation and nothing else.                               */
+/* ================================================================== */
+
+/* --- header: gold rule + tighter baseline ------------------------- */
+.experience .section-top{align-items:center}
+.experience-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  color:#8a6a3a!important;font:800 10px Manrope,sans-serif;letter-spacing:.18em;
+}
+.experience-eyebrow::after{
+  content:"";width:46px;height:1px;background:linear-gradient(90deg,#bd9658,rgba(189,150,88,0));
+}
+.experience-intro{align-items:end;gap:56px}
+.experience h2 i{color:#8a6a3a!important}
+
+/* --- the framed plate holding image + steps ----------------------- */
+.experience-grid{
+  border-radius:18px;overflow:hidden;
+  border:1px solid #ddd3c1;
+  box-shadow:0 10px 30px rgba(14,26,38,.07);
+  background:#fffdf9;
+}
+
+/* --- image: framed, focal point untouched ------------------------- */
+.experience-scene{
+  min-height:620px;background:#102435;
+  border-right:1px solid #ddd3c1;
+}
+.experience-scene::before{
+  /* thin gold hairline inside the frame edge */
+  content:"";position:absolute;inset:14px;z-index:2;pointer-events:none;
+  border:1px solid rgba(221,189,136,.32);border-radius:10px;
+}
+.experience-scene::after{
+  content:"";position:absolute;inset:38% 0 0;
+  background:linear-gradient(180deg,rgba(7,24,39,0),rgba(7,24,39,.92));
+}
+.experience-scene-caption{left:38px;right:32px;bottom:38px;z-index:3}
+.experience-scene-caption span{
+  display:inline-block;color:#ddbd88;letter-spacing:.2em;
+  padding:7px 12px;border:1px solid rgba(221,189,136,.4);border-radius:999px;
+  background:rgba(7,24,39,.35);backdrop-filter:blur(6px);
+}
+.experience-scene-caption strong{
+  display:block;margin-top:16px;
+  font:600 clamp(30px,3vw,46px)/1.1 Fraunces,Georgia,serif;letter-spacing:-.03em;
+  text-shadow:0 2px 18px rgba(7,24,39,.5);
+}
+
+/* --- the path: gold rail through the numbered stations ------------ */
+.experience-steps{position:relative;padding:34px 40px 34px}
+.experience-steps::before{
+  content:"";position:absolute;left:63px;top:58px;bottom:96px;width:2px;
+  background:linear-gradient(180deg,rgba(189,150,88,0) 0%,#bd9658 12%,#bd9658 88%,rgba(189,150,88,0) 100%);
+  opacity:.5;
+}
+
+/* --- a step is now a card riding that rail ------------------------ */
+.experience-steps article{
+  position:relative;
+  grid-template-columns:44px 1fr;gap:22px;
+  padding:20px 22px 20px 18px!important;
+  margin:0 0 14px;
+  background:linear-gradient(180deg,#fffdf9,#faf6ee);
+  border:1px solid #e6dcc8;border-radius:14px;
+  box-shadow:0 4px 14px rgba(14,26,38,.04);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.experience-steps article:last-of-type{margin-bottom:22px}
+.experience-steps article:hover{
+  transform:translateY(-2px);
+  border-color:#d8c39a;
+  box-shadow:0 12px 28px rgba(14,26,38,.10);
+}
+
+/* number badge = a station on the rail */
+.experience-steps article > span{
+  display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;margin-top:1px;
+  border-radius:50%;
+  background:linear-gradient(140deg,#d9b579,#bd9658 55%,#a97f45);
+  color:#1d2b3a!important;
+  font:800 12px Manrope,sans-serif;letter-spacing:.04em;
+  box-shadow:0 0 0 4px #fffdf9,0 4px 12px rgba(189,150,88,.35);
+}
+.experience-steps article:hover > span{
+  box-shadow:0 0 0 4px #fffdf9,0 6px 16px rgba(189,150,88,.5);
+}
+
+.experience-steps article > div{gap:6px}
+.experience-steps article h3{
+  font:600 21px/1.25 Fraunces,Georgia,serif;letter-spacing:-.02em;color:#172435;
+}
+.experience-steps article p{
+  font-size:14.5px;line-height:1.62;color:#54626c;max-width:46ch;
+}
+
+/* --- CTA: gold gradient, matching the site's button language ------ */
+.experience-steps > button{
+  margin-top:6px;width:100%;min-height:58px;
+  border:0;border-radius:12px;
+  background:linear-gradient(135deg,#d9b579,#bd9658 55%,#a97f45);
+  color:#16222f;
+  font:800 11px Manrope,sans-serif;letter-spacing:.12em;
+  box-shadow:0 8px 22px rgba(189,150,88,.32);
+  transition:transform .18s ease,box-shadow .18s ease,filter .18s ease;
+}
+.experience-steps > button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 32px rgba(189,150,88,.45);
+  filter:brightness(1.04);
+}
+.experience-steps > button span{color:#16222f!important;font-size:19px}
+
+/* --- responsive --------------------------------------------------- */
+@media(max-width:1100px){
+  .experience-intro{gap:32px}
+  .experience-scene{min-height:520px}
+}
+@media(max-width:900px){
+  .experience-grid{grid-template-columns:1fr!important;border-radius:16px}
+  .experience-scene{min-height:360px!important;border-right:0;border-bottom:1px solid #ddd3c1}
+  .experience-scene::before{inset:10px}
+  .experience-scene-caption{left:22px;right:22px;bottom:22px}
+  .experience-scene-caption strong{font-size:29px}
+  .experience-steps{padding:22px 18px 26px!important}
+  .experience-steps::before{left:37px;top:44px;bottom:88px}
+  .experience-steps article{
+    grid-template-columns:38px 1fr!important;gap:14px!important;
+    padding:16px 16px 16px 12px!important;
+  }
+  .experience-steps article > span{width:38px;height:38px;font-size:11px;box-shadow:0 0 0 3px #fffdf9,0 4px 12px rgba(189,150,88,.35)}
+  .experience-steps article h3{font-size:18px}
+  .experience-steps article p{font-size:13.5px;max-width:none}
+  .experience-steps > button{min-height:54px}
+}
+@media(max-width:380px){
+  .experience-scene{min-height:290px!important}
+  .experience-scene-caption strong{font-size:25px}
+}
