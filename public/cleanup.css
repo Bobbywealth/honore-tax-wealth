@@ -827,9 +827,11 @@ body .login-simple .login-simple-form button[type="submit"]:focus-visible{
 }
 
 /* --- CTA: the site's gold gradient, not a lone ghost ------------- */
-.experience-steps button,
-.experience button,
-[data-open-consultation].experience{
+/* visual-upgrades.css sets this to a square-cornered ghost and loads    */
+/* AFTER cleanup.css, so equal specificity loses to it. The extra        */
+/* `.experience-grid` ancestor is what wins the cascade. Scoped to this  */
+/* one button so the rest of the ghost-button group is untouched.        */
+.experience-grid .experience-steps > button{
   background:linear-gradient(135deg,#dabc88,#bd9658 55%,#a87d43)!important;
   color:#16222f!important;
   border:0!important;
@@ -838,16 +840,13 @@ body .login-simple .login-simple-form button[type="submit"]:focus-visible{
   box-shadow:0 8px 22px rgba(189,150,88,.32);
   transition:transform .18s ease,box-shadow .18s ease,filter .18s ease!important;
 }
-.experience-steps button:hover,
-.experience button:hover,
-[data-open-consultation].experience:hover{
+.experience-grid .experience-steps > button:hover{
   background:linear-gradient(135deg,#e2c795,#c9a262 55%,#b0864b)!important;
   color:#16222f!important;
   transform:translateY(-2px);
   box-shadow:0 14px 32px rgba(189,150,88,.45);
 }
-.experience-steps button span,
-.experience button span{color:#16222f!important}
+.experience-grid .experience-steps > button span{color:#16222f!important}
 
 /* --- responsive -------------------------------------------------- */
 @media(max-width:1100px){
