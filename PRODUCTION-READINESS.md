@@ -1,23 +1,12 @@
-# Honoré Tax & Wealth — Production Readiness
+# I Honore Tax & Wealth — Production Readiness
 
 **Source of truth for every run.** If this file disagrees with a plan, trust this file.
-Last updated: 2026-10-05 (run at ~22:20–22:45 EDT).
+Last updated: 2026-10-22 (verified live this session).
 
----
-
-## TL;DR — the site is up, but one dashboard field blocks everything else
-
-Production is **healthy and serving** (HTTP 200). It is serving the **old** wrangler/Vinext
-build (`48793ed`), because every deploy of the new Node runtime has failed at *startup*.
-
-**Exactly one thing is blocking the migration**, and it cannot be fixed from the CLI:
-
-> **Render web service `honore-tax-wealth` still has the old wrangler start command.**
-> Change **Start Command** to `pnpm run start`. Full steps in
-> [The blocker](#the-blocker--one-dashboard-field).
-
-Do that one change and the next deploy completes Phase 1.5. Do not start other Phase 2 work
-until the database milestone is verified live.
+> **History:** the earlier Phase 1 audit and the 2026-10-05 decision log are preserved at
+> `docs/production-readiness-audit-2026-10-05.md`. Both this file and that audit were written
+> while the site still ran the old wrangler/Vinext build; every item in that audit is now
+> either complete or superseded.
 
 ---
 
@@ -25,277 +14,80 @@ until the database milestone is verified live.
 
 | Thing | State |
 |---|---|
-| `https://honore-tax-wealth.onrender.com` | HTTP 200, title "Honoré Tax & Wealth" |
-| Serving commit | `48793ed` — **old** wrangler/Vinext runtime, not the Node runtime |
-| Web service | `srv-db18i79srm7s73aiq96g`, free plan, oregon, branch `main`, autoDeploy on commit |
-| Postgres | `honore-pg` / `dpg-db241tnlot8c73doj82g-a`, free, available, PG 16, oregon |
-| Repo | `origin/main` @ `a70d14c` — contains **all** Phase 1.5 + auth + email work |
-| Feature branch | `feat/node-runtime-postgres` @ `a70d14c`, pushed, identical tree to `main` |
+| `https://ihonoretaxandwealth.com` | HTTP 200, title "I Honore Tax & Wealth" |
+| `https://honore-tax-wealth.onrender.com` | HTTP 200 — same build, Render default domain |
+| Web service | `srv-db18i79srm7s73aiq96g`, autoDeploy from `main` |
+| Postgres | `honore-pg` / `dpg-db241tnlot8c73doj82g-a` |
+| Repo | `Bobbywealth/honore-tax-wealth`, **public**, `main` |
+| Runtime | Node (Next 16 / Vinext), building and starting cleanly |
 
-### Actively serving traffic: the OLD runtime
+## Brand
 
-`main` contains the new Node runtime. It is not what answers requests, because the service
-crashes on startup every time it is deployed. Render keeps the last *successful* deploy
-serving, so visitors get the old build and never notice. The old build has **no database** —
-consultation submissions on the live site go nowhere.
+The official name is **I Honore Tax & Wealth** — the leading "I" is part of the name, not a
+typo. The gold **H** monogram logo is unchanged and is not meant to become an I. The live
+domain `ihonoretaxandwealth.com` reflects the same name. Keep display strings consistent
+everywhere; do **not** touch `honoretaxwealth.com` (email domain), `honore-tax-wealth`
+(service/repo slug) or asset filenames.
 
----
+## Architecture
 
-## The blocker — one dashboard field
+- **Schema** (`db/schema.ts` + `db/migrate.ts`): ~30 tables covering identity, clients,
+  engagements, tax years, returns, documents, document requests, tasks, appointments,
+  conversations, invoices, consents, notifications, signable documents and audit events.
+  Migrations are an ordered array of idempotent statements; **additive columns need an
+  `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`**, because `CREATE TABLE IF NOT EXISTS` is a
+  no-op once the table exists. Place the ALTER *after* the matching CREATE so a fresh
+  database has the table first.
+- **Auth** (`lib/auth.ts`): Argon-style password hashing, SHA-256 hashed session tokens
+  (raw token never stored), HttpOnly / SameSite=lax cookies, `sessions_valid_from` watermark
+  for forced logout on password change, per-IP and per-account lockouts. Routes cover login,
+  registration, logout, logout-everywhere, change-password, forgot/reset-password,
+  email verification and TOTP MFA (`lib/mfa.ts`) for staff.
+- **Roles**: `client`, `staff`, `assistant`, `admin`.
+- **Access control** (`lib/access.ts`): one rule, enforced in one place — staff/admin may read
+  any client; a client may read only a client row joined to their user id through
+  `client_access`. No decision path reads access from a URL segment, an email field or a
+  header. Non-admin staff are row-scoped via `scopedClientIdsFor()`.
+- **Portal separation**: `/login` and `/agent` are separate entry points. `POST /api/auth/login`
+  accepts an `audience` and rejects a mismatch **before minting a session or an MFA challenge**,
+  so a client account cannot enter the team workspace and vice versa. The check runs only after
+  the credential is proven, so it cannot be used to probe which addresses hold agent accounts.
+  Verified live 2026-10-22 across 5 cases (both cross-portal cases return 403 `wrong_portal`
+  with no cookie; bad credentials return an identical 401).
+- **Client-facing status** (`lib/client-status.ts`): clients see six plain-language phases and
+  never the internal `returns.stage` vocabulary. "Action Needed" is an interrupt and outranks
+  the pipeline.
+- **Agent client list** (`app/dashboard/admin/_lib/agentList.ts`): columns for tax year, return
+  type, filing method, status, documents received/missing, last activity and next step, all
+  derived from live engagement/return/request/task rows rather than stored labels. Filter chips
+  are bucket-based and counted against the caller's scoped row set.
+- **Storage** (`lib/storage.ts`, `lib/storage-s3.ts`): `StorageDriver` interface. Local disk is
+  the development fallback; an S3-compatible driver with hand-rolled SigV4 is selected
+  automatically when the `S3_*` env block is present. **Local disk does not survive a Render
+  restart and is not acceptable for tax documents.**
+- **Email** (`lib/email.ts`): Resend. `mailConfigured()` returns false until **both**
+  `RESEND_API_KEY` and `EMAIL_FROM` are set, so sends silently no-op until then.
 
-Render's stored service config (verified via `render services get`):
+## Open items
 
-```
-buildCommand: pnpm install --frozen-lockfile && npm run build
-startCommand: node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev \
-              --config dist/server/wrangler.json --local --persist-to .wrangler/state \
-              --ip 0.0.0.0 --port $PORT --inspector-port 0
-```
-
-That start command needs **three things that no longer exist** in the repo:
-
-| Referenced path | Exists? |
-|---|---|
-| `./scripts/sites-env.mjs` | **deleted** in the runtime rewrite |
-| `dist/server/wrangler.json` | **deleted** — `next build` emits `.next/`, never `dist/server/` |
-| `node_modules/wrangler/bin/wrangler.js` | **gone** — `wrangler` was removed from `package.json` |
-
-So the process cannot start. Evidence this is the failure and not the build:
-the failing deploy is `update_failed` (build phase passed, startup failed), **not**
-`build_failed`, and the local build is green with the same commands.
-
-### Fix (needs the human, ~30 seconds)
-
-1. Open <https://dashboard.render.com/web/srv-db18i79srm7s73aiq96g>
-2. **Settings** → scroll to **Build & Deploy**
-3. Clear the **Start Command** field (delete the entire wrangler line) and enter:
-
-   ```
-   pnpm run start
-   ```
-
-4. **Save Changes**. This triggers a fresh deploy automatically.
-5. Watch it in **Events**. Expect: `Installing dependencies` → `Building` → `Deploying` →
-   Live. A green run means the Node runtime is live.
-
-Optional while you are in that panel:
-
-- **Build Command** → change `npm run build` to `pnpm run build`. Both work; `pnpm` is
-  consistent with the rest of the pipeline.
-- **Health Check Path** → `/api/health`. Once the service runs on Node, this reports real
-  database state (200 ok / 503 unreachable) instead of just "process is up". Leave it at `/`
-  until the Node runtime is confirmed live — do not change both at once, so a failure is
-  unambiguous.
-
-### Why this could not be done from the CLI
-
-- `render services` has only an `instances` subcommand — there is **no** `services update`
-  / `config` command in v2.7.0.
-- `render blueprints` only offers `validate`. There is no "apply blueprint" command, and the
-  service was not created from the blueprint anyway, so `render.yaml` has never synced to it.
-- No `RENDER_API_KEY` is present in the environment, so the REST API cannot be used either.
-- `~/.render/cli.yaml` holds an interactive-login credential only.
-
-`render.yaml` in the repo is already correct (`startCommand: pnpm run start`,
-`healthCheckPath: /`) and validates clean. It is documentation of intent, **not** the source
-of truth for this service — do not assume editing it changes anything.
-
----
-
-## Phase status
-
-| Step | Status | Notes |
+| # | Item | Impact |
 |---|---|---|
-| P1-01 Audit | Complete | This doc |
-| P1-02 Remove `?preview=1` bypass | Complete | PRs #1, #2 |
-| P1-03 Real typecheck | Complete | PR #1 |
-| P1-04 Render Postgres created | Complete | `honore-pg` live, `DATABASE_URL` set on service |
-| P1-05 Runtime off wrangler → Node | **Code complete, build green, BLOCKED on start command** | This run |
-| P1-05b Drizzle/Postgres layer | **Code complete, verified locally, NOT verified live** | This run |
-| P2 auth (Better Auth replacement) | **Closed ahead of plan** | `c73ce07`: real scrypt+sessions replaced the spoofable header gate |
-| P6 Resend email (#13) | **Code complete, verified locally, needs API key + DNS** | This run |
-| GitHub #3–#16 | Open | See backlog |
+| 1 | `RESEND_API_KEY` + `EMAIL_FROM` not set | Password resets, verification and document requests return success but send nothing |
+| 2 | `S3_*` block not set | Client document uploads land on ephemeral disk and are lost on redeploy |
+| 3 | No `staff` account seeded | Agent-side row scoping is verified by structure and tests, not by eye |
+| 4 | Test rows in the client list (`TEST Client Delete Me`) | Cosmetic; delete before showing the portal to anyone |
+| 5 | 17 failing tests in `tests/unit/marketing.test.ts` and `tests/routes/consultations.test.ts` | Pre-existing, identical before and after the 2026-10-22 work |
+| 6 | 8 `codex/*` branches + 2 `docs/*` branches unmerged | Unrelated histories — not mergeable into `main`; review or delete deliberately |
 
-### Closed ahead of plan: the PII exposure
+## Reusable recipes
 
-`c73ce07` removed a live vulnerability. `/dashboard/admin` and `/inquiries` were gated on a
-plaintext request header (`oai-authenticated-user-id`) with a hardcoded UUID in the repo — any
-anonymous visitor could set it with curl and read every consultation (name, email, phone, tax
-message). It is now a server-verified HttpOnly session backed by Postgres; the session table
-stores only a SHA-256 of the token. `requireRole("admin","staff")` is the gate; the old header
-now appears **only in comments explaining the fix**. No further action needed.
-
-The plan called for Better Auth here. The implementation that landed is hand-rolled
-scrypt + Postgres sessions, which is functional and closes the hole. Adopting Better Auth later
-is a deliberate choice, not an outstanding defect — decide it before real client data lands.
-
----
-
-## Verified this run (evidence, not inference)
-
-**Build pipeline — green, matching Render's commands:**
-
-| Check | Command | Result |
-|---|---|---|
-| Lockfile policy | `pnpm install --frozen-lockfile` | exit 0 |
-| Production build (no DB, as on Render) | `DATABASE_URL` unset, `pnpm run build` | exit 0, 22 routes, TS clean |
-| Lint | `pnpm run lint` | exit 0 (0 errors, 31 pre-existing warnings) |
-
-The two `prefer-const` lint errors that made `pnpm run lint` exit 1 are fixed.
-
-**Functional — local Postgres 14 + the real production build:**
-
-| Test | Result |
-|---|---|
-| `POST /api/consultations` valid | **201** + real row inserted |
-| Honeypot field filled | 200, **silently dropped, no row** |
-| Invalid payload | **400**, no row |
-| `GET /api/health` with DB up | **200** `{"status":"ok","database":"ok"}` |
-| Boot without `DATABASE_URL` | refuses with `DATABASE_URL is required but not set` |
-| `POST /api/auth/login` bootstrap admin | 200, session cookie, `role: admin` |
-| `/inquiries` **without** cookie | **no PII in body** ("Access restricted") |
-| `/inquiries` **with** cookie | shows leads correctly |
-| `/dashboard/admin` spoofed header | **no PII in body** |
-| Email with Resend unconfigured | still **201**, row stored, `not_configured` logged |
-| Email with an **invalid** Resend key | still **201**, row stored, `send_failed` logged |
-| HTML escaping | `<script>` and attribute-breakout payloads neutralised in both templates |
-
-Logs carry no raw PII: name/email/phone are never logged, IPs are salted-hashed, and upstream
-Resend errors are redacted of anything email-shaped before logging.
-
-**Not yet verified:** anything against `honore-pg` on Render. That requires the start-command fix.
-
----
-
-## Risks and deadlines
-
-1. **`honore-pg` expires 2026-11-05** (`expiresAt: 2026-11-05T00:29:42Z`). Free Postgres
-   instances expire after 30 days. **It must be upgraded before the site stores real client
-   data**, or the database is deleted. ~31 days from this run.
-2. **Lead capture is currently dead.** The live site runs the old runtime with no database, so
-   every consultation submitted by a real visitor is lost. This is the actual business risk and
-   it lasts exactly as long as the start-command blocker.
-3. **Free Postgres has no backups** and Render's free tier suspends idle instances. Pair with
-   #15 (backups + restore drill).
-4. **Build minutes.** Hobby includes 500 build minutes/month, then $5/1K. With no payment
-   method on file, exceeding the quota disables new builds for the rest of the month. Always
-   prove the local build first. Failed deploys still consume minutes.
-5. **Free web instances sleep** after inactivity, so the first request after an idle period is
-   slow and a curl may need `--max-time 60`.
-
----
-
-## Backlog (GitHub #3–#16, all open)
-
-| # | Title | Note |
-|---|---|---|
-| #3 | Move runtime off wrangler-dev to Node on Render | Code done; **blocked** on start command |
-| #4 | Render Postgres + Drizzle migrations, env schema, `.env.example` | Code done; **blocked** |
-| #5 | Better Auth on Postgres | Superseded in practice by `c73ce07`; decide deliberately |
-| #6 | RBAC (Owner/Admin/Staff/Client) + authz tests | `requireRole` exists; roles not enforced end-to-end |
-| #7 | TOTP MFA for staff before real client data | **Do before going live with real data** |
-| #8 | Durable Postgres-backed rate limiting + audit log | In-memory per-IP limits now |
-| #9 | Full data model + migrations | consultations/users/sessions only |
-| #10 | Private document storage (R2) + upload | Needs a bucket created |
-| #11 | Make admin dashboard real (remove demo arrays, `href="#"`) | Dashboard still largely demo data |
-| #12 | Client portal real | — |
-| #13 | Resend transactional email + SPF/DKIM/DMARC | **Code done this run**; needs API key + DNS |
-| #14 | Tests (unit/integration/e2e/authz) + branch protection | None exist yet |
-| #15 | Monitoring, backups, restore drill, failure runbook | — |
-| #16 | Final QA (links, SEO, a11y, browsers, perf) | — |
-
-### Resend go-live steps (#13)
-
-Code is done and merges safely whether or not Resend is configured. To actually send:
-
-1. Create a Resend account, add and verify the sending domain (SPF + DKIM + DMARC records in DNS).
-2. Render → service → **Environment**: add `RESEND_API_KEY`, and
-   `EMAIL_FROM="Honoré Tax & Wealth <notifications@yourdomain.com>"`.
-   Add `CONSULTATION_NOTIFY_EMAIL` for where new leads are delivered (falls back to
-   `ADMIN_EMAIL`).
-3. Do **not** use Resend's `onboarding@resend.dev` in production — it only delivers to your own
-   account inbox.
-4. Until configured, `consult.email` logs `reason="not_configured"`. After configuring, submit a
-   test consultation and confirm `sent: true`.
-
----
-
-## Runbook: verify the database milestone once unblocked
-
-The single test that closes Phase 1.5 — do not skip it, do not infer it from a 200:
-
-```bash
-curl -s -w "\nHTTP %{http_code}\n" -X POST https://honore-tax-wealth.onrender.com/api/consultations \
-  -H 'content-type: application/json' \
-  -d '{"name":"Milestone Check","email":"milestone@example.com","phone":"305-555-0100",
-       "service":"Tax planning","message":"Phase 1.5 verification","website":""}'
-```
-
-Expect **HTTP 201**, then confirm a real row exists — the response alone does not prove
-persistence:
-
-```bash
-render logs -r srv-db18i79srm7s73aiq96g --limit 40 -o json   # look for consult.created + consult.email
-render psql dpg-db241tnlot8c73doj82g-a                        # interactive, needs a TTY
-# SELECT id,name,email,created_at FROM consultations ORDER BY id DESC LIMIT 5;
-```
-
-Also check `GET /api/health` returns `{"status":"ok","database":"ok"}` and that the live service
-now boots on the **Node** runtime (Events shows `pnpm run start`, not wrangler).
-
-Then close #3 and #4, and merge the feature branch away if it is still open.
-
----
-
-## Method notes for the next run
-
-**Verified about the CLI (v2.7.0):**
-
-- `render deploys list <svc-id> -o json` works and includes the commit, status and duration.
-- `render deploys create <svc-id> --commit <sha> --confirm -o json` works. **You must pass
-  `-o json`/`-o text`** or it panics with `could not open a new TTY`.
-- `render logs -r <svc-id> --start <ISO> --end <ISO> -o json` **does** return app logs. These
-  are runtime logs from the currently-live instance — they will show the *old* build's
-  `[wrangler:info]` lines, not the new deploy's startup error.
-- `render blueprints validate render.yaml` works (validation only, no apply).
-- `render services get <id> -o json` dumps the **entire workspace**; filter for the object whose
-  `id` matches. This is the reliable way to read the stored start/build command.
-
-**Deploy status vocabulary — do not misread it:**
-
-- `build_failed` = the build command failed. Fix code, do not chase startup.
-- `update_failed` = the build passed and **the new version failed to start**. This is the
-  current state, and it points squarely at the start command.
-
-**Working rules:**
-
-- Prove `pnpm install --frozen-lockfile && pnpm run build` locally before every deploy.
-- Never merge to `main` a change that has not been proven to start locally. A failed deploy
-  leaves the previous deploy serving, so production survives mistakes — but every attempt
-  burns build minutes.
-- A concurrent process has been committing to this repo during runs (see "Provenance" below).
-  Re-read `git log` and `git status` before assuming your working tree is yours.
-
-### Provenance note
-
-**More than one agent is active on this repo.** During this run, work landed in this tree that
-the run did not write: four files (`lib/env.ts`, `lib/shutdown.ts`, `instrumentation.ts`,
-`app/api/health/route.ts`) and several commits (`5450a5b`, `3ddbb1a`, `a374b57`, `ba691ac`,
-`a70d14c`), including a merge of the feature branch into `main`.
-
-There is a second git worktree at `/Users/bobbyc/repos/honore-bot` on branch `bot/autonomous`
-that appears to drive the other agent, and `origin/main` was being advanced underneath this run
-more than once (local `main` is far behind and should not be pushed directly — push
-`feat/node-runtime-postgres` or let the other agent merge).
-
-All of that foreign work was **reviewed, built, and tested before being accepted**: boot
-validation skips the build phase and logs variable *names* only, `attachShutdown` deliberately
-avoids `process.exit()`, and `/api/health` exposes no hostnames or connection strings. The
-`a70d14c` change (removing a fabricated phone number from structured data) is correct and worth
-keeping — fabricated contact details in `LocalBusiness` markup are a real SEO and trust problem.
-
-**Rules for the next run:** re-read `git log`, `git status` and `git branch -vv` before
-assuming the tree is yours. Do not push local `main` (it is many commits behind). Prefer
-committing to `feat/node-runtime-postgres`. Be aware that **every push to `main` triggers a
-Render deploy that will fail** until the start command is fixed, so batch commits rather than
-pushing repeatedly.
+- **Render env-var writes**: use `PUT /v1/services/{id}/env-vars/{KEY}` (single-key), never the
+  bulk endpoint, which replaces the whole set. Then trigger a fresh deploy — `render restart`
+  does not reload env. Wait ≥90s before verifying the new value is live.
+- **Deploy verification**: `GET /v1/services/{id}/deploys?limit=1` and wait for `status: live`.
+  A `pre_deploy_failed` on a running service is a stale-deploy problem, not an outage.
+- **Shared repo**: `git fetch && git pull --rebase origin main`, preserve the other change, push
+  normally. Never force-push.
+- **`edit_file` with `appendText`**: always pass `edits: []`, then check the file's last 50 bytes
+  for a stray `</appendText>` trail.
+- **Regex literals written via `edit_file`** can arrive double-escaped; compile each one to check.
