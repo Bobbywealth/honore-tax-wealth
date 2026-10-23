@@ -223,7 +223,7 @@ const navCounts = await loadAdminNavCounts();
                 placeholder="Search name or email…"
                 aria-label="Search clients"
               />
-              <input type="hidden" name="status" value={status} />
+              <input type="hidden" name="bucket" value={bucket} />
               <button type="submit" className="adm-btn">
                 Search
               </button>
