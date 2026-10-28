@@ -208,6 +208,31 @@ describe("ensureBootstrapAdmin password length rule", () => {
     expect(db.inserts).toHaveLength(0);
   });
 
+  it("never re-syncs the password or role of an existing owner from the env vars", async () => {
+    // Regression: the bootstrap used to re-hash ADMIN_PASSWORD onto the owner
+    // row on every login, overwriting any password the owner set in the portal.
+    process.env.ADMIN_EMAIL = "owner@example.com";
+    process.env.ADMIN_PASSWORD = "twelvechars1";
+    db.selectRows = [{ id: "existing-owner", role: "admin" }];
+
+    await ensureBootstrapAdmin();
+    await ensureBootstrapAdmin();
+
+    expect(db.inserts).toHaveLength(0);
+    expect(db.updates).toHaveLength(0);
+  });
+
+  it("does not touch an existing row even when its role differs from the env role", async () => {
+    process.env.ADMIN_EMAIL = "owner@example.com";
+    process.env.ADMIN_PASSWORD = "twelvechars1";
+    db.selectRows = [{ id: "existing-user", role: "client" }];
+
+    await ensureBootstrapAdmin();
+
+    expect(db.inserts).toHaveLength(0);
+    expect(db.updates).toHaveLength(0);
+  });
+
   it("is a no-op when the admin env vars are unset", async () => {
     await ensureBootstrapAdmin();
     expect(db.inserts).toHaveLength(0);

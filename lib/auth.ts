@@ -357,55 +357,28 @@ async function ensureBootstrapUser(
   }
 
   const normalizedEmail = normalizeEmail(email);
-  // If this exact email already exists with the requested role, leave it alone.
+  // Seed only. If an account with this email already exists, leave it alone:
+  // never re-sync its password or role from the env vars. The previous
+  // "self-heal" re-hashed ADMIN_PASSWORD onto the owner row on every login
+  // attempt, which silently overwrote any password the owner set in the
+  // portal (and cost two extra password hashes per login). Rotating the
+  // owner password is done in the portal (Change password) or explicitly via
+  // POST /api/admin/rotate-passwords, not implicitly on login.
   const existing = await getDb()
-    .select({ id: users.id, role: users.role })
+    .select({ id: users.id })
     .from(users)
     .where(eq(users.email, normalizedEmail))
     .limit(1);
-  if (existing.length > 0) {
-    if (existing[0].role !== role) {
-      // The env vars are the source of truth for the bootstrap user's role.
-      // Promote (or demote) the existing row to match, otherwise the self-heal
-      // would skip the password update and the row would stay locked on a
-      // mismatched role with no recovery path other than manual DB surgery.
-      console.warn(
-        JSON.stringify({
-          ts: new Date().toISOString(),
-          event: "auth.bootstrap_role_corrected",
-          email: normalizedEmail,
-          existingRole: existing[0].role,
-          requestedRole: role,
-        }),
-      );
-      const correctedHash = await hashPassword(password);
-      await getDb()
-        .update(users)
-        .set({
-          role,
-          passwordHash: correctedHash,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, existing[0].id));
-      return;
-    }
-    // Self-heal: if env password is set, keep the stored hash in sync so a rotated
-    // ADMIN_PASSWORD / CLIENT_PASSWORD env var actually takes effect on the next
-    // login attempt instead of leaving the row stuck on an old hash.
-    const newHash = await hashPassword(password);
-    await getDb()
-      .update(users)
-      .set({ passwordHash: newHash, updatedAt: new Date() })
-      .where(eq(users.id, existing[0].id));
-    console.log(
-      JSON.stringify({
-        ts: new Date().toISOString(),
-        event: "auth.bootstrap_password_resynced",
-        role,
-        email: normalizedEmail,
-      }),
-    );
-    return;
+  if (existing.length > 0) return;
+  if (role === "admin") {
+    // Only bootstrap the very first owner: once any admin exists, the env
+    // vars never mint another one.
+    const anyAdmin = await getDb()
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.role, "admin"))
+      .limit(1);
+    if (anyAdmin.length > 0) return;
   }
 
   await getDb().insert(users).values({
