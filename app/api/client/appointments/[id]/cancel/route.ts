@@ -5,6 +5,7 @@ import { appointments, clientAccess } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,7 +74,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
   revalidatePath("/dashboard/client/appointments");
   revalidatePath("/dashboard/client");
   if (!contentType.includes("application/json")) {
-    return Response.redirect(new URL("/dashboard/client/appointments", request.url), 303);
+    return seeOther("/dashboard/client/appointments");
   }
   return Response.json({ ok: true });
 }

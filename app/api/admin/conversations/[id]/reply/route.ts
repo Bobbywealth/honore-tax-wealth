@@ -83,10 +83,11 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
 
   revalidatePath("/dashboard/admin/messages");
   if (!contentType.includes("application/json")) {
-    return Response.redirect(new URL(`/dashboard/admin/messages?thread=${conversationId}`, request.url), 303);
+    return seeOther(`/dashboard/admin/messages?thread=${conversationId}`);
   }
   return Response.json({ ok: true });
 }
 
 // Local imports re-exported for the inline SQL used above.
 import { sql } from "drizzle-orm";
+import { seeOther } from "@/lib/redirect";

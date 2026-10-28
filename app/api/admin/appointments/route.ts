@@ -5,6 +5,7 @@ import { appointments, clients } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -130,7 +131,7 @@ export async function POST(request: Request) {
 
   if (!contentType.includes("application/json")) {
     revalidatePath("/dashboard/admin/calendar");
-    return Response.redirect(new URL("/dashboard/admin/calendar", request.url), 303);
+    return seeOther("/dashboard/admin/calendar");
   }
   revalidatePath("/dashboard/admin/calendar");
   return Response.json({ ok: true });

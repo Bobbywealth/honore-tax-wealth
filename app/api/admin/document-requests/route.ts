@@ -5,6 +5,7 @@ import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
   } catch (error) {
     logEvent("docrequest.create.validation_failed", { userId: user.id, err: (error as Error).message });
     if (!isJson) {
-      return Response.redirect(new URL("/dashboard/admin/documents?new=1&error=invalid", request.url), 303);
+      return seeOther("/dashboard/admin/documents?new=1&error=invalid");
     }
     return Response.json({ ok: false, error: "validation_failed" }, { status: 400 });
   }
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
       .limit(1);
     if (cli.length === 0) {
       if (!isJson) {
-        return Response.redirect(new URL("/dashboard/admin/documents?new=1&error=client", request.url), 303);
+        return seeOther("/dashboard/admin/documents?new=1&error=client");
       }
       return Response.json({ ok: false, error: "client_not_found" }, { status: 404 });
     }
@@ -100,14 +101,14 @@ export async function POST(request: Request) {
   } catch (error) {
     logEvent("docrequest.create.db_error", { userId: user.id, err: (error as Error).message });
     if (!isJson) {
-      return Response.redirect(new URL("/dashboard/admin/documents?new=1&error=db", request.url), 303);
+      return seeOther("/dashboard/admin/documents?new=1&error=db");
     }
     return Response.json({ ok: false, error: "db_error" }, { status: 500 });
   }
 
   revalidatePath("/dashboard/admin/documents");
   if (!isJson) {
-    return Response.redirect(new URL("/dashboard/admin/documents?created=1", request.url), 303);
+    return seeOther("/dashboard/admin/documents?created=1");
   }
   return Response.json({ ok: true });
 }

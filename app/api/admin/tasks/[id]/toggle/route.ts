@@ -4,6 +4,7 @@ import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,7 +53,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
   const contentType = request.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) {
     revalidatePath("/dashboard/admin/tasks");
-    return Response.redirect(new URL("/dashboard/admin/tasks", request.url), 303);
+    return seeOther("/dashboard/admin/tasks");
   }
   revalidatePath("/dashboard/admin/tasks");
   return Response.json({ ok: true });

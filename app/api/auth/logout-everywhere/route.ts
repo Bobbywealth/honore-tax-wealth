@@ -5,6 +5,7 @@ import { SESSION_COOKIE } from "@/lib/auth";
 import { getDb } from "@/db";
 import { sessions } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,5 +31,5 @@ export async function POST(request: Request) {
   }
   store.set(SESSION_COOKIE, "", { path: "/", maxAge: 0 });
   revalidatePath("/", "layout");
-  return Response.redirect(new URL("/login", request.url), 303);
+  return seeOther("/login");
 }

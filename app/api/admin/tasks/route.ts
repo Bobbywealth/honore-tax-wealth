@@ -4,6 +4,7 @@ import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
   } catch {
     const back = "/dashboard/admin/tasks?new=1&error=invalid";
     if (!contentType.includes("application/json")) {
-      return Response.redirect(new URL(back, request.url), 303);
+      return seeOther(back);
     }
     return Response.json({ ok: false, error: "invalid_request" }, { status: 400 });
   }
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
     );
     revalidatePath("/dashboard/admin/tasks");
     if (!contentType.includes("application/json")) {
-      return Response.redirect(new URL("/dashboard/admin/tasks?created=1", request.url), 303);
+      return seeOther("/dashboard/admin/tasks?created=1");
     }
     return Response.json({ ok: true, id });
   } catch (error) {
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
       }),
     );
     if (!contentType.includes("application/json")) {
-      return Response.redirect(new URL("/dashboard/admin/tasks?new=1&error=db", request.url), 303);
+      return seeOther("/dashboard/admin/tasks?new=1&error=db");
     }
     return Response.json({ ok: false, error: "db_error" }, { status: 500 });
   }

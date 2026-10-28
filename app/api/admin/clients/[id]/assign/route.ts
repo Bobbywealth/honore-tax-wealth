@@ -6,6 +6,7 @@ import { getDb } from "@/db";
 import { clients, engagements, users } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -144,10 +145,7 @@ export async function POST(
       contentType.includes("application/json");
     if (!wantsJson) {
       const params = new URLSearchParams({ assigned: parsed.ownerId ?? "" });
-      return NextResponse.redirect(
-        new URL(`/dashboard/admin/clients/${id}?${params.toString()}`, request.url),
-        303,
-      );
+      return seeOther(`/dashboard/admin/clients/${id}?${params.toString()}`);
     }
 
     return NextResponse.json({

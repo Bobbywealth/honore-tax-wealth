@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { TEMPLATES, type SignableKind } from "@/lib/signature-templates";
 import { eq } from "drizzle-orm";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -129,10 +130,7 @@ export async function POST(request: Request) {
 
     const wantsJson = (request.headers.get("accept") ?? "").includes("application/json") || contentType.includes("application/json");
     if (wantsJson) return Response.json({ ok: true, id: row?.id });
-    return Response.redirect(
-      new URL(`/dashboard/admin/forms?created=${row?.id}`, request.url),
-      303,
-    );
+    return seeOther(`/dashboard/admin/forms?created=${row?.id}`);
   } catch (error) {
     logEvent("forms.create.db_error", { actor: actor.id, err: String((error as Error).message) });
     return Response.json({ ok: false, error: "db_error" }, { status: 500 });

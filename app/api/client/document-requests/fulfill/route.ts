@@ -5,6 +5,7 @@ import { clientAccess, documentRequests } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
   revalidatePath("/dashboard/client/documents");
   revalidatePath("/dashboard/client");
   if (!contentType.includes("application/json")) {
-    return Response.redirect(new URL("/dashboard/client/documents", request.url), 303);
+    return seeOther("/dashboard/client/documents");
   }
   return Response.json({ ok: true });
 }
