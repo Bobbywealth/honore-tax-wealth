@@ -5,6 +5,7 @@ import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { sql } from "drizzle-orm";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -372,7 +373,7 @@ export async function POST(request: Request) {
       errors: String(errors.length),
       ...(errors.length > 0 ? { report: Buffer.from(JSON.stringify(errors)).toString("base64") } : {}),
     });
-    return Response.redirect(new URL(`/dashboard/admin/clients?${search.toString()}`, request.url), 303);
+    return seeOther(`/dashboard/admin/clients?${search.toString()}`);
   } catch (error: any) {
     logEvent("client.import.db_error", { actor: actor.id, err: String(error?.message ?? error) });
     return Response.json({ ok: false, error: "db_error", message: String(error?.message ?? error) }, { status: 500 });

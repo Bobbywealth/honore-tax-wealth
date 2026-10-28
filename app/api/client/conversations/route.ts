@@ -5,6 +5,7 @@ import { ensureMigrated } from "@/db/migrate";
 import { currentUser } from "@/lib/auth";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
 
     revalidatePath("/dashboard/client/messages");
     if (!contentType.includes("application/json")) {
-      return Response.redirect(new URL(`/dashboard/client/messages?thread=${conv.id}`, request.url), 303);
+      return seeOther(`/dashboard/client/messages?thread=${conv.id}`);
     }
     return Response.json({ ok: true, conversationId: conv.id });
   } catch (error) {

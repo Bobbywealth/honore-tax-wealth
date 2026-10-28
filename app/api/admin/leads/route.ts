@@ -4,6 +4,7 @@ import { leads } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
   // If submitted as a native form (no fetch headers), redirect back.
   if (!contentType.includes("application/json")) {
     revalidatePath("/dashboard/admin/leads");
-    return Response.redirect(new URL("/dashboard/admin/leads", request.url), 303);
+    return seeOther("/dashboard/admin/leads");
   }
 
   revalidatePath("/dashboard/admin/leads");

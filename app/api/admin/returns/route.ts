@@ -5,6 +5,7 @@ import { clients, engagements, returns, taxYears } from "@/db/schema";
 import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -139,7 +140,7 @@ export async function POST(request: Request) {
 
   if (!contentType.includes("application/json")) {
     revalidatePath("/dashboard/admin/returns");
-    return Response.redirect(new URL("/dashboard/admin/returns", request.url), 303);
+    return seeOther("/dashboard/admin/returns");
   }
   revalidatePath("/dashboard/admin/returns");
   return Response.json({ ok: true });

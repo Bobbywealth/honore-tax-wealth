@@ -5,6 +5,7 @@ import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -70,7 +71,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
   } catch {
     logEvent("return.stage.validation_failed", { userId: user.id, returnId: id });
     if (!isJson) {
-      return Response.redirect(new URL("/dashboard/admin/returns?error=invalid", request.url), 303);
+      return seeOther("/dashboard/admin/returns?error=invalid");
     }
     return Response.json({ ok: false, error: "validation_failed" }, { status: 400 });
   }
@@ -86,7 +87,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
       .limit(1);
     if (rows.length === 0) {
       if (!isJson) {
-        return Response.redirect(new URL("/dashboard/admin/returns?error=notfound", request.url), 303);
+        return seeOther("/dashboard/admin/returns?error=notfound");
       }
       return Response.json({ ok: false, error: "not_found" }, { status: 404 });
     }
@@ -130,14 +131,14 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
   } catch (error) {
     logEvent("return.stage.db_error", { userId: user.id, returnId: id, err: (error as Error).message });
     if (!isJson) {
-      return Response.redirect(new URL("/dashboard/admin/returns?error=db", request.url), 303);
+      return seeOther("/dashboard/admin/returns?error=db");
     }
     return Response.json({ ok: false, error: "db_error" }, { status: 500 });
   }
 
   revalidatePath("/dashboard/admin/returns");
   if (!isJson) {
-    return Response.redirect(new URL("/dashboard/admin/returns?moved=1", request.url), 303);
+    return seeOther("/dashboard/admin/returns?moved=1");
   }
   return Response.json({ ok: true });
 }

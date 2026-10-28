@@ -4,6 +4,7 @@ import { ensureMigrated } from "@/db/migrate";
 import { requireRole } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { seeOther } from "@/lib/redirect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,7 +44,7 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
       .limit(1);
     if (rows.length === 0) {
       if (!isJson) {
-        return Response.redirect(new URL("/dashboard/admin/calendar?error=notfound", request.url), 303);
+        return seeOther("/dashboard/admin/calendar?error=notfound");
       }
       return Response.json({ ok: false, error: "not_found" }, { status: 404 });
     }
@@ -55,14 +56,14 @@ export async function POST(request: Request, ctx: { params: Promise<{ id: string
   } catch (error) {
     logEvent("appointment.cancel.db_error", { userId: user.id, appointmentId: id, err: (error as Error).message });
     if (!isJson) {
-      return Response.redirect(new URL("/dashboard/admin/calendar?error=db", request.url), 303);
+      return seeOther("/dashboard/admin/calendar?error=db");
     }
     return Response.json({ ok: false, error: "db_error" }, { status: 500 });
   }
 
   revalidatePath("/dashboard/admin/calendar");
   if (!isJson) {
-    return Response.redirect(new URL("/dashboard/admin/calendar?cancelled=1", request.url), 303);
+    return seeOther("/dashboard/admin/calendar?cancelled=1");
   }
   return Response.json({ ok: true });
 }
