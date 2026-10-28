@@ -1,4 +1,5 @@
-import { Mail, UserPlus } from "lucide-react";
+import { Mail } from "lucide-react";
+import AddStaffForm from "./AddStaffForm";
 import { asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import DashboardShell from "../../DashboardShell";
 import { loadAdminNavCounts } from "../lib/nav-counts";
@@ -41,11 +42,10 @@ function formatDate(value: Date | null): string {
  * real person to answer. The list now contains only accounts that exist in the
  * users table.
  */
-export default async function TeamPage({ searchParams }: { searchParams?: Promise<{ created?: string; temp?: string; error?: string }> }) {
+export default async function TeamPage({ searchParams }: { searchParams?: Promise<{ created?: string; error?: string }> }) {
   const access = await checkAdminAccess(await searchParams);
   if (!access.allowed) return access.restricted;
 
-  const sp = (await searchParams) ?? {};
   const me = await currentUser();
   const isAdmin = me?.role === "admin";
   const nav = navForRole(me?.role, await loadAdminNavCounts());
@@ -124,34 +124,7 @@ const navCounts = await loadAdminNavCounts();
       </div>
 
       {isAdmin ? (
-        <form id="adm-team-add" className="adm-team-form" action="/api/admin/team/invite" method="post">
-          <div>
-            <label htmlFor="adm-team-email">Email</label>
-            <input id="adm-team-email" name="email" type="email" required maxLength={180} placeholder="name@honoretaxwealth.com" />
-          </div>
-          <div>
-            <label htmlFor="adm-team-name">Display name</label>
-            <input id="adm-team-name" name="displayName" required minLength={2} maxLength={120} placeholder="Full name" />
-          </div>
-          <div>
-            <label htmlFor="adm-team-role">Role</label>
-            <select id="adm-team-role" name="role" required defaultValue="staff">
-              <option value="staff">Agent (staff)</option>
-              <option value="assistant">Assistant</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div className="adm-team-form-submit">
-            <button type="submit" className="adm-btn"><UserPlus size={14} aria-hidden="true" /> Add to team</button>
-            {sp.error === "email_already_exists" ? (
-              <span className="adm-form-err">An account with that email already exists.</span>
-            ) : sp.error === "validation_failed" ? (
-              <span className="adm-form-err">Email + name + role are required.</span>
-            ) : sp.created ? (
-              <span className="adm-form-msg">Account created. Temp password (share out-of-band): <code>{sp.temp ?? "(see response)"}</code></span>
-            ) : null}
-          </div>
-        </form>
+        <AddStaffForm />
       ) : null}
 
       {unavailable ? (
