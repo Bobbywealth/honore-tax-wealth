@@ -40,7 +40,6 @@ const STATEMENTS: string[] = [
   `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS user_agent VARCHAR(300)`,
   `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS requested_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`,
   `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS contacted_at TIMESTAMPTZ`,
-  `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS assigned_to_id UUID REFERENCES users(id) ON DELETE SET NULL`,
   `CREATE INDEX IF NOT EXISTS consultations_status_idx ON consultations (status)`,
 
   /* ============================ Identity ============================ */
@@ -61,6 +60,9 @@ const STATEMENTS: string[] = [
      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
    )`,
   `CREATE UNIQUE INDEX IF NOT EXISTS users_email_key ON users (email)`,
+  // Must follow CREATE TABLE users: a fresh database has no users table yet,
+  // and a forward reference fails the whole migration.
+  `ALTER TABLE consultations ADD COLUMN IF NOT EXISTS assigned_to_id UUID REFERENCES users(id) ON DELETE SET NULL`,
   `CREATE INDEX IF NOT EXISTS users_role_idx ON users (role)`,
   // Soft-delete watermark added by f91cc07 ("extend roles with assistant +
   // add deactivatedAt soft-delete"). Backfill column on existing
@@ -586,8 +588,6 @@ const STATEMENTS: string[] = [
      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
    )`,
 
-  /* Release the advisory lock on every path, including failure. */
-  `SELECT pg_advisory_unlock(918273645)`,
 ];
 
 let ran = false;
@@ -595,23 +595,36 @@ let ran = false;
 export async function ensureMigrated(): Promise<void> {
   if (ran) return;
   const db = getDb();
-  for (const stmt of STATEMENTS) {
+  try {
+    for (const stmt of STATEMENTS) {
+      try {
+        await db.execute(sql.raw(stmt));
+      } catch (err) {
+        console.error(
+          JSON.stringify({
+            ts: new Date().toISOString(),
+            event: "db.migration_failed",
+            statement: stmt.slice(0, 90),
+            reason: err instanceof Error ? err.message : "unknown",
+          }),
+        );
+        throw err;
+      }
+    }
+    ran = true;
+    console.log(JSON.stringify({ ts: new Date().toISOString(), event: "db.migrations_ensured" }));
+  } finally {
+    // Always release the session-level advisory lock, including when a
+    // statement failed part-way through. The lock used to be released by a
+    // final array entry, which is unreachable once a statement throws — so a
+    // failed migration left the lock held on that pooled connection and the
+    // next attempt could block forever on a different connection.
     try {
-      await db.execute(sql.raw(stmt));
-    } catch (err) {
-      console.error(
-        JSON.stringify({
-          ts: new Date().toISOString(),
-          event: "db.migration_failed",
-          statement: stmt.slice(0, 90),
-          reason: err instanceof Error ? err.message : "unknown",
-        }),
-      );
-      throw err;
+      await db.execute(sql.raw(`SELECT pg_advisory_unlock(918273645)`));
+    } catch {
+      // The lock was never acquired; nothing to release.
     }
   }
-  ran = true;
-  console.log(JSON.stringify({ ts: new Date().toISOString(), event: "db.migrations_ensured" }));
 }
 
 export async function close(): Promise<void> {
