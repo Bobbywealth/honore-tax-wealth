@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "../_components/SiteFooter";
+import { addressLines, site } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -23,6 +24,7 @@ const h2 = { font: "400 26px/1.2 Georgia, serif", letterSpacing: "-0.02em", marg
 const p = { color: "#5b6c78", fontSize: 15, lineHeight: 1.7, margin: "0 0 14px" } as const;
 
 export default function ContactPage() {
+  const address = addressLines();
   return (
     <>
     <main style={page}>
@@ -49,8 +51,11 @@ export default function ContactPage() {
         >
           <h2 style={{ ...h2, marginTop: 0 }}>How to reach us</h2>
           <p style={p}>
-            The three channels below are the verified ways to reach I Honore. Phone, email, and
-            mailing address are listed here and on every page footer.
+            The channels below are the verified ways to reach I Honore. Phone and email are listed
+            here and on every page footer.
+            {address.length === 0
+              ? " Our mailing address is available on request \u2014 call or email us and we will send it."
+              : null}
           </p>
           <dl style={{ margin: "20px 0 0", display: "grid", gap: 14 }}>
             <div>
@@ -65,6 +70,16 @@ export default function ContactPage() {
                 <a href="mailto:ihonoretaxwealth@gmail.com" style={{ color: "inherit", textDecoration: "none" }}>ihonoretaxwealth@gmail.com</a>
               </dd>
             </div>
+            {address.length > 0 ? (
+              <div>
+                <dt style={{ ...gold, marginBottom: 4 }}>Address</dt>
+                <dd style={{ margin: 0, font: "500 18px/1.4 Georgia, serif", color: "#172435" }}>
+                  {address.map((line) => (
+                    <span key={line}>{line}<br /></span>
+                  ))}
+                </dd>
+              </div>
+            ) : null}
           </dl>
         </div>
 
@@ -104,12 +119,15 @@ export default function ContactPage() {
           </button>
         </div>
 
-        <h2 style={h2}>Already a client?</h2>
+        <h2 style={h2}>Already a client, or part of the team?</h2>
         <p style={p}>
-          Sign in to the client portal for your documents, messages, and engagement status.
+          Clients sign in to the client portal for their documents, messages, and engagement status.
+          I Honore team members use the separate agent sign-in and land in their own workspace.
         </p>
         <p style={p}>
-          <Link href="/login" style={{ color: "#9a7642" }}>Go to client sign in</Link>
+          <Link href={site.clientSignInPath} style={{ color: "#9a7642" }}>Go to client sign in</Link>
+          {" · "}
+          <Link href={site.agentSignInPath} style={{ color: "#9a7642" }}>Go to agent sign in</Link>
         </p>
 
         <h2 style={h2}>What to expect</h2>

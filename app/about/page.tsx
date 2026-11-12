@@ -35,7 +35,7 @@ export default function AboutPage() {
         <h1 style={h1}>About I Honore.</h1>
         <p style={{ ...p, fontSize: 17, marginBottom: 8 }}>
           I Honore Tax &amp; Wealth is a tax company focused on preparation, filing, and planning for
-          individuals, families, and business owners.
+          individuals, families, and business owners — serving clients nationwide, in all 50 states.
         </p>
 
         <h2 style={h2}>The founders</h2>
@@ -54,7 +54,7 @@ export default function AboutPage() {
               style={{ width: "100%", height: "auto", borderRadius: 12, display: "block" }}
             />
             <figcaption style={{ ...gold, marginTop: 12 }}>
-              John Joseph — Co-founder
+              John Joseph — Founder &amp; CEO
             </figcaption>
           </figure>
           <figure style={{ margin: 0 }}>

@@ -12,7 +12,7 @@ export const metadata:Metadata={
   title:{default:"I Honore Tax & Wealth",template:"%s · I Honore Tax & Wealth"},
   description:"Tax preparation, filing, and planning with a bigger picture in focus.",
   applicationName:"I Honore Tax & Wealth",
-  keywords:["tax preparation","tax filing","tax planning","IRS notices","small business tax","Bloomfield NJ tax","NJ tax accountant"],
+  keywords:["tax preparation","tax filing","tax planning","IRS notices","small business tax","nationwide tax preparation","tax preparation all 50 states","online tax filing nationwide","virtual tax preparation"],
   authors:[{name:"I Honore Tax & Wealth"}],
   creator:"I Honore Tax & Wealth",
   publisher:"I Honore Tax & Wealth",
@@ -43,7 +43,10 @@ const jsonLd = {
   // violates the project's own rule against placeholder contact information.
   // Restore the field once the practice supplies a verified number.
   "priceRange":"$$",
-  "areaServed":{"@type":"AdministrativeArea","name":"New Jersey"},
+  // The practice serves clients in every U.S. state, so areaServed must not
+  // claim a single state. This previously said "New Jersey", which
+  // contradicted the copy and the "nationwide, all 50 states" claim.
+  "areaServed":{"@type":"Country","name":"United States"},
   "serviceType":["Tax preparation","Tax filing","Tax planning","IRS notice help","Small business tax"],
   "knowsAbout":["Individual taxation","Business taxation","IRS procedures","Tax planning"],
 };
