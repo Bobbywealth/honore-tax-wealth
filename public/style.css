@@ -44,3 +44,8 @@ body{background:#0b1a2a;color:white}.login-layout{min-height:100vh;display:grid;
 .agent-select-button:hover{background:#0e1927;color:#f7f5ef}
 .agent-select-title{font-weight:400;font-size:12px;opacity:.7}
 @media(max-width:480px){.agent-select-buttons{flex-direction:column}.agent-select-button{width:100%}}
+
+/* Agent sign-in link in the public nav. Sits beside the Client login button
+   as a quieter text link, matching the two-separate-entrances requirement. */
+.nav-agent{color:#0e1927;text-decoration:none;padding:16px 3px;text-transform:uppercase;letter-spacing:.09em;font-weight:700;white-space:nowrap}
+.nav-agent:hover{color:#9a7642}

@@ -3,7 +3,10 @@
  * (/about, /contact, /login). Mirrors the homepage footer with
  * absolute anchor URLs so in-page links work from any route.
  */
+import { addressLines, site } from "@/lib/site-config";
+
 export default function SiteFooter() {
+  const address = addressLines();
   return (
     <footer className="footer honore-footer">
       <div className="footer-inner">
@@ -20,6 +23,9 @@ export default function SiteFooter() {
             <dl className="footer-contact" aria-label="Contact information">
               <div><dt>Phone</dt><dd><a href="tel:+14073407964" style={{ color: "inherit", textDecoration: "none" }}>407-340-7964</a></dd></div>
               <div><dt>Email</dt><dd><a href="mailto:ihonoretaxwealth@gmail.com" style={{ color: "inherit", textDecoration: "none" }}>ihonoretaxwealth@gmail.com</a></dd></div>
+              {address.length > 0 ? (
+                <div><dt>Address</dt><dd>{address.map((line) => (<span key={line}>{line}<br /></span>))}</dd></div>
+              ) : null}
             </dl>
           </div>
           <nav className="footer-col" aria-label="Footer company navigation">
@@ -41,7 +47,8 @@ export default function SiteFooter() {
             <strong>GET STARTED</strong>
             <a href="/services/personal-taxes#prepare">Preparation guide</a>
             <a href="/contact">Contact</a>
-            <a href="/login">Client portal</a>
+            <a href={site.clientSignInPath}>Client portal</a>
+            <a href={site.agentSignInPath}>Agent portal</a>
             <a className="footer-top-link" href="#top">Back to top <span aria-hidden="true">↑</span></a>
           </nav>
         </div>
