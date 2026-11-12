@@ -119,7 +119,7 @@ export default function AboutPage() {
           <strong style={{ display: "block", marginBottom: 6 }}>Please keep documents to yourself.</strong>
           <p style={{ ...p, margin: 0 }}>
             Do not send tax forms, Social Security numbers, or other sensitive documents through the
-            consultation form. Your preparer will provide a secure method when the time comes. See our{" "}
+            consultation form. Upload tax documents securely inside your client portal instead. See our{" "}
             <Link href="/privacy" style={{ color: "#9a7642" }}>privacy policy</Link>.
           </p>
         </div>
